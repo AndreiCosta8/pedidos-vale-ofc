@@ -219,6 +219,41 @@ body.logged-out .main{display:none !important}
 }
 @keyframes loginSpin{to{transform:rotate(360deg)}}
 
+
+/* ── COMISSÃO SECRET ─────────────────────── */
+#modal-com-login{
+  position:fixed;inset:0;background:rgba(0,0,0,.85);
+  z-index:500;display:none;align-items:center;justify-content:center;
+}
+#modal-com-login.open{display:flex}
+.com-login-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:16px;padding:28px 24px;width:100%;max-width:320px;
+  animation:fadeIn .2s ease;
+}
+.com-title{font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.com-sub{font-size:10px;color:var(--muted);margin-bottom:16px}
+.com-err{font-size:11px;color:var(--red);margin-top:8px;display:none}
+.com-card{
+  background:var(--card2);border:1px solid var(--border);
+  border-radius:12px;padding:18px 20px;margin-bottom:12px;
+}
+.com-card-title{font-size:10px;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.com-person{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;border-bottom:1px solid var(--border)}
+.com-person:last-child{border-bottom:none}
+.com-person-name{font-size:12px;color:var(--text);font-weight:500}
+.com-person-pct{font-size:10px;color:var(--muted);margin-top:2px}
+.com-person-val{font-family:'JetBrains Mono',monospace;font-size:15px;
+  font-weight:700;color:var(--gold)}
+.com-total-box{background:rgba(245,196,24,.07);border:1px solid rgba(245,196,24,.2);
+  border-radius:10px;padding:14px 16px;margin-bottom:12px;
+  display:flex;justify-content:space-between;align-items:center}
+.com-total-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.com-total-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--gold)}
+.com-period{font-size:10px;color:var(--muted);text-align:center;margin-top:8px}
+
 </style>
 </head>
 <body class="logged-out">
@@ -274,7 +309,11 @@ body.logged-out .main{display:none !important}
   <div class="ni" onclick="nav('produtos')" data-pg="produtos"><span class="ni-icon">📦</span>Produtos e Preços</div>
   <div class="sb-footer">
     <div style="font-size:9px;color:var(--muted)">Base 2026 carregada<br>301 pedidos · 466 itens</div>
-    <div class="fb-st"><div class="fb-dot"></div><span id="fb-lbl">Conectando...</span></div>
+    <div class="fb-st" id="fb-trigger" onclick="comissaoClick()"
+      style="cursor:default;user-select:none">
+      <div class="fb-dot"></div>
+      <span id="fb-lbl">Conectando...</span>
+    </div>
   </div>
 </nav>
 
@@ -481,6 +520,35 @@ body.logged-out .main{display:none !important}
   </div>
 
 </div><!-- /main -->
+
+
+<!-- PÁGINA COMISSÃO (SECRETA — sem item no menu) -->
+<div class="pg" id="pg-comissao" style="max-width:640px"></div>
+
+<!-- MODAL LOGIN COMISSÃO -->
+<div class="modal-bg" id="m-comissao">
+  <div class="modal" style="max-width:340px">
+    <div class="mh">
+      <h3>🔐 Área Restrita</h3>
+      <button class="mclose" onclick="closeM('m-comissao')">✕</button>
+    </div>
+    <div class="mc" style="padding:16px 20px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+        Insira a senha para acessar os dados de comissão
+      </div>
+      <input type="password" id="com-pwd-inp" class="si"
+        placeholder="Senha secreta" style="width:100%"
+        onkeydown="if(event.key==='Enter')verificarComSenha()"/>
+      <div id="com-err" style="font-size:11px;color:var(--red);margin-top:8px;display:none">
+        Senha incorreta.
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-comissao')">Cancelar</button>
+      <button class="btn" onclick="verificarComSenha()">Acessar</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL FATURAMENTO -->
 <div class="modal-bg" id="m-fat">
@@ -706,6 +774,7 @@ const TITLES = {
   novo:['Novo Pedido','Cadastrar pedido recebido por e-mail'],
   tratativa:['Tratativa de Pedidos','Atualizar NF · Data Faturamento · Data Entrega · Ocorrência'],
   produtos:['Produtos e Preços','Catálogo com preços por UF e por cliente'],
+  comissao:['Desempenho Comercial','S11D · Resultados e Comissões'],
 };
 function nav(pg){
   document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
@@ -1561,6 +1630,232 @@ async function loginForgot(){
     await _auth.sendPasswordResetEmail(addr);
     alert('✅ E-mail de redefinição enviado para: '+addr);
   } catch(e){ alert('Erro: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+// COMISSÃO SECRETA
+// ══════════════════════════════════════════════
+const COM_SENHA = 'vale2026';
+let _comClicks=0,_comTimer=null;
+function comissaoClick(){
+  _comClicks++;clearTimeout(_comTimer);
+  _comTimer=setTimeout(()=>{_comClicks=0;},800);
+  if(_comClicks>=3){_comClicks=0;openM('m-comissao');
+    setTimeout(()=>document.getElementById('com-pwd-inp').focus(),150);}
+}
+function verificarComSenha(){
+  const pwd=document.getElementById('com-pwd-inp').value;
+  const errEl=document.getElementById('com-err');
+  if(pwd===COM_SENHA){
+    closeM('m-comissao');
+    document.getElementById('com-pwd-inp').value='';
+    errEl.style.display='none';
+    nav('comissao');renderComissao();
+  } else {
+    errEl.style.display='block';
+    document.getElementById('com-pwd-inp').value='';
+    document.getElementById('com-pwd-inp').focus();
+  }
+}
+function renderComissao(){
+  const ano=document.getElementById('d-ano')?.value||'2026';
+  const comFiltMes=window._comFiltMes||'todos';
+  const comFiltPes=window._comFiltPes||'todos';
+
+  const MO=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const MO_PT=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+  // Todas as linhas S11D entregues
+  // TODAS as linhas S11D (para base da Myrelle)
+  const todasS11D=allLinhas(ano,'all','PA','S11D','all');
+
+  // Linhas COM NF emitida (para base do Andrei)
+  const fatS11D=todasS11D.filter(l=>l.statusEP&&l.statusEP.toString().trim()!=='');
+
+  // Por mês — bases separadas
+  const byM={};
+  MO.forEach(m=>{ byM[m]={vFat:0,vTot:0,nFat:0,nTot:0}; });
+
+  // Base Andrei: faturado (tem NF)
+  fatS11D.forEach(l=>{
+    const m=(l.mes||'').toLowerCase().trim();
+    if(!byM[m]) byM[m]={vFat:0,vTot:0,nFat:0,nTot:0};
+    const v=(+l.vlrFaturado||+l.vlrTotal||0);
+    byM[m].vFat+=v; byM[m].nFat++;
+  });
+
+  // Base Myrelle: todos os pedidos (total do pedido)
+  todasS11D.forEach(l=>{
+    // Mês: usar mês do pedido (dataPedido)
+    const dp=l._ped?.dataPedido;
+    const m=dp?new Date(dp+'T12:00:00').toLocaleDateString('pt-BR',{month:'short'})
+      .replace('.','').toLowerCase():'—';
+    const mKey=MO.find(mo=>m.startsWith(mo))||m;
+    if(!byM[mKey]) byM[mKey]={vFat:0,vTot:0,nFat:0,nTot:0};
+    const v=(+l.vlrTotal||0);
+    byM[mKey].vTot+=v; byM[mKey].nTot++;
+  });
+
+  // Filtrar por mês
+  const fatFilt=comFiltMes==='todos'?fatS11D:
+    fatS11D.filter(l=>(l.mes||'').toLowerCase().trim()===comFiltMes);
+  const todasFilt=comFiltMes==='todos'?todasS11D:
+    todasS11D.filter(l=>{
+      const dp=l._ped?.dataPedido;
+      if(!dp) return false;
+      const m=new Date(dp+'T12:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.','').toLowerCase();
+      return MO.find(mo=>m.startsWith(mo))===comFiltMes;
+    });
+
+  const baseAndrei=fatFilt.reduce((s,l)=>s+(+l.vlrFaturado||+l.vlrTotal||0),0);
+  const baseMyrelle=todasFilt.reduce((s,l)=>s+(+l.vlrTotal||0),0);
+  const comA_filt=baseAndrei*0.01;
+  const comM_filt=baseMyrelle*0.005;
+
+  // Meses com dados
+  const mesesComDados=MO.filter(m=>byM[m]&&(byM[m].vFat>0||byM[m].vTot>0));
+
+  // Valor máximo para barra
+  const maxV=Math.max(...MO.filter(m=>byM[m]).map(m=>Math.max(byM[m].vFat,byM[m].vTot)),1);
+
+  // Opções de mês para o select
+  const mesOpts=['<option value="todos">Todos os Meses</option>',
+    ...mesesComDados.map((m,i)=>`<option value="${m}" ${comFiltMes===m?'selected':''}>${MO_PT[MO.indexOf(m)]}</option>`)
+  ].join('');
+
+  // Título do período
+  const periodoLabel=comFiltMes==='todos'?`Acumulado ${ano}`:
+    MO_PT[MO.indexOf(comFiltMes)]+' '+ano;
+
+  // KPI por pessoa filtrada
+  const kpiAndrei = comFiltPes==='myrelle'?'':
+    `<div style="background:rgba(245,196,24,.08);border:1px solid rgba(245,196,24,.2);border-radius:12px;padding:14px 16px;flex:1;min-width:140px">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Andrei Costa · 1%</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--gold)">${brl(comA_filt)}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px">${periodoLabel}</div>
+    </div>`;
+
+  const kpiMyrelle = comFiltPes==='andrei'?'':
+    `<div style="background:rgba(59,143,212,.08);border:1px solid rgba(59,143,212,.2);border-radius:12px;padding:14px 16px;flex:1;min-width:140px">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Myrelle · 0,5%</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--blue)">${brl(comM_filt)}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:4px">${periodoLabel}</div>
+    </div>`;
+
+  // Gráfico de barras por mês
+  const barMaxH=80;
+  const barsHtml=mesesComDados.map(m=>{
+    const hV=Math.round((byM[m].vFat/maxV)*barMaxH);
+    const sel=comFiltMes===m;
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1;min-width:36px"
+      onclick="window._comFiltMes='${comFiltMes===m?'todos':m}';renderComissao()">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)">${brl(byM[m].vFat).replace('R$ ','')}</div>
+      <div style="width:100%;background:var(--card2);border-radius:6px;height:${barMaxH}px;position:relative;display:flex;align-items:flex-end;overflow:hidden;
+        ${sel?'outline:1px solid var(--gold);':''}">
+        <div style="width:100%;height:${hV}px;background:${sel?'var(--gold)':'rgba(245,196,24,.25)'};border-radius:4px 4px 0 0;transition:height .3s"></div>
+      </div>
+      <div style="font-size:9px;color:${sel?'var(--gold)':'var(--muted)'};text-transform:capitalize;font-weight:${sel?'700':'400'}">${m}</div>
+    </div>`;
+  }).join('');
+
+  // Tabela por mês
+  const tabelaRows=mesesComDados.map((m,i)=>{
+    const sel=comFiltMes===m;
+    const showA=comFiltPes!=='myrelle';
+    const showM=comFiltPes!=='andrei';
+    return `<tr style="background:${sel?'rgba(245,196,24,.05)':''}">
+      <td style="padding:9px 10px;font-size:11px;color:${sel?'var(--gold)':'var(--text)'};font-weight:${sel?'700':'400'};cursor:pointer;text-transform:capitalize"
+        onclick="window._comFiltMes='${sel?'todos':m}';renderComissao()">${MO_PT[MO.indexOf(m)]}</td>
+      <td style="padding:9px 10px;font-size:10px;color:var(--muted);text-align:right">${byM[m].nFat||0}</td>
+      ${showA?`<td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);text-align:right">${brl(byM[m].vFat||0)}</td>
+      <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);text-align:right">${brl((byM[m].vFat||0)*0.01)}</td>`:''}
+      ${showM?`<td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);text-align:right">${brl(byM[m].vTot||0)}</td>
+      <td style="padding:9px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue);text-align:right">${brl((byM[m].vTot||0)*0.005)}</td>`:''}
+    </tr>`;
+  }).join('');
+
+  const showA=comFiltPes!=='myrelle';
+  const showM=comFiltPes!=='andrei';
+  const nPed=Object.values(PEDS).filter(p=>p.planta==='S11D'&&(ano==='all'||p.ano===ano)).length;
+  const nFatTotal=fatS11D.length;
+
+  document.getElementById('pg-comissao').innerHTML=`
+    <!-- HEADER -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:#fff">Comissões · S11D</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${ano} · ${nPed} pedidos · ${nFatTotal} linhas c/ NF · ${todasS11D.length} linhas total</div>
+      </div>
+      <span style="background:rgba(232,80,58,.1);border:1px solid rgba(232,80,58,.3);color:var(--red);font-size:9px;padding:3px 10px;border-radius:10px;font-weight:600">🔒 Confidencial</span>
+    </div>
+
+    <!-- FILTROS -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <select class="fs" onchange="window._comFiltMes=this.value;renderComissao()">${mesOpts}</select>
+      <select class="fs" onchange="window._comFiltPes=this.value;renderComissao()">
+        <option value="todos" ${comFiltPes==='todos'?'selected':''}>Andrei + Myrelle</option>
+        <option value="andrei" ${comFiltPes==='andrei'?'selected':''}>Apenas Andrei</option>
+        <option value="myrelle" ${comFiltPes==='myrelle'?'selected':''}>Apenas Myrelle</option>
+      </select>
+      ${comFiltMes!=='todos'||comFiltPes!=='todos'?
+        `<button class="btn btn-sec" style="font-size:10px;padding:5px 10px"
+          onclick="window._comFiltMes='todos';window._comFiltPes='todos';renderComissao()">↺ Limpar</button>`:''}
+    </div>
+
+    <!-- TOTAL FATURADO -->
+    <div style="background:rgba(245,196,24,.07);border:1px solid rgba(245,196,24,.2);border-radius:12px;padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Faturado S11D (c/ NF)</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:2px">${periodoLabel}</div>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--gold)">${brl(baseAndrei)}</div>
+    </div>
+
+    <!-- KPIs COMISSÃO -->
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      ${kpiAndrei}${kpiMyrelle}
+    </div>
+
+    <!-- GRÁFICO DE BARRAS -->
+    ${mesesComDados.length>0?`
+    <div class="card card-accent" style="--accent:var(--gold);margin-bottom:12px">
+      <div class="sec" style="font-size:9px;margin-bottom:12px">📊 Faturamento por Mês · Clique para filtrar</div>
+      <div style="display:flex;gap:6px;align-items:flex-end;padding:0 4px">
+        ${barsHtml}
+      </div>
+    </div>`:''}
+
+    <!-- TABELA POR MÊS -->
+    <div class="card" style="margin-bottom:12px;padding:0;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="background:var(--card2);border-bottom:1px solid var(--border)">
+            <th style="padding:9px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Mês</th>
+            <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600">NFs</th>
+            ${showA?`<th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Faturado (NF)</th>
+            <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Andrei 1%</th>`:''}
+            ${showM?`<th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Total Pedidos</th>
+            <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;font-weight:600">Myrelle 0,5%</th>`:''}
+          </tr>
+        </thead>
+        <tbody>${tabelaRows}</tbody>
+        <tfoot>
+          <tr style="background:var(--card2);border-top:2px solid var(--border)">
+            <td style="padding:9px 10px;font-size:11px;font-weight:700;color:var(--text)">Total ${periodoLabel}</td>
+            <td style="padding:9px 10px;text-align:right;font-size:11px;color:var(--muted)">${fatFilt.length}</td>
+            ${showA?`<td style="padding:9px 10px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--gold)">${brl(baseAndrei)}</td>
+            <td style="padding:9px 10px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--gold)">${brl(comA_filt)}</td>`:''}
+            ${showM?`<td style="padding:9px 10px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--blue)">${brl(baseMyrelle)}</td>
+            <td style="padding:9px 10px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--blue)">${brl(comM_filt)}</td>`:''}
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div style="font-size:10px;color:var(--muted);text-align:center">
+      Andrei: linhas com NF emitida · Myrelle: total de todos os pedidos S11D
+    </div>
+  `;
 }
 </script>
 
