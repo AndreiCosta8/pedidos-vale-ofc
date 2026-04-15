@@ -1273,8 +1273,12 @@ async function salvarPed(){
 // ══════════════════════════════════════════════
 function diasRestantes(dataPedido){
   if(!dataPedido) return null;
-  const prazo=new Date(pdt(dataPedido).getTime()+30*86400000);
-  return Math.ceil((prazo-new Date())/86400000);
+  const prazoBase=pdt(dataPedido);
+  if(!prazoBase) return null;
+  // Compara só datas (sem hora) para evitar off-by-1
+  const prazo=new Date(prazoBase.getFullYear(),prazoBase.getMonth(),prazoBase.getDate()+30);
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  return Math.round((prazo-hoje)/86400000);
 }
 function statusPrazo(ln,dataPedido){
   if(ln.status==='ENTREGUE Á TRANSPORTADORA') return 'ok';
