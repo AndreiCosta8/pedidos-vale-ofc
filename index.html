@@ -142,13 +142,123 @@ tbody td{padding:8px 9px;vertical-align:middle}
 .trat-row.pendente{border-left-color:var(--blue)}
 .info-box{background:var(--card2);border-radius:7px;padding:9px 12px;margin-bottom:12px;font-size:11px}
 .tag{display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:500;border:1px solid;margin-right:3px}
+
+/* ── HAMBURGUER ────────────────────────────── */
+.ham-btn{
+  display:none;
+  background:none;border:none;cursor:pointer;
+  padding:6px;border-radius:8px;color:var(--text);
+  flex-direction:column;gap:4px;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.ham-btn:hover{background:rgba(255,255,255,.07)}
+.ham-btn span{
+  display:block;width:20px;height:2px;
+  background:var(--text);border-radius:2px;
+  transition:transform .25s,opacity .25s;
+}
+/* overlay when sidebar is open */
+.sb-overlay{
+  display:none;
+  position:fixed;inset:0;z-index:99;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(2px);
+}
+.sb-overlay.on{display:block}
+
+/* ── BOTTOM NAV MOBILE ─────────────────────── */
+.bnav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;z-index:98;
+  background:var(--card);
+  border-top:1px solid var(--border);
+  padding:6px 0 env(safe-area-inset-bottom,6px);
+}
+.bnav-inner{
+  display:flex;align-items:stretch;
+  max-width:500px;margin:0 auto;
+}
+.bni{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;padding:6px 4px;
+  cursor:pointer;border-radius:10px;margin:0 2px;
+  transition:background .15s,color .15s;color:var(--muted);
+  border:none;background:none;font-family:inherit;
+  position:relative;
+}
+.bni:hover,.bni.on{color:var(--gold)}
+.bni.on{background:rgba(245,196,24,.07)}
+.bni-icon{font-size:18px;line-height:1}
+.bni-lbl{font-size:9px;font-weight:500;letter-spacing:.2px;text-transform:uppercase}
+.bni-badge{
+  position:absolute;top:4px;right:calc(50% - 14px);
+  background:var(--red);color:#fff;font-size:7px;font-weight:700;
+  padding:1px 4px;border-radius:8px;line-height:1.4;
+  min-width:14px;text-align:center;
+}
+/* "Mais" menu popup */
+.bnav-more{
+  position:fixed;bottom:72px;left:0;right:0;z-index:99;
+  background:var(--card);border-top:1px solid var(--border);
+  border-radius:16px 16px 0 0;
+  padding:12px 16px;
+  display:none;
+  animation:slideUpMore .2s ease;
+}
+.bnav-more.on{display:block}
+@keyframes slideUpMore{from{transform:translateY(100%)}to{transform:none}}
+.bnav-more-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 8px;cursor:pointer;border-radius:10px;
+  font-size:13px;color:var(--text);transition:background .12s;
+}
+.bnav-more-item:hover{background:rgba(255,255,255,.05)}
+.bnav-more-icon{font-size:18px;width:24px;text-align:center}
+
+/* ── TABLE MOBILE SCROLL ───────────────────── */
+.tw{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  border-radius:var(--r);
+  /* scroll indicator shadow */
+  background:
+    linear-gradient(to right,var(--card) 30%,transparent) left / 20px 100% no-repeat,
+    linear-gradient(to left,var(--card) 30%,transparent) right / 20px 100% no-repeat,
+    radial-gradient(farthest-side at 0,rgba(0,0,0,.2),transparent) left / 10px 100% no-repeat,
+    radial-gradient(farthest-side at 100%,rgba(0,0,0,.2),transparent) right / 10px 100% no-repeat;
+  background-attachment:local,local,scroll,scroll;
+}
+.tw table{min-width:700px} /* garante scroll em vez de quebrar colunas */
+
+/* ── MOBILE BREAKPOINTS ────────────────────── */
 @media(max-width:768px){
-  .sb{transform:translateX(-220px);transition:transform .25s}
-  .sb.open{transform:none}
+  /* Hamburguer visível */
+  .ham-btn{display:flex}
+  /* Sidebar: desliza para fora por padrão */
+  .sb{transform:translateX(-220px);transition:transform .25s;z-index:110}
+  .sb.open{transform:none;box-shadow:4px 0 24px rgba(0,0,0,.4)}
+  /* Main sem margem */
   .main{margin-left:0}
+  /* Grids colapsam */
   .fgrid.g2,.fgrid.g3,.fgrid.g4,.cgrid,.cgrid.g3{grid-template-columns:1fr}
   .kgrid{grid-template-columns:repeat(2,1fr)}
+  /* Bottom nav visível */
+  .bnav{display:block}
+  /* Padding extra no conteúdo para o bottom nav */
+  .pg{padding-bottom:80px}
+  /* Topbar compacta */
+  .topbar{padding:9px 14px}
+  .tb-title{font-size:14px}
+  /* Esconder chips do topbar para economizar espaço */
+  #chip-fb,#chip-date{display:none}
+  /* Importar planilha menor */
+  .topbar .btn{font-size:8px;padding:3px 7px}
 }
+@media(max-width:480px){
+  .kgrid{grid-template-columns:repeat(2,1fr)}
+  .pg{padding:12px 12px 80px}
+}
+
 @media(max-width:1100px){
   .kpi .v{font-size:16px}
 }
@@ -305,6 +415,51 @@ body.logged-out .main{display:none !important}
 .contato-inactive{opacity:.45}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
 
+
+/* ── TREND ARROWS ─────────────────────────── */
+.kpi{position:relative}
+.trend{
+  position:absolute;top:8px;right:10px;
+  font-size:9px;font-weight:700;
+  display:flex;align-items:center;gap:2px;
+  padding:2px 6px;border-radius:6px;
+}
+.trend.up{color:#22c97a;background:rgba(34,201,122,.12)}
+.trend.dn{color:#e8503a;background:rgba(232,80,58,.12)}
+.trend.eq{color:#4d7a9e;background:rgba(77,122,158,.10)}
+.trend-arrow{font-size:10px}
+
+/* ── RANKING PAGE ─────────────────────────── */
+.rank-row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-bottom:1px solid var(--border);
+  transition:background .12s;cursor:default;
+}
+.rank-row:last-child{border-bottom:none}
+.rank-row:hover{background:rgba(255,255,255,.03)}
+.rank-pos{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+  background:var(--card2);color:var(--muted);
+}
+.rank-pos.gold{background:rgba(245,196,24,.2);color:var(--gold)}
+.rank-pos.silver{background:rgba(180,180,180,.2);color:#b0b0b0}
+.rank-pos.bronze{background:rgba(205,127,50,.2);color:#cd7f32}
+.rank-cliente{flex:1;min-width:0}
+.rank-nome{font-size:12px;font-weight:600;color:var(--text);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rank-detalhe{font-size:10px;color:var(--muted);margin-top:1px}
+.rank-bar-wrap{width:100px;flex-shrink:0}
+.rank-bar-bg{background:var(--border);border-radius:4px;height:6px;overflow:hidden}
+.rank-bar-fill{height:6px;border-radius:4px;transition:width .4s ease}
+.rank-pct{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;font-weight:700;
+  min-width:42px;text-align:right;flex-shrink:0;
+}
+.rank-linhas{font-size:10px;color:var(--muted);min-width:50px;text-align:right;flex-shrink:0}
+
 </style>
 </head>
 <body class="logged-out">
@@ -360,6 +515,7 @@ body.logged-out .main{display:none !important}
   <div class="ni" onclick="nav('evolucao')" data-pg="evolucao"><span class="ni-icon">📈</span>Evolução OTIFF</div>
   <div class="ni" onclick="nav('metas')" data-pg="metas"><span class="ni-icon">🎯</span>Metas por Planta</div>
   <div class="ni" onclick="nav('previsao')" data-pg="previsao"><span class="ni-icon">🔮</span>Previsão 30 dias</div>
+  <div class="ni" onclick="nav('ranking')" data-pg="ranking"><span class="ni-icon">🏆</span>Ranking Clientes</div>
   <div class="sb-sec">Cadastros</div>
   <div class="ni" onclick="nav('produtos')" data-pg="produtos"><span class="ni-icon">📦</span>Produtos e Preços</div>
   <div class="sb-sec">Sistema</div>
@@ -376,9 +532,14 @@ body.logged-out .main{display:none !important}
 
 <div class="main">
   <div class="topbar">
-    <div>
-      <div class="tb-title" id="pg-title">Dashboard</div>
-      <div class="tb-sub" id="pg-sub">OTIFF · ONTIME · IN FULL · KPIs</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="ham-btn" id="ham-btn" onclick="toggleSidebar()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div>
+        <div class="tb-title" id="pg-title">Dashboard</div>
+        <div class="tb-sub" id="pg-sub">OTIFF · ONTIME · IN FULL · KPIs</div>
+      </div>
     </div>
     <div class="tb-right">
       <span class="chip live" id="chip-fb">● Firebase</span>
@@ -386,6 +547,58 @@ body.logged-out .main{display:none !important}
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px" onclick="importarDados()">⬆ Importar Planilha</button>
     </div>
   </div>
+
+<!-- OVERLAY sidebar mobile -->
+<div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+
+<!-- BOTTOM NAV MOBILE -->
+<nav class="bnav" id="bnav">
+  <div class="bnav-inner">
+    <button class="bni on" data-pg="dash" onclick="navMobile('dash')">
+      <span class="bni-icon">📊</span>
+      <span class="bni-lbl">Início</span>
+    </button>
+    <button class="bni" data-pg="pedidos" onclick="navMobile('pedidos')">
+      <span class="bni-icon">📋</span>
+      <span class="bni-lbl">Pedidos</span>
+    </button>
+    <button class="bni" data-pg="novo" onclick="navMobile('novo')">
+      <span class="bni-icon">➕</span>
+      <span class="bni-lbl">Novo</span>
+    </button>
+    <button class="bni" data-pg="tratativa" onclick="navMobile('tratativa')">
+      <span class="bni-icon">⚡</span>
+      <span class="bni-lbl">Tratativa</span>
+      <span class="bni-badge" id="bnav-badge" style="display:none">0</span>
+    </button>
+    <button class="bni" id="bni-mais" onclick="toggleBnavMore()">
+      <span class="bni-icon">⋯</span>
+      <span class="bni-lbl">Mais</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MORE MENU (abre acima do bottom nav) -->
+<div class="bnav-more" id="bnav-more">
+  <div class="bnav-more-item" onclick="navMobile('evolucao');closeBnavMore()">
+    <span class="bnav-more-icon">📈</span>Evolução OTIFF
+  </div>
+  <div class="bnav-more-item" onclick="navMobile('metas');closeBnavMore()">
+    <span class="bnav-more-icon">🎯</span>Metas por Planta
+  </div>
+  <div class="bnav-more-item" onclick="navMobile('previsao');closeBnavMore()">
+    <span class="bnav-more-icon">🔮</span>Previsão 30 dias
+  </div>
+  <div class="bnav-more-item" onclick="navMobile('produtos');closeBnavMore()">
+    <span class="bnav-more-icon">📦</span>Produtos e Preços
+  </div>
+  <div class="bnav-more-item" onclick="navMobile('ranking');closeBnavMore()">
+    <span class="bnav-more-icon">🏆</span>Ranking Clientes
+  </div>
+  <div class="bnav-more-item" onclick="navMobile('config');closeBnavMore()">
+    <span class="bnav-more-icon">⚙️</span>Configurações
+  </div>
+</div>
 
   <!-- DASHBOARD -->
   <div class="pg on" id="pg-dash">
@@ -428,13 +641,13 @@ body.logged-out .main{display:none !important}
     <!-- KPIs: Volume de Pedidos -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px">
       <div class="kpi" style="--acc:var(--gold)">
-        <div class="v" id="k-rec">—</div><div class="l"># Recebidos</div>
+        <div class="v" id="k-rec">—</div><span class="trend" id="tr-rec"></span><div class="l"># Recebidos</div>
       </div>
       <div class="kpi" style="--acc:var(--green)">
-        <div class="v" id="k-ent">—</div><div class="l"># Entregues</div>
+        <div class="v" id="k-ent">—</div><span class="trend" id="tr-ent"></span><div class="l"># Entregues</div>
       </div>
       <div class="kpi" style="--acc:var(--amber)">
-        <div class="v" id="k-ab">—</div><div class="l"># Em Aberto</div>
+        <div class="v" id="k-ab">—</div><span class="trend" id="tr-ab"></span><div class="l"># Em Aberto</div>
       </div>
       <div class="kpi" style="--acc:var(--amber)">
         <div class="v" id="k-ag">—</div><div class="l">Ag. Produção</div>
@@ -447,10 +660,10 @@ body.logged-out .main{display:none !important}
     <!-- KPIs: Financeiro -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px">
       <div class="kpi" style="--acc:var(--gold)">
-        <div class="v" id="k-vp">—</div><div class="l">$ Pedidos</div>
+        <div class="v" id="k-vp">—</div><span class="trend" id="tr-vp"></span><div class="l">$ Pedidos</div>
       </div>
       <div class="kpi" style="--acc:var(--blue)">
-        <div class="v" id="k-vf">—</div><div class="l">$ Faturado</div>
+        <div class="v" id="k-vf">—</div><span class="trend" id="tr-vf"></span><div class="l">$ Faturado</div>
       </div>
       <div class="kpi" style="--acc:var(--red)">
         <div class="v" id="k-vn">—</div><div class="l">$ Pendente</div>
@@ -823,6 +1036,42 @@ body.logged-out .main{display:none !important}
   <div id="painel-alerta-contatos" style="display:flex;flex-direction:column;gap:7px"></div>
 </div>
 
+
+<!-- PÁGINA RANKING CLIENTES -->
+<div class="pg" id="pg-ranking" style="max-width:900px">
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="rk-ano" onchange="rRanking()"></select>
+    <select class="fs" id="rk-pl" onchange="rRanking()">
+      <option value="all">Todas as Plantas</option>
+    </select>
+    <select class="fs" id="rk-ord" onchange="rRanking()">
+      <option value="otiff">Ordenar por OTIFF</option>
+      <option value="volume">Ordenar por Volume R$</option>
+      <option value="linhas">Ordenar por Nº de Linhas</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto" id="rk-sub"></span>
+  </div>
+
+  <!-- KPIs rápidos -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="rk-kpis"></div>
+
+  <!-- Legenda semáforo -->
+  <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+      <span style="width:10px;height:10px;border-radius:50%;background:#22c97a;display:inline-block"></span>≥ 80% (meta)
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+      <span style="width:10px;height:10px;border-radius:50%;background:#f5c418;display:inline-block"></span>70–79%
+    </span>
+    <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
+      <span style="width:10px;height:10px;border-radius:50%;background:#e8503a;display:inline-block"></span>< 70% (crítico)
+    </span>
+  </div>
+
+  <!-- Lista ranking -->
+  <div class="card" style="padding:0;overflow:hidden" id="rk-list"></div>
+</div>
+
 <!-- MODAL FATURAMENTO -->
 <div class="modal-bg" id="m-fat">
   <div class="modal">
@@ -1064,6 +1313,7 @@ const TITLES = {
   metas:['Metas por Planta','Semáforo verde/amarelo/vermelho por planta · Meta geral 80%'],
   previsao:['Previsão de Faturamento','Projeção 30 dias por cliente, planta e produto'],
   config:['Configurações','Contatos de alerta · Notificações de prazo'],
+  ranking:['Ranking de Clientes','OTIFF por cliente · Semáforo · Volume e performance'],
 };
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -1689,6 +1939,304 @@ function testarAlertas() {
   showToast('Painel de teste aberto — verifique no canto inferior direito.','ok');
 }
 
+
+// ══════════════════════════════════════════════════════════════════
+// MOBILE — Sidebar + Bottom Nav
+// ══════════════════════════════════════════════════════════════════
+const _sb  = ()=>document.getElementById('sb');
+const _ov  = ()=>document.getElementById('sb-overlay');
+
+function toggleSidebar(){
+  const sb=_sb(), ov=_ov();
+  const isOpen=sb.classList.toggle('open');
+  ov.classList.toggle('on', isOpen);
+  // Animar linhas do hamburguer
+  const btns=document.querySelectorAll('.ham-btn span');
+  if(isOpen){
+    btns[0].style.transform='translateY(6px) rotate(45deg)';
+    btns[1].style.opacity='0';
+    btns[2].style.transform='translateY(-6px) rotate(-45deg)';
+  } else {
+    btns[0].style.transform='';
+    btns[1].style.opacity='1';
+    btns[2].style.transform='';
+  }
+}
+
+function closeSidebar(){
+  const sb=_sb(), ov=_ov();
+  if(!sb || !ov) return;
+  sb.classList.remove('open');
+  ov.classList.remove('on');
+  const btns=document.querySelectorAll('.ham-btn span');
+  btns[0].style.transform='';
+  btns[1].style.opacity='1';
+  btns[2].style.transform='';
+}
+
+// Fechar sidebar ao clicar num item do menu (mobile)
+document.addEventListener('click', e=>{
+  const ni=e.target.closest('.ni');
+  if(ni && window.innerWidth<=768) closeSidebar();
+});
+
+// Bottom nav: navegar e sincronizar estado
+function navMobile(pg){
+  nav(pg); // chama a nav existente
+  // Atualizar estado dos botões do bottom nav
+  document.querySelectorAll('.bni[data-pg]').forEach(b=>{
+    b.classList.toggle('on', b.dataset.pg===pg);
+  });
+  // Remover "on" do botão "Mais" se navegar por ele
+  const mais=document.getElementById('bni-mais');
+  const morePgs=['evolucao','metas','previsao','produtos','config','comissao'];
+  if(mais) mais.classList.toggle('on', morePgs.includes(pg));
+}
+
+function toggleBnavMore(){
+  const m=document.getElementById('bnav-more');
+  if(m) m.classList.toggle('on');
+}
+function closeBnavMore(){
+  const m=document.getElementById('bnav-more');
+  if(m) m.classList.remove('on');
+}
+// Fechar more ao clicar fora
+document.addEventListener('click',e=>{
+  const m=document.getElementById('bnav-more');
+  if(!m) return;
+  if(!e.target.closest('#bnav-more')&&!e.target.closest('#bni-mais')) m.classList.remove('on');
+});
+
+// Manter badge da tratativa no bottom nav sincronizado
+function syncBnavBadge(){
+  const nb=document.getElementById('nb-trat');
+  const bb=document.getElementById('bnav-badge');
+  if(!nb||!bb) return;
+  const n=nb.textContent.trim();
+  bb.textContent=n;
+  bb.style.display=n&&n!=='0'?'block':'none';
+}
+
+// Observar mudanças no badge da tratativa
+const _nbTrat=document.getElementById('nb-trat');
+if(_nbTrat){
+  new MutationObserver(syncBnavBadge).observe(_nbTrat,{childList:true,characterData:true,subtree:true});
+}
+
+// Swipe para abrir/fechar sidebar (mobile)
+let _touchStartX=0;
+document.addEventListener('touchstart',e=>{ _touchStartX=e.touches[0].clientX; },{passive:true});
+document.addEventListener('touchend',e=>{
+  if(window.innerWidth>768) return;
+  const dx=e.changedTouches[0].clientX-_touchStartX;
+  if(_touchStartX<30&&dx>60) toggleSidebar(); // swipe da borda esq → abre
+  if(dx<-60&&_sb()?.classList.contains('open')) closeSidebar(); // swipe esq → fecha
+},{passive:true});
+
+
+// ══════════════════════════════════════════════════════════════
+// SETAS DE TENDÊNCIA — compara mês atual vs mês anterior
+// ══════════════════════════════════════════════════════════════
+function calcMesOTIFF(ano, mesIdx) {
+  // Calcula OTIFF, total de linhas e valor para um mês específico
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let ot=0, inf=0, otf=0, tot=0, linhas=0, vlr=0;
+  Object.values(PEDS).forEach(ped => {
+    if (ped.ano !== ano) return;
+    const dataPed = pdt(ped.dataPedido);
+    if (!dataPed || dataPed.getMonth() !== mesIdx) return;
+    Object.values(ped.linhas||{}).forEach(ln => {
+      const prazo = new Date(dataPed.getFullYear(), dataPed.getMonth(), dataPed.getDate()+30);
+      const entregue = ln.status === 'ENTREGUE Á TRANSPORTADORA';
+      const prazoVenceu = hoje > prazo;
+      linhas++;
+      vlr += +ln.vlrTotal || 0;
+      if (!entregue && !prazoVenceu) return;
+      tot++;
+      const d = pdt(ln.dataEntrega);
+      const onT = entregue && d && d <= prazo;
+      if (onT) ot++;
+      if (entregue && (!ln.ocorrencia||ln.ocorrencia==0)) inf++;
+      if (onT && entregue && (!ln.ocorrencia||ln.ocorrencia==0)) otf++;
+    });
+  });
+  return {
+    otiff: tot ? Math.round(otf/tot*100) : null,
+    linhas, vlr,
+    entregues: ot,
+  };
+}
+
+function renderTrend(elId, atual, anterior, fmt='num', menor_melhor=false) {
+  const el = document.getElementById(elId);
+  if (!el || atual == null || anterior == null || anterior === 0) {
+    if (el) el.innerHTML = '';
+    return;
+  }
+  const diff = atual - anterior;
+  const pct  = Math.abs(Math.round(diff / Math.abs(anterior) * 100));
+  if (pct === 0) {
+    el.className = 'trend eq';
+    el.innerHTML = `<span class="trend-arrow">→</span> igual`;
+    return;
+  }
+  const subindo = diff > 0;
+  // Para métricas onde menor é melhor (ex: linhas vencidas): inverter cores
+  const positivo = menor_melhor ? !subindo : subindo;
+  el.className = `trend ${positivo ? 'up' : 'dn'}`;
+  const arrow = subindo ? '↑' : '↓';
+  el.innerHTML = `<span class="trend-arrow">${arrow}</span>${pct}%`;
+}
+
+function atualizarTendencias() {
+  const ano = document.getElementById('d-ano')?.value || '2026';
+  const hoje = new Date();
+  const mesAtual = hoje.getMonth();
+  const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1;
+  const anoAnterior = mesAtual === 0 ? String(+ano - 1) : ano;
+
+  const atual  = calcMesOTIFF(ano,       mesAtual);
+  const anterior = calcMesOTIFF(anoAnterior, mesAnterior);
+
+  // OTIFF — seta no arc
+  const trOt = document.getElementById('tr-otiff');
+  if (trOt && atual.otiff !== null && anterior.otiff !== null) {
+    const diff = atual.otiff - anterior.otiff;
+    const pct = Math.abs(Math.round(diff / Math.max(anterior.otiff,1) * 100));
+    trOt.className = `trend ${diff >= 0 ? 'up' : 'dn'}`;
+    trOt.innerHTML = `${diff >= 0 ? '↑' : '↓'}${pct}%`;
+  }
+  // Linhas recebidas, entregues, em aberto, valor pedidos, faturado
+  renderTrend('tr-rec', atual.linhas,   anterior.linhas);
+  renderTrend('tr-ent', atual.entregues, anterior.entregues);
+  renderTrend('tr-vp',  atual.vlr,      anterior.vlr);
+  renderTrend('tr-vf',  atual.entregues, anterior.entregues); // proxy faturado
+}
+
+// ══════════════════════════════════════════════════════════════
+// RANKING DE CLIENTES POR OTIFF
+// ══════════════════════════════════════════════════════════════
+function rRanking() {
+  const ano = document.getElementById('rk-ano')?.value || '2026';
+  const pl  = document.getElementById('rk-pl')?.value  || 'all';
+  const ord = document.getElementById('rk-ord')?.value || 'otiff';
+
+  // Popular selects
+  const anoSel = document.getElementById('rk-ano');
+  if (anoSel && !anoSel.innerHTML.trim()) {
+    const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+  }
+  const plSel = document.getElementById('rk-pl');
+  if (plSel && plSel.options.length <= 1) {
+    const plantas = [...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].sort();
+    plantas.forEach(p => { plSel.innerHTML += `<option value="${p}">${p}</option>`; });
+  }
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Agrupar por cliente
+  const porCliente = {};
+  Object.values(PEDS).forEach(ped => {
+    if (ano !== 'all' && ped.ano !== ano) return;
+    if (pl !== 'all' && ped.planta !== pl) return;
+    const cli = ped.cliente || '—';
+    if (!porCliente[cli]) porCliente[cli] = {ot:0,inf:0,otf:0,tot:0,linhas:0,entregues:0,vlr:0};
+    const pc = porCliente[cli];
+    const dataPed = pdt(ped.dataPedido);
+    Object.values(ped.linhas||{}).forEach(ln => {
+      pc.linhas++;
+      pc.vlr += +ln.vlrTotal || 0;
+      if (!dataPed) return;
+      const prazo = new Date(dataPed.getFullYear(), dataPed.getMonth(), dataPed.getDate()+30);
+      const entregue = ln.status === 'ENTREGUE Á TRANSPORTADORA';
+      const prazoVenceu = hoje > prazo;
+      if (!entregue && !prazoVenceu) return;
+      pc.tot++;
+      if (entregue) pc.entregues++;
+      const d = pdt(ln.dataEntrega);
+      const onT = entregue && d && d <= prazo;
+      if (onT) pc.ot++;
+      if (entregue && (!ln.ocorrencia||ln.ocorrencia==0)) pc.inf++;
+      if (onT && entregue && (!ln.ocorrencia||ln.ocorrencia==0)) pc.otf++;
+    });
+  });
+
+  // Calcular OTIFF por cliente (só os que têm dados suficientes)
+  const dados = Object.entries(porCliente)
+    .map(([nome, d]) => ({
+      nome,
+      otiff: d.tot >= 3 ? Math.round(d.otf/d.tot*100) : null,
+      infull: d.entregues ? Math.round(d.inf/d.entregues*100) : null,
+      linhas: d.linhas,
+      vlr: d.vlr,
+      entregues: d.entregues,
+      tot: d.tot,
+    }))
+    .filter(d => d.otiff !== null || d.linhas > 0);
+
+  // Ordenar
+  if (ord === 'otiff') dados.sort((a,b) => (b.otiff??-1) - (a.otiff??-1));
+  else if (ord === 'volume') dados.sort((a,b) => b.vlr - a.vlr);
+  else dados.sort((a,b) => b.linhas - a.linhas);
+
+  // Stats globais
+  const totalClientes = dados.length;
+  const comDados = dados.filter(d=>d.otiff!==null);
+  const mediaOTIFF = comDados.length ? Math.round(comDados.reduce((s,d)=>s+d.otiff,0)/comDados.length) : 0;
+  const acimaMeta = comDados.filter(d=>d.otiff>=80).length;
+  const criticos  = comDados.filter(d=>d.otiff<70).length;
+
+  // KPIs rápidos
+  const kpis = document.getElementById('rk-kpis');
+  if (kpis) kpis.innerHTML = [
+    {lbl:'Clientes com OTIFF', val:comDados.length, c:'var(--gold)'},
+    {lbl:'Média OTIFF', val:mediaOTIFF+'%', c:bc(mediaOTIFF)},
+    {lbl:'✅ Dentro da meta (≥80%)', val:acimaMeta, c:'var(--green)'},
+    {lbl:'🔴 Críticos (<70%)', val:criticos, c:'var(--red)'},
+  ].map(k=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:${k.c}">${k.val}</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px">${k.lbl}</div>
+  </div>`).join('');
+
+  const sub = document.getElementById('rk-sub');
+  if (sub) sub.textContent = `${totalClientes} clientes · ${ano}${pl!=='all'?' · '+pl:''}`;
+
+  // Lista ranking
+  const list = document.getElementById('rk-list');
+  if (!list) return;
+  if (!dados.length) {
+    list.innerHTML = '<div style="padding:24px;text-align:center;font-size:13px;color:var(--muted)">Nenhum dado para os filtros selecionados.</div>';
+    return;
+  }
+
+  list.innerHTML = dados.map((d, i) => {
+    const pos = i + 1;
+    const posClass = pos===1?'gold':pos===2?'silver':pos===3?'bronze':'';
+    const cor = d.otiff===null ? 'var(--muted)' : d.otiff>=80?'#22c97a':d.otiff>=70?'#f5c418':'#e8503a';
+    const barW = d.otiff !== null ? Math.min(d.otiff, 100) : 0;
+    const otiffStr = d.otiff !== null ? d.otiff+'%' : '—';
+    const badge = d.otiff===null
+      ? `<span style="font-size:9px;color:var(--muted);background:var(--card2);border-radius:5px;padding:1px 5px">poucos dados</span>`
+      : '';
+
+    return `<div class="rank-row">
+      <div class="rank-pos ${posClass}">${pos}</div>
+      <div class="rank-cliente">
+        <div class="rank-nome" title="${d.nome}">${d.nome} ${badge}</div>
+        <div class="rank-detalhe">${d.linhas} linha(s) · ${brl(d.vlr)}</div>
+      </div>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar-bg">
+          <div class="rank-bar-fill" style="width:${barW}%;background:${cor}"></div>
+        </div>
+      </div>
+      <div class="rank-pct" style="color:${cor}">${otiffStr}</div>
+    </div>`;
+  }).join('');
+}
+
 function atualizarContador(){
   const ano = document.getElementById('d-ano')?.value || new Date().getFullYear();
   const total = Object.keys(PEDS).length;
@@ -1702,6 +2250,11 @@ function nav(pg){
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('on'));
   document.getElementById('pg-'+pg).classList.add('on');
   document.querySelector(`.ni[data-pg="${pg}"]`)?.classList.add('on');
+  // Sync bottom nav
+  const mainPgs=['dash','pedidos','novo','tratativa'];
+  document.querySelectorAll('.bni[data-pg]').forEach(b=>b.classList.toggle('on',b.dataset.pg===pg));
+  const mais=document.getElementById('bni-mais');
+  if(mais) mais.classList.toggle('on',!mainPgs.includes(pg)&&pg!=='comissao');
   const [t,s]=TITLES[pg]||[pg,''];
   document.getElementById('pg-title').textContent=t;
   document.getElementById('pg-sub').textContent=s;
@@ -1710,6 +2263,7 @@ function nav(pg){
   if(pg==='metas') rMetas();
   if(pg==='previsao') rPrevisao();
   if(pg==='config') { renderContatosConfig(); listenConfigs(); atualizarBotaoNotif(); }
+  if(pg==='ranking') rRanking();
 }
 
 // ══════════════════════════════════════════════
@@ -1953,6 +2507,8 @@ function rdash(){
   nbEl.textContent=nVencidos>0?`${nVencidos} 🔴`:nTrat;
   nbEl.style.display=nTrat?'':'none';
   nbEl.style.background=nVencidos>0?'var(--red)':'var(--amber)';
+  if(typeof syncBnavBadge==='function') syncBnavBadge();
+  atualizarTendencias();
 }
 
 // ══════════════════════════════════════════════
