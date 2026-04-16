@@ -254,6 +254,57 @@ body.logged-out .main{display:none !important}
 .com-total-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--gold)}
 .com-period{font-size:10px;color:var(--muted);text-align:center;margin-top:8px}
 
+
+/* ── METAS / SEMÁFOROS ─────────────────── */
+.semaforo-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:14px;padding:16px;position:relative;overflow:hidden;
+  transition:transform .18s,box-shadow .18s;
+}
+.semaforo-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.semaforo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--sem-color,var(--muted))}
+.sem-planta{font-size:11px;font-weight:700;color:var(--text);margin-bottom:4px}
+.sem-valor{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:var(--sem-color,var(--text))}
+.sem-meta{font-size:10px;color:var(--muted);margin-top:2px}
+.sem-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px;flex-shrink:0}
+.sem-bar-wrap{background:var(--border);border-radius:4px;height:4px;margin-top:8px;overflow:hidden}
+.sem-bar{height:4px;border-radius:4px;transition:width .4s ease}
+/* ── EVOLUÇÃO ────────────────────────── */
+.ev-kpi{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;text-align:center}
+.ev-kpi-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700}
+.ev-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+/* ── PREVISÃO ────────────────────────── */
+.pv-kpi{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 16px;text-align:center}
+.pv-kpi-val{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:var(--blue)}
+.pv-kpi-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
+/* tabela genérica */
+.tbl-head th{background:var(--card2);padding:8px 12px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;border-bottom:1px solid var(--border)}
+.tbl-row td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px}
+.tbl-row:last-child td{border-bottom:none}
+.tbl-row:hover td{background:rgba(255,255,255,.03)}
+
+
+/* ── CONFIG TOGGLE ───────────────────────── */
+.cfg-toggle{position:relative;display:inline-block;width:40px;height:22px;cursor:pointer}
+.cfg-toggle input{opacity:0;width:0;height:0}
+.cfg-toggle-track{position:absolute;inset:0;background:var(--border);border-radius:11px;transition:background .2s}
+.cfg-toggle input:checked + .cfg-toggle-track{background:var(--green)}
+.cfg-toggle-track::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s}
+.cfg-toggle input:checked + .cfg-toggle-track::after{transform:translateX(18px)}
+/* ── CONTATO CARD ────────────────────────── */
+.contato-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;
+  padding:12px 14px;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.contato-card:hover{border-color:var(--green)}
+.contato-avatar{width:36px;height:36px;border-radius:50%;background:var(--green);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+  color:#000;flex-shrink:0}
+.contato-info{flex:1;min-width:0}
+.contato-nome{font-size:12px;font-weight:600;color:var(--text)}
+.contato-cargo{font-size:10px;color:var(--muted);margin-top:1px}
+.contato-wa{font-size:10px;color:var(--green);font-family:'JetBrains Mono',monospace}
+.contato-inactive{opacity:.45}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
 </style>
 </head>
 <body class="logged-out">
@@ -305,10 +356,16 @@ body.logged-out .main{display:none !important}
   <div class="ni" onclick="nav('pedidos')" data-pg="pedidos"><span class="ni-icon">📋</span>Todos os Pedidos</div>
   <div class="ni" onclick="nav('novo')" data-pg="novo"><span class="ni-icon">➕</span>Novo Pedido</div>
   <div class="ni" onclick="nav('tratativa')" data-pg="tratativa"><span class="ni-icon">⚡</span>Tratativa <span class="nb amber" id="nb-trat">0</span></div>
+  <div class="sb-sec">Inteligência</div>
+  <div class="ni" onclick="nav('evolucao')" data-pg="evolucao"><span class="ni-icon">📈</span>Evolução OTIFF</div>
+  <div class="ni" onclick="nav('metas')" data-pg="metas"><span class="ni-icon">🎯</span>Metas por Planta</div>
+  <div class="ni" onclick="nav('previsao')" data-pg="previsao"><span class="ni-icon">🔮</span>Previsão 30 dias</div>
   <div class="sb-sec">Cadastros</div>
   <div class="ni" onclick="nav('produtos')" data-pg="produtos"><span class="ni-icon">📦</span>Produtos e Preços</div>
+  <div class="sb-sec">Sistema</div>
+  <div class="ni" onclick="nav('config')" data-pg="config"><span class="ni-icon">⚙️</span>Configurações</div>
   <div class="sb-footer">
-    <div style="font-size:9px;color:var(--muted)">Base 2026 carregada<br>301 pedidos · 466 itens</div>
+    <div id="sb-counter" style="font-size:9px;color:var(--muted)">Base 2026 carregada<br>Conectando...</div>
     <div class="fb-st" id="fb-trigger" onclick="comissaoClick()"
       style="cursor:default;user-select:none">
       <div class="fb-dot"></div>
@@ -333,7 +390,7 @@ body.logged-out .main{display:none !important}
   <!-- DASHBOARD -->
   <div class="pg on" id="pg-dash">
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-      <select class="fs" id="d-ano" onchange="rdash()">
+      <select class="fs" id="d-ano" onchange="rdash();atualizarContador()">
         <option value="all">Todos os Anos</option>
         <option value="2026" selected>2026</option>
         <option value="2025">2025</option>
@@ -550,6 +607,222 @@ body.logged-out .main{display:none !important}
   </div>
 </div>
 
+
+<!-- MODAL EXCLUIR LINHA -->
+<div class="modal-bg" id="m-dellinha">
+  <div class="modal" style="max-width:420px">
+    <div class="mh" style="background:rgba(232,80,58,.12);border-bottom:1px solid rgba(232,80,58,.3)">
+      <h3 style="color:var(--red)">🗑 Excluir Linha</h3>
+      <button class="mclose" onclick="closeM('m-dellinha')">✕</button>
+    </div>
+    <div class="mc" style="padding:20px">
+      <div id="del-linha-info" style="background:var(--card2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--muted)"></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">⚠️ Esta ação é irreversível. Digite a senha para confirmar:</div>
+      <input type="password" id="del-linha-pwd" class="si" placeholder="Senha de exclusão" style="width:100%"
+        onkeydown="if(event.key==='Enter')confirmarDelLinha()"/>
+      <div id="del-linha-err" style="font-size:11px;color:var(--red);margin-top:6px;display:none">Senha incorreta.</div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-dellinha')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarDelLinha()">🗑 Excluir definitivamente</button>
+    </div>
+  </div>
+</div>
+
+<!-- PÁGINA EVOLUÇÃO OTIFF -->
+<div class="pg" id="pg-evolucao" style="max-width:900px">
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="ev-ano" onchange="rEvolucao()"></select>
+    <select class="fs" id="ev-pl" onchange="rEvolucao()">
+      <option value="all">Todas as Plantas</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto" id="ev-sub"></span>
+  </div>
+  <!-- Cards de médias anuais -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px" id="ev-kpis"></div>
+  <!-- Gráfico de linha -->
+  <div class="card card-accent" style="--accent:var(--gold);padding:20px;margin-bottom:16px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">📈 Evolução mensal — OTIFF · ONTIME · IN FULL</div>
+    <div style="position:relative;height:280px"><canvas id="ch-evolucao" role="img" aria-label="Gráfico de evolução OTIFF ONTIME IN FULL"></canvas></div>
+    <div style="display:flex;gap:16px;margin-top:10px;font-size:10px;flex-wrap:wrap" id="ev-legend"></div>
+  </div>
+  <!-- Tabela mensal -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse;font-size:11px" id="ev-table"></table>
+  </div>
+</div>
+
+<!-- PÁGINA METAS POR PLANTA -->
+<div class="pg" id="pg-metas" style="max-width:900px">
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="mt-ano" onchange="rMetas()"></select>
+    <button class="btn btn-sec" style="font-size:11px;padding:5px 12px" onclick="abrirEditarMetas()">✏️ Editar Metas</button>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto">Meta padrão: <strong style="color:var(--gold)">80%</strong> OTIFF</span>
+  </div>
+  <!-- Grid de semáforos por planta -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px" id="mt-grid"></div>
+</div>
+
+<!-- PÁGINA PREVISÃO 30 DIAS -->
+<div class="pg" id="pg-previsao" style="max-width:900px">
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="pv-grupo" onchange="rPrevisao()">
+      <option value="cliente">Por Cliente</option>
+      <option value="planta">Por Planta</option>
+      <option value="produto">Por Produto</option>
+    </select>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto" id="pv-sub"></span>
+  </div>
+  <!-- KPIs de previsão -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px" id="pv-kpis"></div>
+  <!-- Gráfico de barras -->
+  <div class="card card-accent" style="--accent:var(--blue);padding:20px;margin-bottom:16px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">🔮 Projeção de faturamento — próximos 30 dias</div>
+    <div style="position:relative;height:260px"><canvas id="ch-previsao" role="img" aria-label="Gráfico de previsão de faturamento"></canvas></div>
+  </div>
+  <!-- Tabela detalhada -->
+  <div class="card" style="padding:0;overflow:hidden">
+    <table style="width:100%;border-collapse:collapse;font-size:11px" id="pv-table"></table>
+  </div>
+</div>
+
+<!-- MODAL EDITAR METAS -->
+<div class="modal-bg" id="m-metas">
+  <div class="modal" style="max-width:480px">
+    <div class="mh"><h3>🎯 Editar Metas por Planta</h3><button class="mclose" onclick="closeM('m-metas')">✕</button></div>
+    <div class="mc" style="padding:16px 20px;max-height:420px;overflow-y:auto">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Meta padrão global: <strong>80%</strong>. Defina metas específicas por planta abaixo.</div>
+      <div id="metas-form"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-metas')">Cancelar</button>
+      <button class="btn" onclick="salvarMetas()">Salvar Metas</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PÁGINA CONFIGURAÇÕES -->
+<div class="pg" id="pg-config" style="max-width:700px">
+
+  <!-- Contatos de Alerta -->
+  <div class="card card-accent" style="--accent:var(--green);margin-bottom:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:14px;font-weight:700;color:#fff">📱 Contatos de Alerta</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Receberão notificação via WhatsApp quando pedidos estiverem a vencer</div>
+      </div>
+      <button class="btn" onclick="abrirAddContato()" style="font-size:11px;padding:7px 14px">
+        ＋ Adicionar contato
+      </button>
+    </div>
+    <div id="cfg-contatos-list">
+      <div style="font-size:12px;color:var(--muted);padding:16px;text-align:center">
+        Nenhum contato cadastrado ainda.
+      </div>
+    </div>
+  </div>
+
+  <!-- Configurações de Alerta -->
+  <div class="card" style="margin-bottom:20px">
+    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px">🔔 Configurações de Alerta</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:12px;color:var(--text)">Alerta 3 dias antes do prazo</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Notificação push + WhatsApp para contatos</div>
+        </div>
+        <label class="cfg-toggle">
+          <input type="checkbox" id="cfg-alerta-3d" checked onchange="salvarConfigs()">
+          <span class="cfg-toggle-track"></span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:12px;color:var(--text)">Alerta 1 dia antes (URGENTE)</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Notificação prioritária de pedidos críticos</div>
+        </div>
+        <label class="cfg-toggle">
+          <input type="checkbox" id="cfg-alerta-1d" checked onchange="salvarConfigs()">
+          <span class="cfg-toggle-track"></span>
+        </label>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <div>
+          <div style="font-size:12px;color:var(--text)">Notificações push no navegador</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">Alerta mesmo com o sistema minimizado</div>
+        </div>
+        <button class="btn btn-sec" style="font-size:10px;padding:5px 12px" onclick="solicitarPermissaoNotif()" id="btn-notif-perm">
+          Verificar permissão
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Testar Alertas -->
+  <div class="card">
+    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:14px">🧪 Testar Alertas</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">
+      Simule um alerta para verificar se os contatos receberão a mensagem corretamente.
+    </div>
+    <button class="btn" onclick="testarAlertas()" style="font-size:12px;padding:9px 18px">
+      Enviar alerta de teste para todos os contatos
+    </button>
+  </div>
+</div>
+
+<!-- MODAL ADICIONAR CONTATO -->
+<div class="modal-bg" id="m-addcontato">
+  <div class="modal" style="max-width:420px">
+    <div class="mh">
+      <h3 id="addcontato-titulo">📱 Adicionar Contato</h3>
+      <button class="mclose" onclick="closeM('m-addcontato')">✕</button>
+    </div>
+    <div class="mc" style="padding:18px 20px">
+      <input type="hidden" id="contato-edit-id"/>
+      <div style="margin-bottom:12px">
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Nome</label>
+        <input type="text" id="contato-nome" class="si" placeholder="Ex: Andrei Costa" style="width:100%"/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">WhatsApp (somente números com DDD e DDI)</label>
+        <input type="tel" id="contato-wa" class="si" placeholder="Ex: 5594912345678" style="width:100%"/>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Formato: DDI + DDD + número · Ex: 5594912345678</div>
+      </div>
+      <div style="margin-bottom:6px">
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Cargo / Função (opcional)</label>
+        <input type="text" id="contato-cargo" class="si" placeholder="Ex: Supervisor de Compras" style="width:100%"/>
+      </div>
+      <div style="margin-top:12px">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="contato-ativo" checked style="width:14px;height:14px"/>
+          <span style="font-size:12px;color:var(--text)">Ativo — receberá os alertas</span>
+        </label>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-addcontato')">Cancelar</button>
+      <button class="btn" onclick="salvarContato()">Salvar Contato</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAINEL DE ALERTA (aparece no dashboard quando há pedidos vencendo) -->
+<div id="painel-alerta" style="display:none;position:fixed;bottom:20px;right:20px;z-index:300;
+  background:var(--card);border:1px solid rgba(232,80,58,.4);border-radius:16px;
+  padding:16px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideUp .3s ease">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+    <div style="font-size:13px;font-weight:700;color:var(--red)">🔴 Pedidos vencendo!</div>
+    <button onclick="document.getElementById('painel-alerta').style.display='none'"
+      style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px">✕</button>
+  </div>
+  <div id="painel-alerta-pedidos" style="font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.6"></div>
+  <div style="font-size:10px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">
+    Notificar via WhatsApp:
+  </div>
+  <div id="painel-alerta-contatos" style="display:flex;flex-direction:column;gap:7px"></div>
+</div>
+
 <!-- MODAL FATURAMENTO -->
 <div class="modal-bg" id="m-fat">
   <div class="modal">
@@ -701,6 +974,9 @@ function init(){
 
   // Popular classes do dashboard APÓS PEDS estar carregado
   popularClasses();
+  initNotificacoes();
+  listenContatos();
+  listenConfigs();
 
   rdash(); rpedidos(); rtrat(); rprod();
 
@@ -745,6 +1021,15 @@ function listenPeds(){
       PEDS = val;
       rdash(); rpedidos(); rtrat();
       const total = Object.keys(PEDS).length;
+      // Contar total de linhas (itens) somando todas as linhas de todos os pedidos
+      const totalLinhas = Object.values(PEDS).reduce((s, p) => s + Object.keys(p.linhas || {}).length, 0);
+      // Ano atual dos filtros
+      const anoAtual = document.getElementById('d-ano')?.value || new Date().getFullYear();
+      // Contar pedidos do ano selecionado
+      const pedAno = Object.values(PEDS).filter(p => p.ano == anoAtual || p.ano == String(anoAtual)).length;
+      // Atualizar sidebar
+      const el = document.getElementById('sb-counter');
+      if(el) el.innerHTML = `Firebase · ${anoAtual}<br>${total.toLocaleString('pt-BR')} pedidos · ${totalLinhas.toLocaleString('pt-BR')} itens`;
       document.getElementById('fb-lbl').textContent = `Conectado (${total} pedidos)`;
       document.getElementById('chip-fb').className = 'chip live';
         popularClasses();
@@ -775,7 +1060,643 @@ const TITLES = {
   tratativa:['Tratativa de Pedidos','Atualizar NF · Data Faturamento · Data Entrega · Ocorrência'],
   produtos:['Produtos e Preços','Catálogo com preços por UF e por cliente'],
   comissao:['Desempenho Comercial','S11D · Resultados e Comissões'],
+  evolucao:['Evolução OTIFF · ONTIME · IN FULL','Performance mês a mês · Gráfico de linha'],
+  metas:['Metas por Planta','Semáforo verde/amarelo/vermelho por planta · Meta geral 80%'],
+  previsao:['Previsão de Faturamento','Projeção 30 dias por cliente, planta e produto'],
+  config:['Configurações','Contatos de alerta · Notificações de prazo'],
 };
+
+// ══════════════════════════════════════════════════════════════════════════
+// FEATURE 1: NOTIFICAÇÕES DE PRAZO (Push Web Notifications)
+// ══════════════════════════════════════════════════════════════════════════
+let _notifChart = null;
+
+async function initNotificacoes() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+  }
+  if (Notification.permission === 'granted') {
+    verificarNotificacoesPrazo();
+    // Verificar a cada 4 horas
+    setInterval(verificarNotificacoesPrazo, 4 * 60 * 60 * 1000);
+  }
+}
+
+function verificarNotificacoesPrazo() {
+  if (!PEDS || Notification.permission !== 'granted') return;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const alertadas = JSON.parse(localStorage.getItem('vp_notif_alertadas') || '{}');
+  const hoje_key = hoje.toISOString().slice(0,10);
+
+  let count3 = 0, count1 = 0;
+  const pedidos3 = [], pedidos1 = [];
+
+  Object.values(PEDS).forEach(ped => {
+    if (!ped.dataPedido) return;
+    const base = pdt(ped.dataPedido);
+    if (!base) return;
+    const prazo = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 30);
+    const diff = Math.round((prazo - hoje) / 86400000);
+    const entregue = Object.values(ped.linhas || {}).every(l => l.status === 'ENTREGUE Á TRANSPORTADORA');
+    if (entregue) return;
+
+    const key = `${hoje_key}_${ped.numPedido || ''}`;
+    if (alertadas[key]) return; // já notificou hoje
+
+    if (diff === 3) { pedidos3.push(ped.numPedido || ped.cliente || '—'); count3++; }
+    if (diff === 1) { pedidos1.push(ped.numPedido || ped.cliente || '—'); count1++; }
+  });
+
+  if (count3 > 0) {
+    const n = new Notification('⚠️ Pedidos vencem em 3 dias — Vale', {
+      body: `${count3} pedido(s): ${pedidos3.slice(0,3).join(', ')}${pedidos3.length>3?'...':''}`,
+      icon: '/favicon.ico',
+      tag: `vp_3dias_${hoje_key}`,
+    });
+    pedidos3.forEach(num => { alertadas[`${hoje_key}_${num}`] = 1; });
+    localStorage.setItem('vp_notif_alertadas', JSON.stringify(alertadas));
+  }
+  if (count1 > 0) {
+    setTimeout(() => {
+      const n = new Notification('🔴 Pedidos vencem AMANHÃ — Vale', {
+        body: `URGENTE: ${count1} pedido(s): ${pedidos1.slice(0,3).join(', ')}${pedidos1.length>3?'...':''}`,
+        icon: '/favicon.ico',
+        tag: `vp_1dia_${hoje_key}`,
+      });
+      pedidos1.forEach(num => { alertadas[`${hoje_key}_${num}`] = 1; });
+      localStorage.setItem('vp_notif_alertadas', JSON.stringify(alertadas));
+    }, 1500);
+  }
+  // Mostrar painel com botões de WhatsApp
+  if ((count3 > 0 || count1 > 0) && CONTATOS_ALERTA.length > 0) {
+    const peds3 = Object.values(PEDS).filter(p=>{
+      const base=pdt(p.dataPedido); if(!base) return false;
+      const prazo=new Date(base.getFullYear(),base.getMonth(),base.getDate()+30);
+      const diff=Math.round((prazo-hoje)/86400000);
+      return diff===3 && !Object.values(p.linhas||{}).every(l=>l.status==='ENTREGUE Á TRANSPORTADORA');
+    });
+    const peds1 = Object.values(PEDS).filter(p=>{
+      const base=pdt(p.dataPedido); if(!base) return false;
+      const prazo=new Date(base.getFullYear(),base.getMonth(),base.getDate()+30);
+      const diff=Math.round((prazo-hoje)/86400000);
+      return diff===1 && !Object.values(p.linhas||{}).every(l=>l.status==='ENTREGUE Á TRANSPORTADORA');
+    });
+    mostrarPainelAlerta(peds3, peds1);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FEATURE 2: EVOLUÇÃO OTIFF/ONTIME/IN FULL MÊS A MÊS
+// ══════════════════════════════════════════════════════════════════════════
+let _evolChart = null;
+
+function rEvolucao() {
+  const ano = document.getElementById('ev-ano')?.value || '2026';
+  const pl  = document.getElementById('ev-pl')?.value  || 'all';
+
+  // Popular selects se necessário
+  const anoSel = document.getElementById('ev-ano');
+  if (anoSel && !anoSel.innerHTML.trim()) {
+    const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+  }
+  const plSel = document.getElementById('ev-pl');
+  if (plSel && plSel.options.length <= 1) {
+    const plantas = [...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].sort();
+    plantas.forEach(pl => { plSel.innerHTML += `<option value="${pl}">${pl}</option>`; });
+  }
+
+  const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Calcular OTIFF/ONTIME/INFULL por mês
+  const byMes = {};
+  for (let m=0; m<12; m++) byMes[m] = {ot:0,inf:0,otf:0,tot:0,entregues:0};
+
+  const lns = allLinhas(ano,'all','all', pl==='all'?'all':pl,'all');
+
+  lns.forEach(l => {
+    const dataPed = pdt(l._ped?.dataPedido);
+    if (!dataPed) return;
+    const prazo = new Date(dataPed.getFullYear(), dataPed.getMonth(), dataPed.getDate()+30);
+    const entregue = l.status === 'ENTREGUE Á TRANSPORTADORA';
+    const prazoVenceu = hoje > prazo;
+    if (!entregue && !prazoVenceu) return;
+
+    // Mês baseado na data do pedido
+    const m = dataPed.getMonth();
+    byMes[m].tot++;
+    if (entregue) byMes[m].entregues++;
+    const d = pdt(l.dataEntrega);
+    if (entregue && d && d <= prazo) byMes[m].ot++;
+    if (entregue && (!l.ocorrencia || l.ocorrencia==0)) byMes[m].inf++;
+    if (entregue && d && d<=prazo && (!l.ocorrencia||l.ocorrencia==0)) byMes[m].otf++;
+  });
+
+  // Calcular percentuais
+  const labelsComDados = [], otArr = [], onArr = [], ifArr = [];
+  let somaOT=0, somaON=0, somaIF=0, mesesComDados=0;
+
+  MESES_PT.forEach((ml, m) => {
+    const d = byMes[m];
+    if (d.tot === 0) return;
+    labelsComDados.push(ml);
+    const pOT = Math.round(d.otf/d.tot*100);
+    const pON = Math.round(d.ot/d.tot*100);
+    const pIF = d.entregues ? Math.round(d.inf/d.entregues*100) : 0;
+    otArr.push(pOT); onArr.push(pON); ifArr.push(pIF);
+    somaOT+=pOT; somaON+=pON; somaIF+=pIF; mesesComDados++;
+  });
+
+  const mediaOT = mesesComDados ? Math.round(somaOT/mesesComDados) : 0;
+  const mediaON = mesesComDados ? Math.round(somaON/mesesComDados) : 0;
+  const mediaIF = mesesComDados ? Math.round(somaIF/mesesComDados) : 0;
+
+  // KPIs
+  const kpis = document.getElementById('ev-kpis');
+  if (kpis) kpis.innerHTML = [
+    {lbl:'OTIFF (média anual)',val:mediaOT+'%',c:bc(mediaOT)},
+    {lbl:'ONTIME (média anual)',val:mediaON+'%',c:bc(mediaON)},
+    {lbl:'IN FULL (média anual)',val:mediaIF+'%',c:bc(mediaIF)},
+  ].map(k=>`<div class="ev-kpi"><div class="ev-kpi-val" style="color:${k.c}">${k.val}</div><div class="ev-kpi-lbl">${k.lbl}</div></div>`).join('');
+
+  const sub = document.getElementById('ev-sub');
+  if (sub) sub.textContent = `${lns.length} linhas · ${mesesComDados} meses com dados`;
+
+  // Destruir chart anterior
+  if (_evolChart) { _evolChart.destroy(); _evolChart = null; }
+  const ctx = document.getElementById('ch-evolucao')?.getContext('2d');
+  if (!ctx || labelsComDados.length === 0) return;
+
+  _evolChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labelsComDados,
+      datasets: [
+        { label:'OTIFF', data:otArr,  borderColor:'#f5c418', backgroundColor:'rgba(245,196,24,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2.5 },
+        { label:'ONTIME',data:onArr,  borderColor:'#3b8fd4', backgroundColor:'rgba(59,143,212,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2, borderDash:[5,3] },
+        { label:'IN FULL',data:ifArr, borderColor:'#22c97a', backgroundColor:'rgba(34,201,122,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2, borderDash:[2,3] },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: {display:false}, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%` } } },
+      scales: {
+        x: { grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#4d7a9e',font:{size:11}} },
+        y: { min:0, max:100, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#4d7a9e',font:{size:11},callback:v=>v+'%'} }
+      }
+    }
+  });
+
+  // Legend manual
+  const leg = document.getElementById('ev-legend');
+  if (leg) leg.innerHTML = [
+    {c:'#f5c418',l:'OTIFF'},
+    {c:'#3b8fd4',l:'ONTIME'},
+    {c:'#22c97a',l:'IN FULL'},
+  ].map(x=>`<span style="display:flex;align-items:center;gap:5px;color:var(--muted)"><span style="width:10px;height:10px;border-radius:2px;background:${x.c}"></span>${x.l}</span>`).join('');
+
+  // Tabela
+  const tbl = document.getElementById('ev-table');
+  if (tbl) {
+    let rows = labelsComDados.map((ml,i) => {
+      const ot = otArr[i], on = onArr[i], inf = ifArr[i];
+      return `<tr class="tbl-row">
+        <td style="font-weight:600;color:var(--text)">${ml} ${ano.slice(2)}</td>
+        <td style="font-family:'JetBrains Mono',monospace;color:${bc(ot)}">${ot}%</td>
+        <td style="font-family:'JetBrains Mono',monospace;color:${bc(on)}">${on}%</td>
+        <td style="font-family:'JetBrains Mono',monospace;color:${bc(inf)}">${inf}%</td>
+      </tr>`;
+    }).join('');
+    tbl.innerHTML = `<thead class="tbl-head"><tr><th>Mês</th><th>OTIFF</th><th>ONTIME</th><th>IN FULL</th></tr></thead><tbody>${rows}</tbody>`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FEATURE 3: METAS POR PLANTA COM SEMÁFORO
+// ══════════════════════════════════════════════════════════════════════════
+// Metas salvas no localStorage (pode sobrescrever por planta)
+function getMetas() {
+  return JSON.parse(localStorage.getItem('vp_metas') || '{}');
+}
+function getMetaPlanta(planta) {
+  const metas = getMetas();
+  return metas[planta] ?? 80; // padrão 80%
+}
+
+function rMetas() {
+  const ano = document.getElementById('mt-ano')?.value || '2026';
+  const anoSel = document.getElementById('mt-ano');
+  if (anoSel && !anoSel.innerHTML.trim()) {
+    const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+  }
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const plantas = [...new Set(Object.values(PEDS).filter(p=>p.ano===ano).map(p=>p.planta).filter(Boolean))].sort();
+  const grid = document.getElementById('mt-grid');
+  if (!grid) return;
+
+  grid.innerHTML = plantas.map(planta => {
+    const lns = allLinhas(ano,'all','all',planta,'all');
+    let ot=0, otf=0, tot=0;
+    lns.forEach(l => {
+      const dataPed = pdt(l._ped?.dataPedido);
+      if (!dataPed) return;
+      const prazo = new Date(dataPed.getFullYear(), dataPed.getMonth(), dataPed.getDate()+30);
+      const entregue = l.status === 'ENTREGUE Á TRANSPORTADORA';
+      if (!entregue && hoje<=prazo) return;
+      tot++;
+      const d = pdt(l.dataEntrega);
+      if (entregue && d && d<=prazo) ot++;
+      if (entregue && d && d<=prazo && (!l.ocorrencia||l.ocorrencia==0)) otf++;
+    });
+    const otiff = tot ? Math.round(otf/tot*100) : null;
+    const meta = getMetaPlanta(planta);
+    // Semáforo: verde ≥ meta, amarelo ≥ meta-10, vermelho < meta-10
+    const cor = otiff === null ? '#4d7a9e' :
+      otiff >= meta ? '#22c97a' :
+      otiff >= meta - 10 ? '#f5c418' : '#e8503a';
+    const label = otiff === null ? 'Sem dados' :
+      otiff >= meta ? '✅ Dentro da meta' :
+      otiff >= meta - 10 ? '⚠️ Abaixo da meta' : '🔴 Crítico';
+    const barPct = otiff !== null ? Math.min(otiff, 100) : 0;
+
+    return `<div class="semaforo-card" style="--sem-color:${cor}">
+      <div class="sem-planta">${planta}</div>
+      <div class="sem-valor">${otiff !== null ? otiff+'%' : '—'}</div>
+      <div class="sem-meta">Meta: ${meta}% · ${label}</div>
+      <div class="sem-bar-wrap"><div class="sem-bar" style="width:${barPct}%;background:${cor}"></div></div>
+      <div style="font-size:9px;color:var(--muted);margin-top:6px">${tot} linha(s) no período</div>
+    </div>`;
+  }).join('');
+
+  if (!plantas.length) {
+    grid.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:20px">Nenhum dado disponível para o ano selecionado.</div>';
+  }
+}
+
+function abrirEditarMetas() {
+  const plantas = [...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].sort();
+  const metas = getMetas();
+  const form = document.getElementById('metas-form');
+  if (!form) return;
+  form.innerHTML = plantas.map(pl => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:12px;color:var(--text)">${pl}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" min="0" max="100" value="${metas[pl]??80}"
+          id="meta_${pl.replace(/\s+/g,'_')}"
+          style="width:60px;text-align:right;font-family:'JetBrains Mono',monospace"
+          class="si"/>
+        <span style="font-size:11px;color:var(--muted)">%</span>
+      </div>
+    </div>`).join('');
+  openM('m-metas');
+}
+
+function salvarMetas() {
+  const plantas = [...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].sort();
+  const metas = {};
+  plantas.forEach(pl => {
+    const el = document.getElementById('meta_'+pl.replace(/\s+/g,'_'));
+    if (el) metas[pl] = Math.min(100, Math.max(0, parseInt(el.value)||80));
+  });
+  localStorage.setItem('vp_metas', JSON.stringify(metas));
+  closeM('m-metas');
+  rMetas();
+  showToast('Metas salvas com sucesso!', 'ok');
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// FEATURE 4: PREVISÃO DE FATURAMENTO 30 DIAS
+// ══════════════════════════════════════════════════════════════════════════
+let _prevChart = null;
+
+function rPrevisao() {
+  const grupo = document.getElementById('pv-grupo')?.value || 'cliente';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const em30 = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()+30);
+
+  // Pedidos em aberto com previsão de entrega nos próximos 30 dias
+  // OU ainda sem data (mas prazo ainda não venceu)
+  const abertos = [];
+  Object.values(PEDS).forEach(ped => {
+    const dataPed = pdt(ped.dataPedido);
+    if (!dataPed) return;
+    const prazo = new Date(dataPed.getFullYear(), dataPed.getMonth(), dataPed.getDate()+30);
+    Object.values(ped.linhas||{}).forEach(ln => {
+      if (ln.status === 'ENTREGUE Á TRANSPORTADORA') return;
+      // Incluir se: prazo ainda não venceu OU prevEntrega está nos próx 30 dias
+      const prevEntrega = pdt(ln.prevEntrega);
+      const dentroJanela = (hoje <= prazo) || (prevEntrega && prevEntrega >= hoje && prevEntrega <= em30);
+      if (!dentroJanela) return;
+      abertos.push({...ln, _ped:ped,
+        vlr: +ln.vlrTotal || 0,
+        grupo: grupo==='cliente' ? ped.cliente :
+               grupo==='planta'  ? ped.planta  :
+               (ln.produto || '—').split(' TAM.')[0].trim(),
+      });
+    });
+  });
+
+  // Agrupar
+  const agrupado = {};
+  abertos.forEach(l => {
+    const g = l.grupo || '—';
+    if (!agrupado[g]) agrupado[g] = {vlr:0, qtd:0, linhas:0};
+    agrupado[g].vlr  += l.vlr;
+    agrupado[g].qtd  += +l.quantidade || 0;
+    agrupado[g].linhas++;
+  });
+
+  const sorted = Object.entries(agrupado).sort((a,b)=>b[1].vlr-a[1].vlr);
+  const totalVlr = sorted.reduce((s,[,v])=>s+v.vlr,0);
+  const totalLinhas = abertos.length;
+  const top10 = sorted.slice(0,10);
+
+  // KPIs
+  const kpis = document.getElementById('pv-kpis');
+  if (kpis) kpis.innerHTML = [
+    {lbl:`Total a faturar (30d)`,val:brl(totalVlr),c:'var(--blue)'},
+    {lbl:`Linhas em aberto`,val:totalLinhas.toLocaleString('pt-BR'),c:'var(--gold)'},
+    {lbl:(grupo==='cliente'?'Clientes':grupo==='planta'?'Plantas':'Produtos')+' com pedido',val:sorted.length,c:'var(--green)'},
+  ].map(k=>`<div class="pv-kpi"><div class="pv-kpi-val" style="color:${k.c}">${k.val}</div><div class="pv-kpi-lbl">${k.lbl}</div></div>`).join('');
+
+  const sub = document.getElementById('pv-sub');
+  if (sub) sub.textContent = `Pedidos em aberto com prazo nos próximos 30 dias`;
+
+  // Chart
+  if (_prevChart) { _prevChart.destroy(); _prevChart = null; }
+  const ctx = document.getElementById('ch-previsao')?.getContext('2d');
+  if (ctx && top10.length > 0) {
+    _prevChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: top10.map(([g])=>g.length>20?g.slice(0,18)+'..':g),
+        datasets: [{
+          label:'Valor a faturar',
+          data: top10.map(([,v])=>v.vlr),
+          backgroundColor: 'rgba(59,143,212,.7)',
+          borderColor: '#3b8fd4',
+          borderWidth: 1.5,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false, indexAxis:'y',
+        plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>'R$ '+c.parsed.x.toLocaleString('pt-BR',{minimumFractionDigits:2}) } } },
+        scales:{
+          x:{ grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#4d7a9e',font:{size:10},callback:v=>'R$ '+(v/1000).toFixed(0)+'k'} },
+          y:{ grid:{display:false}, ticks:{color:'#cce0f5',font:{size:10}} }
+        }
+      }
+    });
+  }
+
+  // Tabela
+  const tbl = document.getElementById('pv-table');
+  if (tbl) {
+    const rows = sorted.map(([g,v])=>`<tr class="tbl-row">
+      <td style="color:var(--text);font-weight:500">${g}</td>
+      <td style="text-align:right;color:var(--muted)">${v.linhas} linha(s)</td>
+      <td style="text-align:right;color:var(--muted)">${v.qtd.toLocaleString('pt-BR')} un.</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;color:var(--blue);font-weight:700">${brl(v.vlr)}</td>
+      <td style="text-align:right;color:var(--muted);font-size:10px">${totalVlr?Math.round(v.vlr/totalVlr*100):0}%</td>
+    </tr>`).join('');
+    tbl.innerHTML = `<thead class="tbl-head"><tr>
+      <th>Grupo</th><th style="text-align:right">Linhas</th>
+      <th style="text-align:right">Qtd.</th><th style="text-align:right">Valor</th>
+      <th style="text-align:right">%</th>
+    </tr></thead><tbody>${rows}</tbody>`;
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// CONTATOS DE ALERTA — Firebase + WhatsApp
+// ══════════════════════════════════════════════════════════════════════════
+
+// Carregar contatos do Firebase
+let CONTATOS_ALERTA = [];
+function listenContatos() {
+  db.ref('config/contatos').on('value', snap => {
+    const val = snap.val();
+    CONTATOS_ALERTA = val ? Object.entries(val).map(([id,c])=>({...c,id})) : [];
+    renderContatosConfig();
+    atualizarBotaoNotif();
+  });
+}
+
+function listenConfigs() {
+  db.ref('config/alertas').once('value', snap => {
+    const val = snap.val() || {};
+    const el3d = document.getElementById('cfg-alerta-3d');
+    const el1d = document.getElementById('cfg-alerta-1d');
+    if (el3d) el3d.checked = val.alerta3d !== false;
+    if (el1d) el1d.checked = val.alerta1d !== false;
+  });
+}
+
+function salvarConfigs() {
+  const cfg = {
+    alerta3d: document.getElementById('cfg-alerta-3d')?.checked ?? true,
+    alerta1d: document.getElementById('cfg-alerta-1d')?.checked ?? true,
+  };
+  db.ref('config/alertas').set(cfg);
+}
+
+// Renderizar lista de contatos na página config
+function renderContatosConfig() {
+  const el = document.getElementById('cfg-contatos-list');
+  if (!el) return;
+  if (!CONTATOS_ALERTA.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:16px;text-align:center">Nenhum contato cadastrado ainda.</div>';
+    return;
+  }
+  el.innerHTML = CONTATOS_ALERTA.map(ct => {
+    const initials = ct.nome.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const inativo = ct.ativo === false;
+    return `<div class="contato-card ${inativo?'contato-inactive':''}" style="margin-bottom:8px">
+      <div class="contato-avatar" style="background:${inativo?'var(--border)':'var(--green)'}">${initials}</div>
+      <div class="contato-info">
+        <div class="contato-nome">${ct.nome}${inativo?' <span style="font-size:9px;color:var(--muted)">(inativo)</span>':''}</div>
+        <div class="contato-cargo">${ct.cargo||'—'}</div>
+        <div class="contato-wa">+${ct.whatsapp}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <button class="btn btn-sec" style="font-size:9px;padding:4px 9px"
+          onclick="editarContato('${ct.id}')">✏️</button>
+        <button class="btn btn-sec" style="font-size:9px;padding:4px 9px;color:${inativo?'var(--green)':'var(--amber)'}"
+          onclick="toggleContatoAtivo('${ct.id}',${!inativo})">${inativo?'Ativar':'Pausar'}</button>
+        <button class="btn btn-sec" style="font-size:9px;padding:4px 9px;color:var(--red)"
+          onclick="excluirContato('${ct.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Abrir modal para adicionar novo contato
+function abrirAddContato() {
+  document.getElementById('addcontato-titulo').textContent = '📱 Adicionar Contato';
+  document.getElementById('contato-edit-id').value = '';
+  document.getElementById('contato-nome').value = '';
+  document.getElementById('contato-wa').value = '';
+  document.getElementById('contato-cargo').value = '';
+  document.getElementById('contato-ativo').checked = true;
+  openM('m-addcontato');
+}
+
+// Editar contato existente
+function editarContato(id) {
+  const ct = CONTATOS_ALERTA.find(c=>c.id===id);
+  if (!ct) return;
+  document.getElementById('addcontato-titulo').textContent = '✏️ Editar Contato';
+  document.getElementById('contato-edit-id').value = id;
+  document.getElementById('contato-nome').value = ct.nome;
+  document.getElementById('contato-wa').value = ct.whatsapp;
+  document.getElementById('contato-cargo').value = ct.cargo || '';
+  document.getElementById('contato-ativo').checked = ct.ativo !== false;
+  openM('m-addcontato');
+}
+
+// Salvar contato (novo ou edição)
+function salvarContato() {
+  const nome = document.getElementById('contato-nome').value.trim();
+  const wa   = document.getElementById('contato-wa').value.trim().replace(/\D/g,'');
+  const cargo = document.getElementById('contato-cargo').value.trim();
+  const ativo = document.getElementById('contato-ativo').checked;
+  const editId = document.getElementById('contato-edit-id').value;
+
+  if (!nome) { showToast('Informe o nome do contato.','err'); return; }
+  if (!wa || wa.length < 10) { showToast('Informe um número WhatsApp válido.','err'); return; }
+
+  const payload = { nome, whatsapp: wa, cargo, ativo };
+  if (editId) {
+    db.ref('config/contatos/'+editId).update(payload)
+      .then(()=>{ closeM('m-addcontato'); showToast('Contato atualizado!','ok'); });
+  } else {
+    db.ref('config/contatos').push(payload)
+      .then(()=>{ closeM('m-addcontato'); showToast('Contato adicionado!','ok'); });
+  }
+}
+
+// Pausar / reativar contato
+function toggleContatoAtivo(id, novoStatus) {
+  db.ref('config/contatos/'+id).update({ ativo: novoStatus })
+    .then(()=> showToast(novoStatus ? 'Contato ativado!' : 'Contato pausado.', 'ok'));
+}
+
+// Excluir contato
+function excluirContato(id) {
+  const ct = CONTATOS_ALERTA.find(c=>c.id===id);
+  if (!confirm(`Excluir o contato "${ct?.nome}"?`)) return;
+  db.ref('config/contatos/'+id).remove()
+    .then(()=> showToast('Contato removido.','ok'));
+}
+
+// Atualizar label do botão de notificação
+function atualizarBotaoNotif() {
+  const btn = document.getElementById('btn-notif-perm');
+  if (!btn) return;
+  if (!('Notification' in window)) {
+    btn.textContent = 'Não suportado';
+    btn.disabled = true;
+    return;
+  }
+  const status = { default:'Ativar notificações', granted:'✅ Ativadas', denied:'🚫 Bloqueadas' };
+  btn.textContent = status[Notification.permission] || 'Verificar';
+  btn.style.color = Notification.permission === 'granted' ? 'var(--green)' :
+                    Notification.permission === 'denied'  ? 'var(--red)' : '';
+}
+
+async function solicitarPermissaoNotif() {
+  if (!('Notification' in window)) return;
+  await Notification.requestPermission();
+  atualizarBotaoNotif();
+}
+
+// Gerar mensagem de alerta
+function gerarMensagemAlerta(pedidos, diasRestantes) {
+  const urgente = diasRestantes <= 1;
+  const header = urgente
+    ? `🔴 *URGENTE — Vale Pedidos*\n⚠️ Pedidos vencem AMANHÃ!\n\n`
+    : `⚠️ *Vale Pedidos — Alerta de Prazo*\n📅 Pedidos vencem em ${diasRestantes} dias:\n\n`;
+
+  const lista = pedidos.slice(0,8).map(p =>
+    `• *${p.numPedido||'—'}* — ${p.cliente||'—'} (${p.planta||'—'})`
+  ).join('\n');
+
+  const extra = pedidos.length > 8 ? `\n_...e mais ${pedidos.length-8} pedido(s)_` : '';
+  const footer = `\n\n_Acesse: andreicosta8.github.io/pedidos-vale-ofc_`;
+  return encodeURIComponent(header + lista + extra + footer);
+}
+
+// Mostrar painel de alerta com botões WhatsApp
+function mostrarPainelAlerta(pedidos3, pedidos1) {
+  const painel = document.getElementById('painel-alerta');
+  if (!painel) return;
+  const contatosAtivos = CONTATOS_ALERTA.filter(c=>c.ativo!==false);
+  if (!contatosAtivos.length && !pedidos3.length && !pedidos1.length) return;
+
+  // Montar descrição dos pedidos
+  let descHtml = '';
+  if (pedidos1.length) {
+    descHtml += `<div style="color:var(--red);font-weight:700;margin-bottom:4px">🔴 ${pedidos1.length} pedido(s) vencem AMANHÃ</div>`;
+    descHtml += pedidos1.slice(0,3).map(p=>`<div>• ${p.numPedido||'—'} — ${p.cliente||'—'}</div>`).join('');
+  }
+  if (pedidos3.length) {
+    descHtml += `<div style="color:var(--amber);font-weight:700;margin-top:${pedidos1.length?8:0}px;margin-bottom:4px">⚠️ ${pedidos3.length} pedido(s) vencem em 3 dias</div>`;
+    descHtml += pedidos3.slice(0,3).map(p=>`<div>• ${p.numPedido||'—'} — ${p.cliente||'—'}</div>`).join('');
+  }
+  document.getElementById('painel-alerta-pedidos').innerHTML = descHtml;
+
+  // Botões WhatsApp por contato
+  const todosPedidos = [...pedidos1, ...pedidos3];
+  const btnEl = document.getElementById('painel-alerta-contatos');
+  if (btnEl) {
+    btnEl.innerHTML = contatosAtivos.map(ct => {
+      const msg = pedidos1.length > 0
+        ? gerarMensagemAlerta(pedidos1, 1)
+        : gerarMensagemAlerta(pedidos3, 3);
+      return `<a href="https://wa.me/${ct.whatsapp}?text=${msg}" target="_blank"
+        style="display:flex;align-items:center;gap:8px;background:#25D366;color:#fff;
+          text-decoration:none;padding:8px 12px;border-radius:9px;font-size:11px;font-weight:700;transition:opacity .15s"
+        onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Notificar ${ct.nome.split(' ')[0]}
+      </a>`;
+    }).join('');
+  }
+
+  painel.style.display = 'block';
+}
+
+// Testar alertas — simula com os pedidos reais vencendo
+function testarAlertas() {
+  const contatosAtivos = CONTATOS_ALERTA.filter(c=>c.ativo!==false);
+  if (!contatosAtivos.length) {
+    showToast('Cadastre pelo menos um contato ativo primeiro.','err'); return;
+  }
+  // Pegar os primeiros pedidos em aberto como exemplo
+  const pedidosTeste = Object.values(PEDS).filter(p=>
+    Object.values(p.linhas||{}).some(l=>l.status!=='ENTREGUE Á TRANSPORTADORA')
+  ).slice(0,3);
+  if (!pedidosTeste.length) { showToast('Nenhum pedido em aberto para testar.','err'); return; }
+  mostrarPainelAlerta([], pedidosTeste);
+  showToast('Painel de teste aberto — verifique no canto inferior direito.','ok');
+}
+
+function atualizarContador(){
+  const ano = document.getElementById('d-ano')?.value || new Date().getFullYear();
+  const total = Object.keys(PEDS).length;
+  const totalLinhas = Object.values(PEDS).reduce((s,p)=>s+Object.keys(p.linhas||{}).length,0);
+  const el = document.getElementById('sb-counter');
+  if(el) el.innerHTML = `Firebase · ${ano}<br>${total.toLocaleString('pt-BR')} pedidos · ${totalLinhas.toLocaleString('pt-BR')} itens`;
+}
+
 function nav(pg){
   document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('on'));
@@ -785,6 +1706,10 @@ function nav(pg){
   document.getElementById('pg-title').textContent=t;
   document.getElementById('pg-sub').textContent=s;
   if(pg==='novo') resetForm();
+  if(pg==='evolucao') rEvolucao();
+  if(pg==='metas') rMetas();
+  if(pg==='previsao') rPrevisao();
+  if(pg==='config') { renderContatosConfig(); listenConfigs(); atualizarBotaoNotif(); }
 }
 
 // ══════════════════════════════════════════════
@@ -1087,6 +2012,7 @@ function rpedidos(){
             <span style="font-size:9px;color:var(--muted)">${ln.dataFat?'NF: '+ln.statusEP:'—'}</span>
             ${ln.ocorrencia>0?`<span class="badge" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.4)">🔴 Devolução</span>`:''}
             <button class="btn btn-sm btn-g" style="padding:2px 7px;font-size:9px" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
+            <button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3)" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}')">🗑</button>
             ${ln.status==='ENTREGUE Á TRANSPORTADORA'?`<button class="btn btn-sm btn-r" style="padding:2px 7px;font-size:9px" onclick="event.stopPropagation();abrirDevolucao('${pk}','${lk}')" title="Registrar devolução — impacta IN FULL">📦 Devolução</button>`:''}
           </div>`).join('')}
       <div style="text-align:right;padding:5px 10px 2px">
@@ -1100,9 +2026,9 @@ function rpedidos(){
 function toggleLns(pk){
   const s=document.getElementById('sub-'+pk);
   const e=document.getElementById('exp-'+pk);
-  const h=s.style.display==='none'||s.style.display==='';
-  s.style.display=h?'':'none';
-  e.classList.toggle('open',h);
+  const isHidden=s.style.display==='none';
+  s.style.display=isHidden?'table-row':'none';
+  e.classList.toggle('open',isHidden);
 }
 
 function abrirPed(pk){
@@ -1327,7 +2253,10 @@ function rtrat(){
         <td style="font-size:10px">${fdt(ln.prevEntrega)||'—'}</td>
         <td><span class="badge" style="${ln.ocorrencia?'background:rgba(232,80,58,.12);color:var(--red);border:1px solid rgba(232,80,58,.3)':''}">${ln.ocorrencia||0}</span></td>
         <td>${alertaBadge(dr)}</td>
-        <td><button class="btn btn-g btn-sm" onclick="abrirFat('${pk}','${lk}')">Atualizar</button></td>
+        <td style="display:flex;gap:4px;align-items:center">
+      <button class="btn btn-g btn-sm" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
+      <button class="btn btn-sm" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}')">🗑</button>
+    </td>
       </tr>`;
     });
   });
@@ -1602,6 +2531,16 @@ _auth.onAuthStateChanged(user => {
   }
 });
 
+// Failsafe: se em 8s o auth não resolver, mostrar tela de login
+setTimeout(()=>{
+  const ov = document.getElementById('login-loading-overlay');
+  if(ov && ov.style.display !== 'none'){
+    ov.style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.body.classList.add('logged-out');
+  }
+}, 8000);
+
 async function loginSubmit(){
   const email = document.getElementById('l-email').value.trim();
   const pwd   = document.getElementById('l-pwd').value;
@@ -1634,6 +2573,40 @@ async function loginForgot(){
     await _auth.sendPasswordResetEmail(addr);
     alert('✅ E-mail de redefinição enviado para: '+addr);
   } catch(e){ alert('Erro: '+e.message); }
+}
+
+// ══════════════════════════════════════════════
+// EXCLUIR LINHA (senha protegida)
+// ══════════════════════════════════════════════
+const DEL_SENHA = 'vale2026'; // mesma senha da comissão
+let _delLinhaKey = null;
+
+function abrirDelLinha(linhaKey, numPedido, produto) {
+  _delLinhaKey = linhaKey;
+  document.getElementById('del-linha-info').innerHTML =
+    `<strong style="color:var(--text)">${numPedido}</strong> — ${produto}`;
+  document.getElementById('del-linha-pwd').value = '';
+  document.getElementById('del-linha-err').style.display = 'none';
+  openM('m-dellinha');
+  setTimeout(() => document.getElementById('del-linha-pwd').focus(), 150);
+}
+
+function confirmarDelLinha() {
+  const pwd = document.getElementById('del-linha-pwd').value;
+  if (pwd !== DEL_SENHA) {
+    document.getElementById('del-linha-err').style.display = 'block';
+    document.getElementById('del-linha-pwd').value = '';
+    return;
+  }
+  if (!_delLinhaKey) return;
+  // Remover do Firebase
+  db.ref('linhas/' + _delLinhaKey).remove()
+    .then(() => {
+      closeM('m-dellinha');
+      showToast('Linha excluída com sucesso', 'ok');
+      _delLinhaKey = null;
+    })
+    .catch(e => showToast('Erro ao excluir: ' + e.message, 'err'));
 }
 
 // ══════════════════════════════════════════════
