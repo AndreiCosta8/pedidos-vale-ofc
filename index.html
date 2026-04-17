@@ -131,6 +131,7 @@ tbody td{padding:8px 9px;vertical-align:middle}
 .hbar-row{display:flex;align-items:center;gap:6px;margin-bottom:5px}
 .hbar-lbl{width:100px;font-size:9px;color:var(--muted);text-align:right;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hbar-tr{flex:1;height:14px;background:rgba(0,0,0,.35);border-radius:3px;overflow:hidden}
+#bars-uf .hbar-row{margin-bottom:8px}#bars-uf .hbar-tr{height:22px}#bars-uf .hbar-lbl{font-size:11px;width:80px}#bars-uf .hbar-pct{font-size:11px}
 .hbar-fi{height:100%;border-radius:3px;display:flex;align-items:center;justify-content:flex-end;padding-right:4px;transition:width .4s}
 .hbar-pct{font-size:8px;font-weight:700;color:var(--navy)}
 .empty{text-align:center;padding:32px;color:var(--muted);font-size:11px}
@@ -516,6 +517,7 @@ body.logged-out .main{display:none !important}
   <div class="ni" onclick="nav('metas')" data-pg="metas"><span class="ni-icon">🎯</span>Metas por Planta</div>
   <div class="ni" onclick="nav('previsao')" data-pg="previsao"><span class="ni-icon">🔮</span>Previsão 30 dias</div>
   <div class="ni" onclick="nav('ranking')" data-pg="ranking"><span class="ni-icon">🏆</span>Ranking Clientes</div>
+  <div class="ni" onclick="nav('distribuidora')" data-pg="distribuidora"><span class="ni-icon">🚚</span>Status Distribuidora</div>
   <div class="sb-sec">Cadastros</div>
   <div class="ni" onclick="nav('produtos')" data-pg="produtos"><span class="ni-icon">📦</span>Produtos e Preços</div>
   <div class="sb-sec">Sistema</div>
@@ -594,6 +596,9 @@ body.logged-out .main{display:none !important}
   </div>
   <div class="bnav-more-item" onclick="navMobile('ranking');closeBnavMore()">
     <span class="bnav-more-icon">🏆</span>Ranking Clientes
+  </div>
+  <div class="bnav-more-item" onclick="navMobile('distribuidora');closeBnavMore()">
+    <span class="bnav-more-icon">🚚</span>Status Distribuidora
   </div>
   <div class="bnav-more-item" onclick="navMobile('config');closeBnavMore()">
     <span class="bnav-more-icon">⚙️</span>Configurações
@@ -692,7 +697,7 @@ body.logged-out .main{display:none !important}
       </div>
     </div>
     <div class="cgrid g3">
-      <div class="card card-accent" style="--accent:var(--green)"><div class="sec" style="font-size:9px">OTIFF por Estado (UF)</div><div id="bars-uf"></div></div>
+      <div class="card card-accent" style="--accent:var(--green);grid-column:span 2"><div class="sec" style="font-size:9px">OTIFF por Estado (UF)</div><div id="bars-uf" style="margin-top:4px"></div></div>
       <div class="card card-accent" style="--accent:var(--amber)"><div class="sec" style="font-size:9px">OTIFF por Planta</div><div id="bars-pl"></div></div>
       <div class="card card-accent" style="--accent:var(--purple)">
         <div class="sec" style="font-size:9px">Status dos Pedidos</div>
@@ -772,7 +777,7 @@ body.logged-out .main{display:none !important}
     </div>
     <div class="tw"><table><thead><tr>
       <th>Nº Pedido</th><th>Produto</th><th>Planta</th><th>UF</th><th>Qtd.</th><th>Vlr. Total</th><th>Status</th>
-      <th>Data Fat.</th><th>Nº NF (EP)</th><th>Data Entrega Transp.</th><th>Prev. Entrega</th><th>Ocorrência</th><th>⏱ Prazo</th><th style="min-width:80px">Ação</th>
+      <th>Data Fat.</th><th>Nº NF (EP)</th><th>ASN</th><th>Data Entrega Transp.</th><th>Prev. Entrega</th><th>Ocorrência</th><th>⏱ Prazo</th><th style="min-width:80px">Ação</th>
     </tr></thead><tbody id="tb-trat"><tr><td colspan="13" class="empty">Carregando...</td></tr></tbody></table></div>
   </div>
 
@@ -889,6 +894,13 @@ body.logged-out .main{display:none !important}
   <!-- KPIs de previsão -->
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px" id="pv-kpis"></div>
   <!-- Gráfico de barras -->
+  <!-- Texto explicativo -->
+  <div style="background:rgba(59,143,212,.07);border:1px solid rgba(59,143,212,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:11px;color:var(--muted);line-height:1.7">
+    <strong style="color:var(--blue)">ℹ️ Como ler este gráfico:</strong>
+    Cada barra representa o <strong>valor total a faturar</strong> dos pedidos em aberto com prazo dentro dos próximos 30 dias.
+    Use o filtro acima para agrupar <strong>por cliente</strong> (quem mais tem pedido), <strong>por planta</strong> (qual unidade) ou <strong>por produto</strong>.
+    Barras maiores = maior volume financeiro pendente. Valores na tabela abaixo mostram linhas e percentual do total.
+  </div>
   <div class="card card-accent" style="--accent:var(--blue);padding:20px;margin-bottom:16px">
     <div style="font-size:12px;color:var(--muted);margin-bottom:14px">🔮 Projeção de faturamento — próximos 30 dias</div>
     <div style="position:relative;height:260px"><canvas id="ch-previsao" role="img" aria-label="Gráfico de previsão de faturamento"></canvas></div>
@@ -1055,6 +1067,15 @@ body.logged-out .main{display:none !important}
   <!-- KPIs rápidos -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="rk-kpis"></div>
 
+  <!-- Texto explicativo -->
+  <div style="background:rgba(245,196,24,.07);border:1px solid rgba(245,196,24,.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:11px;color:var(--muted);line-height:1.7">
+    <strong style="color:var(--gold)">ℹ️ Como ler este ranking:</strong>
+    Clientes ordenados pelo <strong>OTIFF</strong> (On Time In Full) — percentual de pedidos entregues no prazo e sem ocorrência.
+    Use os filtros para ver por <strong>ano</strong>, <strong>planta</strong> ou ordenar por <strong>volume financeiro</strong>.
+    🥇🥈🥉 Medalhas indicam os 3 melhores. Clientes com menos de 3 linhas recebem badge "poucos dados" (resultado estatístico inconclusivo).
+    A barra de progresso indica o OTIFF visual. Cores: <span style="color:#22c97a">■ verde ≥ 90%</span> · <span style="color:#f5c418">■ amarelo ≥ 80%</span> · <span style="color:#e8503a">■ vermelho < 80%</span>.
+  </div>
+
   <!-- Legenda semáforo -->
   <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap">
     <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted)">
@@ -1070,6 +1091,38 @@ body.logged-out .main{display:none !important}
 
   <!-- Lista ranking -->
   <div class="card" style="padding:0;overflow:hidden" id="rk-list"></div>
+</div>
+
+
+<!-- PÁGINA STATUS DISTRIBUIDORA -->
+<div class="pg" id="pg-distribuidora" style="max-width:900px">
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="di-ano" onchange="rDistribuidora()"></select>
+    <select class="fs" id="di-pl" onchange="rDistribuidora()">
+      <option value="all">Todas as Plantas</option>
+    </select>
+    <button class="btn btn-sec" style="font-size:11px;padding:6px 14px" onclick="exportarRelatorioDistrib()">📋 Exportar Relatório</button>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto" id="di-sub"></span>
+  </div>
+
+  <!-- Texto explicativo -->
+  <div style="background:rgba(59,143,212,.08);border:1px solid rgba(59,143,212,.25);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.7">
+    <strong style="color:var(--blue)">ℹ️ Como usar este painel:</strong> Mostra todos os pedidos que possuem <strong>ASN gerada</strong> ou status <strong>"Entregue à Transportadora"</strong>.
+    Use para acompanhar o que está em trânsito com a distribuidora, verificar quais plantas ainda aguardam entrega e gerar o relatório de status para reuniões.
+  </div>
+
+  <!-- KPIs -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="di-kpis"></div>
+
+  <!-- Grid de plantas -->
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Status por Planta</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:20px" id="di-plantas"></div>
+
+  <!-- Tabela detalhada -->
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Pedidos em trânsito</div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tw"><table style="width:100%;border-collapse:collapse;font-size:11px" id="di-table"></table></div>
+  </div>
 </div>
 
 <!-- MODAL FATURAMENTO -->
@@ -1089,6 +1142,7 @@ body.logged-out .main{display:none !important}
       </div>
       <div class="fgrid g3" style="margin-top:8px">
         <div class="fg"><label>Data Entrega Transportadora</label><input id="mf-dent" type="date"/></div>
+        <div class="fg"><label>ASN (rastreio distribuidora)</label><input id="mf-asn" placeholder="Ex: ASN123456" style="font-family:'JetBrains Mono',monospace"/></div>
         <div class="fg"><label>Ocorrência</label><select id="mf-ocr"><option value="0">0 — Nenhuma</option><option value="1">1 — Devolução de Produtos</option><option value="2">2 — Devolução de NF</option></select></div>
         <div class="fg"><label>Prev. Entrega (auto)</label><input id="mf-prev" readonly/></div>
       </div>
@@ -1224,6 +1278,7 @@ function init(){
   // Popular classes do dashboard APÓS PEDS estar carregado
   popularClasses();
   initNotificacoes();
+  initModoConsulta();
   listenContatos();
   listenConfigs();
 
@@ -1314,6 +1369,7 @@ const TITLES = {
   previsao:['Previsão de Faturamento','Projeção 30 dias por cliente, planta e produto'],
   config:['Configurações','Contatos de alerta · Notificações de prazo'],
   ranking:['Ranking de Clientes','OTIFF por cliente · Semáforo · Volume e performance'],
+  distribuidora:['Status Distribuidora','Pedidos com ASN · Rastreio por planta · Relatório de envio'],
 };
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -2237,6 +2293,191 @@ function rRanking() {
   }).join('');
 }
 
+
+// ══════════════════════════════════════════════════════════════
+// MODO CONSULTA — ?view=consulta na URL
+// ══════════════════════════════════════════════════════════════
+function initModoConsulta() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('view') !== 'consulta') return;
+
+  document.body.classList.add('modo-consulta');
+  // Esconder todos os botões de ação
+  const style = document.createElement('style');
+  style.textContent = `
+    .modo-consulta .btn-p,
+    .modo-consulta button[onclick*="abrirFat"],
+    .modo-consulta button[onclick*="openModalProd"],
+    .modo-consulta button[onclick*="importarDados"],
+    .modo-consulta button[onclick*="abrirDelLinha"],
+    .modo-consulta button[onclick*="abrirAddContato"],
+    .modo-consulta [onclick*="resetForm"],
+    .modo-consulta #pg-novo,
+    .modo-consulta .ni[onclick*="nav('novo')"],
+    .modo-consulta .ni[onclick*="nav('config')"],
+    .modo-consulta .ni[onclick*="nav('comissao')"],
+    .modo-consulta .bni[onclick*="nav('novo')"],
+    .modo-consulta .sb-sec:has(+.ni[onclick*="nav('produtos']"]) { display: none !important; }
+
+    .modo-consulta .topbar::after {
+      content: '👁 MODO CONSULTA — apenas visualização';
+      font-size: 10px;
+      color: var(--blue);
+      background: rgba(59,143,212,.1);
+      border: 1px solid rgba(59,143,212,.25);
+      border-radius: 6px;
+      padding: 3px 10px;
+      margin-left: 8px;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Mudar título do sistema para indicar modo consulta
+  const nameEl = document.querySelector('.sb-logo .name');
+  if (nameEl) nameEl.innerHTML = '📋 Vale · Pedidos <span style="font-size:8px;color:var(--blue);background:rgba(59,143,212,.15);padding:2px 6px;border-radius:4px;margin-left:4px">CONSULTA</span>';
+
+  // Toast informativo
+  setTimeout(() => showToast('Modo consulta — somente visualização', 'info'), 2000);
+}
+
+// ══════════════════════════════════════════════════════════════
+// STATUS DISTRIBUIDORA
+// ══════════════════════════════════════════════════════════════
+function rDistribuidora() {
+  const ano = document.getElementById('di-ano')?.value || '2026';
+  const pl  = document.getElementById('di-pl')?.value  || 'all';
+
+  // Popular selects
+  const anoSel = document.getElementById('di-ano');
+  if (anoSel && !anoSel.innerHTML.trim()) {
+    const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+  }
+  const plSel = document.getElementById('di-pl');
+  if (plSel && plSel.options.length <= 1) {
+    const plantas = [...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].sort();
+    plantas.forEach(p => { plSel.innerHTML += `<option value="${p}">${p}</option>`; });
+  }
+
+  // Linhas com ASN OU status Entregue à Transportadora
+  const linhasDistrib = [];
+  Object.values(PEDS).forEach(ped => {
+    if (ano !== 'all' && ped.ano !== ano) return;
+    if (pl !== 'all' && ped.planta !== pl) return;
+    Object.values(ped.linhas||{}).forEach(ln => {
+      const temASN = ln.asn && ln.asn.toString().trim() !== '';
+      const entregue = ln.status === 'ENTREGUE Á TRANSPORTADORA';
+      if (!temASN && !entregue) return;
+      linhasDistrib.push({...ln, _ped:ped});
+    });
+  });
+
+  // KPIs
+  const totalLn = linhasDistrib.length;
+  const comASN  = linhasDistrib.filter(l=>l.asn&&l.asn.trim()).length;
+  const entregues = linhasDistrib.filter(l=>l.status==='ENTREGUE Á TRANSPORTADORA').length;
+  const emTransito = comASN - entregues;
+  const valorTotal = linhasDistrib.reduce((s,l)=>s+(+l.vlrTotal||0),0);
+
+  const kpisEl = document.getElementById('di-kpis');
+  if (kpisEl) kpisEl.innerHTML = [
+    {lbl:'Total em distribuição', val:totalLn, c:'var(--gold)'},
+    {lbl:'Com ASN gerada', val:comASN, c:'var(--blue)'},
+    {lbl:'Em trânsito', val:Math.max(0,emTransito), c:'var(--amber)'},
+    {lbl:'Entregues à transp.', val:entregues, c:'var(--green)'},
+  ].map(k=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;text-align:center">
+    <div style="font-size:20px;font-weight:700;color:${k.c}">${k.val}</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.4px">${k.lbl}</div>
+  </div>`).join('');
+
+  const sub = document.getElementById('di-sub');
+  if (sub) sub.textContent = `${totalLn} linha(s) · ${brl(valorTotal)} em trânsito`;
+
+  // Grid de plantas
+  const porPlanta = {};
+  linhasDistrib.forEach(l => {
+    const p = l._ped?.planta || '—';
+    if (!porPlanta[p]) porPlanta[p] = {total:0, comASN:0, entregues:0, vlr:0};
+    porPlanta[p].total++;
+    if (l.asn && l.asn.trim()) porPlanta[p].comASN++;
+    if (l.status === 'ENTREGUE Á TRANSPORTADORA') porPlanta[p].entregues++;
+    porPlanta[p].vlr += +l.vlrTotal || 0;
+  });
+
+  const plantasEl = document.getElementById('di-plantas');
+  if (plantasEl) {
+    plantasEl.innerHTML = Object.entries(porPlanta).sort((a,b)=>b[1].total-a[1].total).map(([nome,d]) => {
+      const pctEntregue = d.total ? Math.round(d.entregues/d.total*100) : 0;
+      const emTransitoP = d.comASN - d.entregues;
+      const cor = pctEntregue >= 90 ? '#22c97a' : pctEntregue >= 50 ? '#f5c418' : '#e8503a';
+      return `<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${cor}"></div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:6px">${nome}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:10px;color:var(--muted);margin-bottom:8px">
+          <div>Total: <strong style="color:var(--text)">${d.total}</strong></div>
+          <div>ASN: <strong style="color:var(--blue)">${d.comASN}</strong></div>
+          <div>Em trânsito: <strong style="color:var(--amber)">${Math.max(0,emTransitoP)}</strong></div>
+          <div>Entregues: <strong style="color:var(--green)">${d.entregues}</strong></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${pctEntregue}% entregues</div>
+        <div style="background:var(--border);border-radius:3px;height:5px;overflow:hidden">
+          <div style="width:${pctEntregue}%;height:5px;background:${cor};border-radius:3px;transition:width .4s"></div>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:6px">${brl(d.vlr)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Tabela detalhada
+  const tbl = document.getElementById('di-table');
+  if (tbl) {
+    const rows = linhasDistrib
+      .sort((a,b)=>{ const pa=a._ped?.planta||'',pb=b._ped?.planta||''; return pa.localeCompare(pb); })
+      .map(l => {
+        const corSt = l.status==='ENTREGUE Á TRANSPORTADORA' ? 'var(--green)' : 'var(--amber)';
+        return `<tr class="tbl-row">
+          <td style="font-weight:500;color:var(--text)">${l._ped?.numPedido||'—'}</td>
+          <td>${l._ped?.planta||'—'}</td>
+          <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(l.produto||'—').split(' TAM.')[0]}</td>
+          <td style="font-family:'JetBrains Mono',monospace;color:var(--blue)">${l.asn||'—'}</td>
+          <td style="color:var(--text)">${l.statusEP||'—'}</td>
+          <td style="color:${corSt};font-size:10px">${l.status==='ENTREGUE Á TRANSPORTADORA'?'✅ Entregue':'⏳ Em trânsito'}</td>
+          <td>${fdt(l.dataEntrega)||'—'}</td>
+          <td style="text-align:right;color:var(--blue)">${brl(+l.vlrTotal)}</td>
+        </tr>`;
+      }).join('');
+    tbl.innerHTML = `<thead class="tbl-head"><tr>
+      <th>Nº Pedido</th><th>Planta</th><th>Produto</th>
+      <th>ASN</th><th>NF</th><th>Status</th><th>Data Entrega</th><th style="text-align:right">Valor</th>
+    </tr></thead><tbody>${rows}</tbody>`;
+  }
+}
+
+// Exportar relatório da distribuidora como texto
+function exportarRelatorioDistrib() {
+  const linhasEl = document.getElementById('di-table');
+  if (!linhasEl || !linhasEl.rows.length) {
+    showToast('Nenhum dado para exportar.','err'); return;
+  }
+  // Gera texto copiável
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  let texto = `RELATÓRIO DE STATUS — DISTRIBUIDORA\nGerado em: ${hoje}\n${'='.repeat(60)}\n`;
+
+  const porPlantaEl = document.getElementById('di-plantas');
+  if (porPlantaEl) {
+    texto += '\nSTATUS POR PLANTA:\n' + '-'.repeat(40) + '\n';
+    porPlantaEl.querySelectorAll('div[style*="border-radius:14px"]').forEach(card => {
+      texto += card.textContent.replace(/\s+/g,' ').trim() + '\n';
+    });
+  }
+
+  navigator.clipboard?.writeText(texto).then(() => {
+    showToast('Relatório copiado para a área de transferência!','ok');
+  }).catch(() => {
+    showToast('Não foi possível copiar automaticamente.','err');
+  });
+}
+
 function atualizarContador(){
   const ano = document.getElementById('d-ano')?.value || new Date().getFullYear();
   const total = Object.keys(PEDS).length;
@@ -2264,13 +2505,14 @@ function nav(pg){
   if(pg==='previsao') rPrevisao();
   if(pg==='config') { renderContatosConfig(); listenConfigs(); atualizarBotaoNotif(); }
   if(pg==='ranking') rRanking();
+  if(pg==='distribuidora') rDistribuidora();
 }
 
 // ══════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════
 const brl = v=>isNaN(v)||v==null?'—':'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
-const mi  = v=>isNaN(v)||!v?'—':'R$ '+(v/1e6).toFixed(2)+' Mi';
+const mi  = v=>isNaN(v)||!v?'—':'R$ '+(v/1e6).toFixed(3)+' Mi';
 const fdt = d=>{ if(!d) return '—'; try{ return new Date(d+'T12:00:00').toLocaleDateString('pt-BR'); }catch{ return d; }};
 const pdt = s=>s?new Date(s+'T12:00:00'):null;
 const bc  = p=>p>=90?'#22c97a':p>=80?'#f5c418':'#e8503a';
@@ -2380,7 +2622,9 @@ function rdash(){
   const pIF=ent.length?Math.round(inf/ent.length*100):0;
   const pOF=totalMetric?Math.round(otf/totalMetric*100):0;
   const vTot=lns.reduce((s,l)=>s+(+l.vlrTotal||0),0);
-  const vFat=ent.reduce((s,l)=>s+(+l.vlrTotal||0),0);
+  // Faturado = entregue OU tem NF (statusEP) OU tem data de faturamento
+  const fatLns=lns.filter(l=>l.status==='ENTREGUE Á TRANSPORTADORA'||(l.statusEP&&l.statusEP.toString().trim()!=='')||(l.dataFat&&l.dataFat.trim()!==''));
+  const vFat=fatLns.reduce((s,l)=>s+(+l.vlrFaturado||+l.vlrTotal||0),0);
   // Dias a faturar: data pedido → data faturamento
   const dfats=ent.filter(l=>l.dataFat&&l._ped?.dataPedido).map(l=>{
     const a=pdt(l._ped.dataPedido),b=pdt(l.dataFat);
@@ -2805,6 +3049,7 @@ function rtrat(){
         <td>${badge(ln.status, ped.dataPedido, ln.dataEntrega)}</td>
         <td style="font-size:10px">${fdt(ln.dataFat)||'<span style="color:var(--red)">—</span>'}</td>
         <td style="font-size:10px">${ln.statusEP||'—'}</td>
+        <td style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--blue)">${ln.asn||'—'}</td>
         <td style="font-size:10px">${fdt(ln.dataEntrega)||'—'}</td>
         <td style="font-size:10px">${fdt(ln.prevEntrega)||'—'}</td>
         <td><span class="badge" style="${ln.ocorrencia?'background:rgba(232,80,58,.12);color:var(--red);border:1px solid rgba(232,80,58,.3)':''}">${ln.ocorrencia||0}</span></td>
@@ -2849,6 +3094,7 @@ function abrirFat(pk,lk){
   document.getElementById('mf-dfat').value=ln.dataFat||''
   document.getElementById('mf-ep').value=ln.statusEP||''
   document.getElementById('mf-dent').value=ln.dataEntrega||''
+  if(document.getElementById('mf-asn')) document.getElementById('mf-asn').value=ln.asn||''
   document.getElementById('mf-ocr').value=ln.ocorrencia||0;
   document.getElementById('mf-obs').value=ln.obs||''
   document.getElementById('mf-prev').value=fdt(ln.prevEntrega);
@@ -2865,6 +3111,7 @@ async function salvarFat(){
     dataEntrega:document.getElementById('mf-dent').value,
     ocorrencia:+(document.getElementById('mf-ocr').value||0),
     obs:document.getElementById('mf-obs').value,
+    asn:document.getElementById('mf-asn')?.value?.trim()||'',
   };
   if(upd.dataFat) upd.vlrFaturado=PEDS[pk]?.linhas?.[lk]?.vlrTotal||0;
   try{
@@ -3202,8 +3449,8 @@ function renderComissao(){
   // TODAS as linhas S11D (para base da Myrelle)
   const todasS11D=allLinhas(ano,'all','PA','S11D','all');
 
-  // Linhas COM NF emitida (para base do Andrei)
-  const fatS11D=todasS11D.filter(l=>l.statusEP&&l.statusEP.toString().trim()!=='');
+  // Linhas COM NF emitida OU data de faturamento preenchida (para base do Andrei)
+  const fatS11D=todasS11D.filter(l=>(l.statusEP&&l.statusEP.toString().trim()!=='')||(l.dataFat&&l.dataFat.toString().trim()!==''));
 
   // Por mês — bases separadas
   const byM={};
