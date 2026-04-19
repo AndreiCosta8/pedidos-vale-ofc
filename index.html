@@ -1107,9 +1107,11 @@ body.logged-out .main{display:none !important}
   <!-- Texto explicativo -->
   <div style="background:rgba(59,143,212,.08);border:1px solid rgba(59,143,212,.25);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.7">
     <strong style="color:var(--blue)">ℹ️ Como usar este painel:</strong>
-    Mostra pedidos com <strong>ASN gerada</strong> (número de rastreio na distribuidora) ou com status <strong>"Entregue à Transportadora"</strong>.<br>
-    <strong>Em trânsito</strong> = tem ASN mas ainda <em>não</em> foi confirmado como "Entregue à Transportadora" — ou seja, está na distribuidora aguardando entrega final.<br>
-    Use para acompanhar pedidos e gerar relatório de status para reuniões com a distribuidora.
+    Acompanhe todos os pedidos que estão na distribuidora.<br>
+    <strong>ASN gerada</strong> = expedição gerou a coleta (a distribuidora retirou o pedido).
+    <strong>Em trânsito</strong> = coleta gerada, mas o pedido ainda <em>não foi entregue à transportadora final</em>.
+    <strong>Entregue à Transp.</strong> = pedido confirmado como entregue à transportadora.
+    Use para tirar relatório de status e acompanhar o que ainda está pendente de entrega.
   </div>
 
   <!-- KPIs -->
@@ -2960,7 +2962,7 @@ function rpedidos(){
             ${ln.asn?('<span style="font-size:9px;color:var(--blue)">ASN: '+ln.asn+'</span>'):''}
             ${ln.ocorrencia>0?'<span class="badge" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.4)">🔴 Devolução</span>':''}
             <button class="btn btn-sm btn-g" style="padding:2px 7px;font-size:9px" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
-            <button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3)" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}')">🗑</button>
+            <button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3)" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>
             ${ln.status==='ENTREGUE Á TRANSPORTADORA'?`<button class="btn btn-sm btn-r" style="padding:2px 7px;font-size:9px" onclick="event.stopPropagation();abrirDevolucao('${pk}','${lk}')" title="Registrar devolução — impacta IN FULL">📦 Devolução</button>`:''}
           </div>`).join('')}
       <div style="text-align:right;padding:5px 10px 2px">
@@ -3204,7 +3206,7 @@ function rtrat(){
         <td>${alertaBadge(dr)}</td>
         <td style="display:flex;gap:4px;align-items:center">
       <button class="btn btn-g btn-sm" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
-      <button class="btn btn-sm" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}')">🗑</button>
+      <button class="btn btn-sm" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>
     </td>
       </tr>`;
     });
@@ -3531,9 +3533,11 @@ async function loginForgot(){
 // ══════════════════════════════════════════════
 const DEL_SENHA = 'vale2026'; // mesma senha da comissão
 let _delLinhaKey = null;
+let _delPedidoKey = null; // pk do pedido para montar o path correto
 
-function abrirDelLinha(linhaKey, numPedido, produto) {
+function abrirDelLinha(linhaKey, numPedido, produto, pedidoKey) {
   _delLinhaKey = linhaKey;
+  _delPedidoKey = pedidoKey || numPedido; // pk do Firebase (numPedido = pk neste sistema)
   document.getElementById('del-linha-info').innerHTML =
     `<strong style="color:var(--text)">${numPedido}</strong> — ${produto}`;
   document.getElementById('del-linha-pwd').value = '';
@@ -3550,12 +3554,17 @@ function confirmarDelLinha() {
     return;
   }
   if (!_delLinhaKey) return;
-  // Remover do Firebase
-  db.ref('linhas/' + _delLinhaKey).remove()
+  // Path correto: pedidos_vale/{pedidoKey}/linhas/{linhaKey}
+  const delPath = _delPedidoKey
+    ? 'pedidos_vale/' + _delPedidoKey + '/linhas/' + _delLinhaKey
+    : 'pedidos_vale/' + _delLinhaKey.replace(/^l\d+.*/, ''); // fallback
+  db.ref('pedidos_vale/' + _delPedidoKey + '/linhas/' + _delLinhaKey).remove()
     .then(() => {
       closeM('m-dellinha');
       showToast('Linha excluída com sucesso', 'ok');
       _delLinhaKey = null;
+      _delPedidoKey = null;
+      carregarPedidos(); // recarrega a lista
     })
     .catch(e => showToast('Erro ao excluir: ' + e.message, 'err'));
 }
