@@ -1291,6 +1291,7 @@ function init(){
   try {
     document.getElementById('fb-lbl').textContent = 'Conectando...';
     listenPeds();
+    listenProdutos(); // sincroniza SAP e preços do Firebase
   } catch(e) {
     document.getElementById('fb-lbl').textContent = 'Sem Firebase (dados locais)';
     document.querySelector('.fb-dot').style.background = 'var(--amber)';
@@ -3345,11 +3346,15 @@ async function salvarProd(){
   rprod();
 }
 
-function deletarProd(){
+async function deletarProd(){
   const idx=+document.getElementById('mp-idx').value;
   if(idx<0)return;
   if(!confirm('Excluir produto?'))return;
+  const cod = PRODUTOS[idx]?.cod;
   PRODUTOS.splice(idx,1);
+  if(db && cod){
+    await db.ref('produtos_vale/'+cod).remove().catch(()=>{});
+  }
   toast('Produto excluído');
   closeM('m-prod'); rprod();
 }
