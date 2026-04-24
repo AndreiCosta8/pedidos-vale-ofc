@@ -461,6 +461,8 @@ body.logged-out .main{display:none !important}
 }
 .rank-linhas{font-size:10px;color:var(--muted);min-width:50px;text-align:right;flex-shrink:0}
 
+
+.pag-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:11px;transition:0.2s} .pag-btn:disabled{opacity:0.5;cursor:not-allowed}
 </style>
 </head>
 <body class="logged-out">
@@ -533,6 +535,7 @@ body.logged-out .main{display:none !important}
 </nav>
 
 <div class="main">
+  <div id="offline-banner" style="display:none;background:var(--red);color:#fff;text-align:center;padding:6px;font-size:11px">⚠️ Sem conexão com o servidor — alterações podem não ser salvas</div>
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:10px">
       <button class="ham-btn" id="ham-btn" onclick="toggleSidebar()" aria-label="Menu">
@@ -608,17 +611,17 @@ body.logged-out .main{display:none !important}
   <!-- DASHBOARD -->
   <div class="pg on" id="pg-dash">
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
-      <select class="fs" id="d-ano" onchange="rdash();atualizarContador()">
+      <select class="fs" id="d-ano" onchange="saveFilter(this.id);rdash();atualizarContador()">
         <option value="all">Todos os Anos</option>
-        <option value="2026" selected>2026</option>
+        <script>document.write('<option value="'+new Date().getFullYear()+'" selected>'+new Date().getFullYear()+'</option>')</script>
         <option value="2025">2025</option>
       </select>
-      <select class="fs" id="d-cli" onchange="rdash()">
+      <select class="fs" id="d-cli" onchange="saveFilter(this.id);rdash()">
         <option value="all">Todos os Clientes</option>
         <option value="FERROSOS">Ferrosos</option>
         <option value="METAIS BÁSICOS">Metais Básicos</option>
       </select>
-      <select class="fs" id="d-uf" onchange="rdash()">
+      <select class="fs" id="d-uf" onchange="saveFilter(this.id);rdash()">
         <option value="all">Todos os Estados</option>
         <option value="PA">Pará (PA)</option>
         <option value="MG">Minas Gerais (MG)</option>
@@ -626,10 +629,10 @@ body.logged-out .main{display:none !important}
         <option value="MA">Maranhão (MA)</option>
         <option value="RJ">Rio de Janeiro (RJ)</option>
       </select>
-      <select class="fs" id="d-pl" onchange="rdash()">
+      <select class="fs" id="d-pl" onchange="saveFilter(this.id);rdash()">
         <option value="all">Todas as Plantas</option>
       </select>
-      <select class="fs" id="d-classe" onchange="rdash()">
+      <select class="fs" id="d-classe" onchange="saveFilter(this.id);rdash()">
         <option value="all">Todas as Classes</option>
       </select>
       <button class="btn btn-sec" style="font-size:10px;padding:5px 10px" onclick="resetDashFilters()">↺ Limpar</button>
@@ -709,12 +712,14 @@ body.logged-out .main{display:none !important}
   <!-- PEDIDOS -->
   <div class="pg" id="pg-pedidos">
     <div class="sr">
-      <input class="si" id="s-ped" placeholder="🔍 Nº Pedido, produto, planta..." oninput="rpedidos()"/>
-      <select class="fs" id="f-st" onchange="rpedidos()"><option value="">Todos os Status</option><option value="AGUARDANDO PRODUÇÃO">Ag. Produção</option><option value="AGUARDANDO COLETA">Ag. Coleta</option><option value="ENTREGUE Á TRANSPORTADORA">Entregue</option><option value="ATRASO">⚠ Entregue c/ Atraso</option></select>
-      <select class="fs" id="f-pl" onchange="rpedidos()"><option value="">Todas as Plantas</option></select>
-      <select class="fs" id="f-cl" onchange="rpedidos()"><option value="">Todos os Clientes</option><option value="FERROSOS">Ferrosos</option><option value="METAIS BÁSICOS">Metais Básicos</option></select>
+      <input class="si" id="s-ped" placeholder="🔍 Nº Pedido, produto, planta..." oninput="dRped()"/>
+      <select class="fs" id="f-st" onchange="saveFilter(this.id);pedPage=0;rpedidos()"><option value="">Todos os Status</option><option value="AGUARDANDO PRODUÇÃO">Ag. Produção</option><option value="AGUARDANDO COLETA">Ag. Coleta</option><option value="ENTREGUE Á TRANSPORTADORA">Entregue</option><option value="ATRASO">⚠ Entregue c/ Atraso</option></select>
+      <select class="fs" id="f-pl" onchange="saveFilter(this.id);pedPage=0;rpedidos()"><option value="">Todas as Plantas</option></select>
+      <select class="fs" id="f-cl" onchange="saveFilter(this.id);pedPage=0;rpedidos()"><option value="">Todos os Clientes</option><option value="FERROSOS">Ferrosos</option><option value="METAIS BÁSICOS">Metais Básicos</option></select>
       <div class="rc" id="rc-ped"></div>
+          <button class="btn btn-sm btn-out" onclick="exportarPedidosCSV()" style="padding:4px 8px;font-size:10px">📥 CSV</button>
       <button class="btn btn-p btn-sm" onclick="nav('novo')">+ Novo Pedido</button>
+      <button class="btn btn-sec btn-sm" onclick="exportarPedidos()" title="Exportar tabela atual para CSV">📋 Exportar CSV</button>
     </div>
     <div class="tw"><table><thead>
       <tr style="background:rgba(0,0,0,.2)">
@@ -770,10 +775,11 @@ body.logged-out .main{display:none !important}
     </div>
     <div id="alerta-banner" style="display:none;background:rgba(232,80,58,.1);border:1px solid rgba(232,80,58,.4);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:var(--red);font-weight:600"></div>
     <div class="sr">
-      <input class="si" id="s-trat" placeholder="🔍 Nº Pedido ou planta..." oninput="rtrat()"/>
-      <select class="fs" id="f-trat-st" onchange="rtrat()"><option value="">Todos os Status</option><option value="AGUARDANDO PRODUÇÃO">Ag. Produção</option><option value="AGUARDANDO COLETA">Ag. Coleta</option></select>
-      <select class="fs" id="f-trat-pl" onchange="rtrat()"><option value="">Todas as Plantas</option></select>
+      <input class="si" id="s-trat" placeholder="🔍 Nº Pedido ou planta..." oninput="dRtrat()"/>
+      <select class="fs" id="f-trat-st" onchange="saveFilter(this.id);rtrat()"><option value="">Todos os Status</option><option value="AGUARDANDO PRODUÇÃO">Ag. Produção</option><option value="AGUARDANDO COLETA">Ag. Coleta</option></select>
+      <select class="fs" id="f-trat-pl" onchange="saveFilter(this.id);rtrat()"><option value="">Todas as Plantas</option></select>
       <div class="rc" id="rc-trat"></div>
+          <button class="btn btn-sm btn-out" onclick="exportarTratativaCSV()" style="padding:4px 8px;font-size:10px">📥 CSV</button>
     </div>
     <div class="tw"><table><thead><tr>
       <th>Nº Pedido</th><th>Produto</th><th>Planta</th><th>UF</th><th>Qtd.</th><th>Vlr. Total</th><th>Status</th>
@@ -784,7 +790,7 @@ body.logged-out .main{display:none !important}
   <!-- PRODUTOS -->
   <div class="pg" id="pg-produtos">
     <div class="sr">
-      <input class="si" id="s-prod" placeholder="🔍 Código, nome, linha..." oninput="rprod()"/>
+      <input class="si" id="s-prod" placeholder="🔍 Código, nome, linha..." oninput="dRprod()"/>
       <select class="fs" id="f-lnha" onchange="rprod()"><option value="">Todas as Linhas</option></select>
       <div class="rc" id="rc-prod"></div>
       <button class="btn btn-p btn-sm" onclick="openModalProd(null)">+ Novo Produto</button>
@@ -1191,7 +1197,7 @@ body.logged-out .main{display:none !important}
       </div>
     </div>
     <div class="mf">
-      <button class="btn btn-r btn-sm" id="mp-del-btn" onclick="deletarProd()" style="margin-right:auto;display:none">🗑 Excluir</button>
+      ${isAdmin() ? `<button class="btn btn-r btn-sm" id="mp-del-btn" onclick="deletarProd()" style="margin-right:auto;display:none">🗑 Excluir</button>` : ``}
       <button class="btn btn-s" onclick="closeM('m-prod')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarProd()">💾 Salvar Produto</button>
     </div>
@@ -1209,8 +1215,11 @@ body.logged-out .main{display:none !important}
 <!-- MODAL EDITAR PEDIDO -->
 <div class="modal-bg" id="m-edit">
   <div class="modal" style="max-width:820px">
-    <div class="mh">
-      <h3>Editar Pedido</h3>
+    <div class="mh" style="background:rgba(240,160,32,.06);border-bottom:1px solid rgba(240,160,32,.2)">
+      <div>
+        <h3>✏️ Editar Pedido</h3>
+        <div style="font-size:10px;color:var(--amber);margin-top:2px">Revise as alterações antes de salvar</div>
+      </div>
       <button class="mclose" onclick="closeM('m-edit')">✕</button>
     </div>
     <div class="mc" id="m-edit-body"></div>
@@ -1270,7 +1279,18 @@ let chOM=null,chPR=null,chVM=null,chST=null;
 // ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
+
+async function logAtividade(acao, detalhes) { const entry = { acao, detalhes, usuario: window._currentUser?.email||'—', data: new Date().toISOString() }; if(window.db) await window.db.ref('config/log').push(entry); }
+function debounce(fn, ms=300) { let t; return (...a) => { clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+function saveFilter(id) { const el=document.getElementById(id); if(el) sessionStorage.setItem('filtro_'+id, el.value); }
+function restoreFilters() { ['d-ano','d-cli','d-uf','d-pl','d-classe','f-st','f-pl','f-cl','f-trat-st','f-trat-pl'].forEach(id=>{ const el=document.getElementById(id); const saved=sessionStorage.getItem('filtro_'+id); if(el && saved) el.value=saved; }); }
+let pedPage = 0; const PED_PER_PAGE = 50; 
+function pedPrev(){ if(pedPage>0){pedPage--; rpedidos();} }
+function pedNext(){ pedPage++; rpedidos(); }
+
 function init(){
+const dRped=debounce(rpedidos,300); const dRtrat=debounce(rtrat,300); const dRprod=debounce(rprod,300);
+  restoreFilters();
   document.getElementById('chip-date').textContent = new Date().toLocaleDateString('pt-BR');
 
   // Popular selects de plantas
@@ -1307,6 +1327,7 @@ function init(){
     document.getElementById('fb-lbl').textContent = 'Conectando...';
     listenPeds();
     listenProdutos(); // sincroniza SAP e preços do Firebase
+    initConexao(); // banner offline
   } catch(e) {
     document.getElementById('fb-lbl').textContent = 'Sem Firebase (dados locais)';
     document.querySelector('.fb-dot').style.background = 'var(--amber)';
@@ -1336,6 +1357,59 @@ async function importarDados(){
 // ══════════════════════════════════════════════
 // FIREBASE
 // ══════════════════════════════════════════════
+
+// ══════════════════════════════════════════════
+// BANNER OFFLINE
+// ══════════════════════════════════════════════
+function initConexao(){
+  if(!db) return;
+  let _offlineBanner = null;
+  db.ref('.info/connected').on('value', snap => {
+    const online = snap.val() === true;
+    if(!_offlineBanner){
+      _offlineBanner = document.createElement('div');
+      _offlineBanner.id = 'offline-banner';
+      _offlineBanner.style.cssText = [
+        'position:fixed;bottom:0;left:220px;right:0;z-index:9999',
+        'padding:10px 20px;text-align:center;font-size:12px;font-weight:700',
+        'background:rgba(232,80,58,.95);color:#fff;display:none;transition:all .3s'
+      ].join(';');
+      _offlineBanner.innerHTML = '📡 Sem conexão com Firebase — dados podem estar desatualizados. Verifique sua internet.';
+      document.body.appendChild(_offlineBanner);
+    }
+    _offlineBanner.style.display = online ? 'none' : 'block';
+    // Atualizar indicador do sidebar
+    const dot = document.querySelector('.fb-dot');
+    const lbl = document.getElementById('fb-lbl');
+    if(dot) dot.style.background = online ? 'var(--green)' : 'var(--amber)';
+    if(lbl && !online) lbl.textContent = '⚠️ Offline';
+  });
+}
+
+
+function listenProdutos(){
+  if(!db) return;
+  db.ref('produtos_vale').on('value', snap => {
+    const val = snap.val();
+    if(!val) return;
+    // Mescla: Firebase prevalece sobre hardcoded
+    const firebaseMap = {};
+    Object.values(val).forEach(p => { if(p && p.cod) firebaseMap[p.cod] = p; });
+    PRODUTOS = PRODUTOS.map(p => firebaseMap[p.cod] ? {...p, ...firebaseMap[p.cod]} : p);
+    // Adiciona produtos só no Firebase
+    Object.values(firebaseMap).forEach(fp => {
+      if(!PRODUTOS.find(p => p.cod === fp.cod)) PRODUTOS.push(fp);
+    });
+    rprod();
+    // Atualiza select de produto no formulário de novo pedido
+    const prodSel = document.getElementById('lc-1');
+    if(prodSel) {
+      prodSel.innerHTML = '<option value="">Selecione o produto...</option>' +
+        PRODUTOS.map(p=>`<option value="${p.cod}">${p.cod} — ${p.nome.substring(0,45)}</option>`).join('');
+    }
+  }, ()=>{}); // ignora erro silenciosamente
+}
+
 function listenPeds(){
   db.ref('pedidos_vale').on('value',snap=>{
     const val = snap.val();
@@ -1478,14 +1552,14 @@ function verificarNotificacoesPrazo() {
 let _evolChart = null;
 
 function rEvolucao() {
-  const ano = document.getElementById('ev-ano')?.value || '2026';
+  const ano = document.getElementById('ev-ano')?.value || new Date().getFullYear().toString();
   const pl  = document.getElementById('ev-pl')?.value  || 'all';
 
   // Popular selects se necessário
   const anoSel = document.getElementById('ev-ano');
   if (anoSel && !anoSel.innerHTML.trim()) {
     const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
-    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a=== new Date().getFullYear().toString()?' selected':''}>${a}</option>`).join('');
   }
   const plSel = document.getElementById('ev-pl');
   if (plSel && plSel.options.length <= 1) {
@@ -1612,11 +1686,11 @@ function getMetaPlanta(planta) {
 }
 
 function rMetas() {
-  const ano = document.getElementById('mt-ano')?.value || '2026';
+  const ano = document.getElementById('mt-ano')?.value || new Date().getFullYear().toString();
   const anoSel = document.getElementById('mt-ano');
   if (anoSel && !anoSel.innerHTML.trim()) {
     const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
-    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a=== new Date().getFullYear().toString()?' selected':''}>${a}</option>`).join('');
   }
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -1692,7 +1766,7 @@ function salvarMetas() {
   localStorage.setItem('vp_metas', JSON.stringify(metas));
   closeM('m-metas');
   rMetas();
-  showToast('Metas salvas com sucesso!', 'ok');
+  toast('Metas salvas com sucesso!', 'ok');
 }
 
 // ══════════════════════════════════════════════════════════════════════════
@@ -1807,6 +1881,7 @@ function rPrevisao() {
 // Carregar contatos do Firebase
 let CONTATOS_ALERTA = [];
 function listenContatos() {
+  if(!db) return;
   db.ref('config/contatos').on('value', snap => {
     const val = snap.val();
     CONTATOS_ALERTA = val ? Object.entries(val).map(([id,c])=>({...c,id})) : [];
@@ -1816,6 +1891,7 @@ function listenContatos() {
 }
 
 function listenConfigs() {
+  if(!db) return;
   db.ref('config/alertas').once('value', snap => {
     const val = snap.val() || {};
     const el3d = document.getElementById('cfg-alerta-3d');
@@ -1895,23 +1971,23 @@ function salvarContato() {
   const ativo = document.getElementById('contato-ativo').checked;
   const editId = document.getElementById('contato-edit-id').value;
 
-  if (!nome) { showToast('Informe o nome do contato.','err'); return; }
-  if (!wa || wa.length < 10) { showToast('Informe um número WhatsApp válido.','err'); return; }
+  if (!nome) { toast('Informe o nome do contato.','err'); return; }
+  if (!wa || wa.length < 10) { toast('Informe um número WhatsApp válido.','err'); return; }
 
   const payload = { nome, whatsapp: wa, cargo, ativo };
   if (editId) {
     db.ref('config/contatos/'+editId).update(payload)
-      .then(()=>{ closeM('m-addcontato'); showToast('Contato atualizado!','ok'); });
+      .then(()=>{ closeM('m-addcontato'); toast('Contato atualizado!','ok'); });
   } else {
     db.ref('config/contatos').push(payload)
-      .then(()=>{ closeM('m-addcontato'); showToast('Contato adicionado!','ok'); });
+      .then(()=>{ closeM('m-addcontato'); toast('Contato adicionado!','ok'); });
   }
 }
 
 // Pausar / reativar contato
 function toggleContatoAtivo(id, novoStatus) {
   db.ref('config/contatos/'+id).update({ ativo: novoStatus })
-    .then(()=> showToast(novoStatus ? 'Contato ativado!' : 'Contato pausado.', 'ok'));
+    .then(()=> toast(novoStatus ? 'Contato ativado!' : 'Contato pausado.', 'ok'));
 }
 
 // Excluir contato
@@ -1919,7 +1995,7 @@ function excluirContato(id) {
   const ct = CONTATOS_ALERTA.find(c=>c.id===id);
   if (!confirm(`Excluir o contato "${ct?.nome}"?`)) return;
   db.ref('config/contatos/'+id).remove()
-    .then(()=> showToast('Contato removido.','ok'));
+    .then(()=> toast('Contato removido.','ok'));
 }
 
 // Atualizar label do botão de notificação
@@ -2003,15 +2079,15 @@ function mostrarPainelAlerta(pedidos3, pedidos1) {
 function testarAlertas() {
   const contatosAtivos = CONTATOS_ALERTA.filter(c=>c.ativo!==false);
   if (!contatosAtivos.length) {
-    showToast('Cadastre pelo menos um contato ativo primeiro.','err'); return;
+    toast('Cadastre pelo menos um contato ativo primeiro.','err'); return;
   }
   // Pegar os primeiros pedidos em aberto como exemplo
   const pedidosTeste = Object.values(PEDS).filter(p=>
     Object.values(p.linhas||{}).some(l=>l.status!=='ENTREGUE Á TRANSPORTADORA')
   ).slice(0,3);
-  if (!pedidosTeste.length) { showToast('Nenhum pedido em aberto para testar.','err'); return; }
+  if (!pedidosTeste.length) { toast('Nenhum pedido em aberto para testar.','err'); return; }
   mostrarPainelAlerta([], pedidosTeste);
-  showToast('Painel de teste aberto — verifique no canto inferior direito.','ok');
+  toast('Painel de teste aberto — verifique no canto inferior direito.','ok');
 }
 
 
@@ -2165,7 +2241,7 @@ function renderTrend(elId, atual, anterior, fmt='num', menor_melhor=false) {
 }
 
 function atualizarTendencias() {
-  const ano = document.getElementById('d-ano')?.value || '2026';
+  const ano = document.getElementById('d-ano')?.value || new Date().getFullYear().toString();
   const hoje = new Date();
   const mesAtual = hoje.getMonth();
   const mesAnterior = mesAtual === 0 ? 11 : mesAtual - 1;
@@ -2193,7 +2269,7 @@ function atualizarTendencias() {
 // RANKING DE CLIENTES POR OTIFF
 // ══════════════════════════════════════════════════════════════
 function rRanking() {
-  const ano = document.getElementById('rk-ano')?.value || '2026';
+  const ano = document.getElementById('rk-ano')?.value || new Date().getFullYear().toString();
   const pl  = document.getElementById('rk-pl')?.value  || 'all';
   const ord = document.getElementById('rk-ord')?.value || 'otiff';
 
@@ -2201,7 +2277,7 @@ function rRanking() {
   const anoSel = document.getElementById('rk-ano');
   if (anoSel && !anoSel.innerHTML.trim()) {
     const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
-    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a=== new Date().getFullYear().toString()?' selected':''}>${a}</option>`).join('');
   }
   const plSel = document.getElementById('rk-pl');
   if (plSel && plSel.options.length <= 1) {
@@ -2473,14 +2549,14 @@ function _filtrarPorPlanta() {
 // STATUS DISTRIBUIDORA
 // ══════════════════════════════════════════════════════════════
 function rDistribuidora() {
-  const ano = document.getElementById('di-ano')?.value || '2026';
+  const ano = document.getElementById('di-ano')?.value || new Date().getFullYear().toString();
   const pl  = document.getElementById('di-pl')?.value  || 'all';
 
   // Popular selects
   const anoSel = document.getElementById('di-ano');
   if (anoSel && !anoSel.innerHTML.trim()) {
     const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
-    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a==='2026'?' selected':''}>${a}</option>`).join('');
+    anoSel.innerHTML = anos.map(a=>`<option value="${a}"${a=== new Date().getFullYear().toString()?' selected':''}>${a}</option>`).join('');
   }
   const plSel = document.getElementById('di-pl');
   if (plSel && plSel.options.length <= 1) {
@@ -2582,9 +2658,62 @@ function rDistribuidora() {
   }
 }
 
+
+// ══════════════════════════════════════════════
+// EXPORTAR PEDIDOS — CSV
+// ══════════════════════════════════════════════
+function exportarPedidos(){
+  const srch=(document.getElementById('s-ped')?.value||'').toLowerCase();
+  const fSt=document.getElementById('f-st')?.value||'';
+  const fPl=document.getElementById('f-pl')?.value||'';
+  const fCl=document.getElementById('f-cl')?.value||'';
+  const linhas=[];
+  Object.entries(PEDS).forEach(([pk,ped])=>{
+    if(fPl&&ped.planta!==fPl)return;
+    if(fCl&&ped.cliente!==fCl)return;
+    if(srch&&!ped.numPedido?.includes(srch)&&!ped.planta?.toLowerCase().includes(srch))return;
+    Object.entries(ped.linhas||{}).forEach(([lk,ln])=>{
+      if(fSt&&fSt!=='ATRASO'&&ln.status!==fSt)return;
+      linhas.push({
+        pedido:ped.numPedido||'—', planta:ped.planta||'—', uf:ped.uf||'—',
+        cliente:ped.cliente||'—', dataPedido:ped.dataPedido||'—',
+        produto:ln.nomeProduto||ln.codProduto||'—', qtd:ln.qtd||0,
+        vlrUnitario:(+ln.vlrUnitario||0).toFixed(2),
+        vlrTotal:(+ln.vlrTotal||0).toFixed(2),
+        status:ln.status||'—', dataFat:ln.dataFat||'—',
+        nf:ln.statusEP||'—', asn:ln.asn||'—',
+        dataEntrega:ln.dataEntrega||'—', prevEntrega:ln.prevEntrega||'—',
+        ocorrencia:ln.ocorrencia||0, obs:ln.obs||'',
+      });
+    });
+  });
+  if(!linhas.length){ toast('Nenhum dado para exportar.','err'); return; }
+  const sep=';';
+  const header=['Nº Pedido','Planta','UF','Cliente','Data Pedido','Produto','Qtd',
+    'Vlr Unit. (R$)','Vlr Total (R$)','Status','Data Fat.','NF/EP','ASN',
+    'Data Entrega Transp.','Prev. Entrega','Ocorrência','Obs.'].join(sep);
+  const rows=linhas.map(l=>[l.pedido,l.planta,l.uf,l.cliente,l.dataPedido,
+    `"${l.produto}"`,l.qtd,l.vlrUnitario,l.vlrTotal,l.status,
+    l.dataFat,l.nf,l.asn,l.dataEntrega,l.prevEntrega,l.ocorrencia,l.obs].join(sep));
+  const NL='\n';
+  const csv=[
+    `PEDIDOS VALE${sep}${sep}`,
+    `Gerado em:${sep}${new Date().toLocaleDateString('pt-BR')}`,
+    '',header,...rows,'',`Total de linhas:${sep}${linhas.length}`
+  ].join(NL);
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`pedidos_vale_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exportado com sucesso!');
+}
+
 // Exportar relatório da distribuidora como texto
 function exportarRelatorioDistrib() {
-  const ano = document.getElementById('di-ano')?.value || '2026';
+  const ano = document.getElementById('di-ano')?.value || new Date().getFullYear().toString();
   const pl  = document.getElementById('di-pl')?.value  || 'all';
   const hoje = new Date().toLocaleDateString('pt-BR');
 
@@ -2610,7 +2739,7 @@ function exportarRelatorioDistrib() {
     });
   });
 
-  if (!linhas.length) { showToast('Nenhum dado para exportar.','err'); return; }
+  if (!linhas.length) { toast('Nenhum dado para exportar.','err'); return; }
 
   // Gerar CSV
   const sep = ';';
@@ -2635,7 +2764,7 @@ function exportarRelatorioDistrib() {
   a.download = `status_distribuidora_${ano}_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('Relatório CSV gerado com sucesso!','ok');
+  toast('Relatório CSV gerado com sucesso!','ok');
 }
 
 function atualizarContador(){
@@ -2750,6 +2879,27 @@ function rdash(){
   const pl=document.getElementById('d-pl')?.value||'all';
   const classe=document.getElementById('d-classe')?.value||'all';
   const lns=allLinhas(ano,cli,uf,pl,classe);
+  
+  // Dashboard Alerts
+  let urgentes=0, vencidas=0;
+  lns.forEach(l=>{
+    if(l.status!=="ENTREGUE Á TRANSPORTADORA"){
+      const dp=pdt(l._ped?.dataPedido);
+      if(!dp)return;
+      const prz=new Date(dp.getTime()+30*86400000);
+      const hj=new Date(); hj.setHours(0,0,0,0);
+      const dr=Math.round((prz-hj)/86400000);
+      if(dr<0)vencidas++;
+      else if(dr<=5)urgentes++;
+    }
+  });
+  const daDiv=document.getElementById("dash-alerts");
+  if(daDiv){
+    daDiv.innerHTML="";
+    if(vencidas>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(232,80,58,0.1);border:1px solid #e8503a;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="nav('tratativa')"><span style="font-size:20px">🚨</span><div><strong style="color:#e8503a">ATENÇÃO: ${vencidas} linha(s) com PRAZO VENCIDO!</strong><br><span style="font-size:12px;color:var(--text)">Ação imediata necessária. Clique para ir à tratativa.</span></div></div>`;
+    if(urgentes>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(245,196,24,0.1);border:1px solid #f5c418;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="nav('tratativa')"><span style="font-size:20px">⚠️</span><div><strong style="color:#f5c418">ALERTA: ${urgentes} linha(s) vencendo em até 5 dias!</strong><br><span style="font-size:12px;color:var(--text)">Acompanhe a produção de perto. Clique para ir à tratativa.</span></div></div>`;
+  }
+
   const ent=lns.filter(l=>l.status==='ENTREGUE Á TRANSPORTADORA');
   const ab=lns.filter(l=>l.status!=='ENTREGUE Á TRANSPORTADORA');
   const agP=lns.filter(l=>l.status==='AGUARDANDO PRODUÇÃO');
@@ -2918,6 +3068,67 @@ function rdash(){
 // ══════════════════════════════════════════════
 // PEDIDOS
 // ══════════════════════════════════════════════
+
+function csvEscape(s){ return `"` + (s||"").toString().replace(/"/g, `""`) + `"`; }
+function exportarPedidosCSV(){
+  const srch=(document.getElementById("s-ped")?.value||"").toLowerCase();
+  const fSt=document.getElementById("f-st")?.value||"";
+  const fPl=document.getElementById("f-pl")?.value||"";
+  const fCl=document.getElementById("f-cl")?.value||"";
+  const fhNped=(document.getElementById("fh-nped")?.value||"").toLowerCase();
+  const fhProd=(document.getElementById("fh-prod")?.value||"").toLowerCase();
+  const fhUF=document.getElementById("fh-uf")?.value||"";
+  let csv="Nº Pedido;Planta;Cliente;UF;Data Pedido;Produto;Qtd;Vlr Unitário;Vlr Total;Status;Data Fat;NF;Data Entrega\n";
+  Object.values(PEDS).forEach(ped=>{
+    const lns=Object.entries(ped.linhas||{});
+    const prazoP=ped.dataPedido?new Date(pdt(ped.dataPedido).getTime()+30*86400000):null;
+    const temAtraso=lns.some(([,l])=>l.status==="ENTREGUE Á TRANSPORTADORA"&&l.dataEntrega&&prazoP&&pdt(l.dataEntrega)>prazoP);
+    const sts=new Set(lns.map(([,l])=>l.status));
+    if(fSt==="ATRASO"&&!temAtraso)return;
+    if(fSt&&fSt!=="ATRASO"&&!sts.has(fSt))return;
+    if(fPl&&ped.planta!==fPl)return;
+    if(fCl&&ped.cliente!==fCl)return;
+    if(srch&&!ped.numPedido?.includes(srch)&&!ped.planta?.toLowerCase().includes(srch)&&!lns.some(([,l])=>l.nomeProduto?.toLowerCase().includes(srch)))return;
+    if(fhNped&&!ped.numPedido?.toLowerCase().includes(fhNped))return;
+    if(fhProd&&!lns.some(([,l])=>l.nomeProduto?.toLowerCase().includes(fhProd)))return;
+    if(fhUF&&ped.uf!==fhUF)return;
+    lns.forEach(([,l])=>{
+      csv+=`${csvEscape(ped.numPedido)};${csvEscape(ped.planta)};${csvEscape(ped.cliente)};${csvEscape(ped.uf)};${csvEscape(ped.dataPedido)};${csvEscape(l.nomeProduto)};${l.qtd||0};${l.vlrUnitario||0};${l.vlrTotal||0};${csvEscape(l.status)};${csvEscape(l.dataFat)};${csvEscape(l.statusEP)};${csvEscape(l.dataEntrega)}\n`;
+    });
+  });
+  const blob=new Blob(["\ufeff",csv],{type:"text/csv;charset=utf-8;"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download="Pedidos_Export.csv";
+  link.click();
+}
+function exportarTratativaCSV(){
+  const fSt=document.getElementById("f-trat-st")?.value||"";
+  const fPl=document.getElementById("f-trat-pl")?.value||"";
+  const srch=(document.getElementById("s-trat")?.value||"").toLowerCase();
+  let csv="Nº Pedido;Produto;Planta;UF;Qtd;Valor;Status;Data Fat;NF;ASN;Data Entrega;Prev Entrega;Ocorrência;Dias Restantes\n";
+  Object.values(PEDS).forEach(ped=>{
+    Object.entries(ped.linhas||{}).forEach(([,l])=>{
+      if(l.status==="ENTREGUE Á TRANSPORTADORA")return;
+      if(fSt&&l.status!==fSt)return;
+      if(fPl&&ped.planta!==fPl)return;
+      const t=`${ped.numPedido} ${ped.planta} ${ped.uf} ${l.nomeProduto}`.toLowerCase();
+      if(srch&&!t.includes(srch))return;
+      let dr="";
+      if(ped.dataPedido){
+        const praz=new Date(pdt(ped.dataPedido).getTime()+30*86400000);
+        const hj=new Date(); hj.setHours(0,0,0,0);
+        dr=Math.round((praz-hj)/86400000);
+      }
+      csv+=`${csvEscape(ped.numPedido)};${csvEscape(l.nomeProduto)};${csvEscape(ped.planta)};${csvEscape(ped.uf)};${l.qtd||0};${l.vlrTotal||0};${csvEscape(l.status)};${csvEscape(l.dataFat)};${csvEscape(l.statusEP)};${csvEscape(l.asn)};${csvEscape(l.dataEntrega)};${csvEscape(l.prevEntrega)};${csvEscape(l.ocorrencia)};${dr}\n`;
+    });
+  });
+  const blob=new Blob(["\ufeff",csv],{type:"text/csv;charset=utf-8;"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download="Tratativa_Export.csv";
+  link.click();
+}
 function rpedidos(){
   const srch=(document.getElementById('s-ped')?.value||'').toLowerCase();
   const fSt=document.getElementById('f-st')?.value||'';
@@ -2953,7 +3164,7 @@ function rpedidos(){
   document.getElementById('rc-ped').textContent=rows.length+' pedidos';
   if(!rows.length){document.getElementById('tb-ped').innerHTML=`<tr><td colspan="11" class="empty">Nenhum pedido. <span onclick="nav('novo')" style="color:var(--gold);cursor:pointer">Criar novo</span></td></tr>`;return;}
   let h='';
-  rows.forEach(({pk,ped,lns,vTot,qTot,dom})=>{
+  paginatedRows.forEach(({pk,ped,lns,vTot,qTot,dom})=>{
     h+=`<tr class="ph" onclick="toggleLns('${pk}')">
       <td><span class="exp" id="exp-${pk}">▶</span></td>
       <td><span style="font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:11px">${ped.numPedido||'—'}</span></td>
@@ -2981,7 +3192,7 @@ function rpedidos(){
             ${ln.asn?('<span style="font-size:9px;color:var(--blue)">ASN: '+ln.asn+'</span>'):''}
             ${ln.ocorrencia>0?'<span class="badge" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.4)">🔴 Devolução</span>':''}
             <button class="btn btn-sm btn-g" style="padding:2px 7px;font-size:9px" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
-            <button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3)" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>
+            ${isAdmin() ? `<button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3)" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>` : ``}
             ${ln.status==='ENTREGUE Á TRANSPORTADORA'?`<button class="btn btn-sm btn-r" style="padding:2px 7px;font-size:9px" onclick="event.stopPropagation();abrirDevolucao('${pk}','${lk}')" title="Registrar devolução — impacta IN FULL">📦 Devolução</button>`:''}
           </div>`).join('')}
       <div style="text-align:right;padding:5px 10px 2px">
@@ -3071,10 +3282,7 @@ function openEditPed(pk){
             <label>Quantidade</label>
             <input type="number" id="edit-qtd-${lk}" value="${ln.qtd||0}" oninput="calcEditTot('${lk}')" />
           </div>
-          <div class="fg">
-            <label>Valor Unitário</label>
-            <input type="number" step="0.01" id="edit-vlr-${lk}" value="${ln.vlrUnitario||0}" oninput="calcEditTot('${lk}')" />
-          </div>
+          ${isAdmin() ? `<div class="fg"><label>Valor Unitário</label><input type="number" step="0.01" id="edit-vlr-${lk}" value="${ln.vlrUnitario||0}" oninput="calcEditTot(\'${lk}\')" /></div>` : `<input type="hidden" id="edit-vlr-${lk}" value="${ln.vlrUnitario||0}" />`}
           <div class="fg">
             <label>Valor Total</label>
             <input type="number" step="0.01" id="edit-tot-${lk}" value="${ln.vlrTotal||0}" readonly />
@@ -3270,12 +3478,23 @@ async function salvarPed(){
   });
   if(err){toast('Preencha todos os itens','err');return;}
   const ped={numPedido:np,planta:pl,dataPedido:dp,cliente:cl,uf,ano:dp.slice(0,4),criadoEm:Date.now(),linhas};
+  // Desabilitar botão durante save
+  const btnSave = document.querySelector('button[onclick="salvarPed()"]');
+  if(btnSave){ btnSave.disabled=true; btnSave.textContent='💾 Salvando...'; }
   try{
     if(db) await db.ref('pedidos_vale/'+np).set(ped);
     else PEDS[np]=ped;
     toast('Pedido '+np+' salvo!');
     nav('pedidos');
-  }catch(e){toast('Erro: '+e.message,'err');}
+  }catch(e){
+    if(e.code==='PERMISSION_DENIED'||e.message?.includes('PERMISSION_DENIED')){
+      toast('❌ Sem permissão no Firebase. Acesse: console.firebase.google.com → Realtime Database → Regras','err');
+    } else {
+      toast('Erro: '+e.message,'err');
+    }
+  } finally {
+    if(btnSave){ btnSave.disabled=false; btnSave.textContent='💾 Salvar Pedido'; }
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -3340,7 +3559,7 @@ function rtrat(){
         <td>${alertaBadge(dr)}</td>
         <td style="display:flex;gap:4px;align-items:center">
       <button class="btn btn-g btn-sm" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
-      <button class="btn btn-sm" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>
+      ${isAdmin() ? `<button class="btn btn-sm" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>` : ``}
     </td>
       </tr>`;
     });
@@ -3595,11 +3814,21 @@ function popularClasses(){
 function resetDashFilters(){
   ['d-ano','d-cli','d-uf','d-pl','d-classe'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el){ el.value = id==='d-ano'?'2026':'all'; }
+    if(el){ el.value = id==='d-ano'? new Date().getFullYear().toString() :'all'; }
   });
   rdash();
 }
 
+
+
+// ══════════════════════════════════════════════
+// CONTROLE DE ACESSO
+// ══════════════════════════════════════════════
+function isAdmin(){
+  // Retorna true para qualquer usuário logado
+  // Para controle granular, verificar email: window._currentUser?.email
+  return !!window._currentUser;
+}
 
 // ══════════════════════════════════════════════
 // FIREBASE INIT + AUTH
@@ -3669,7 +3898,7 @@ async function loginForgot(){
 // ══════════════════════════════════════════════
 // EXCLUIR LINHA (senha protegida)
 // ══════════════════════════════════════════════
-const DEL_SENHA = 'vale2026'; // mesma senha da comissão
+
 let _delLinhaKey = null;
 let _delPedidoKey = null; // pk do pedido para montar o path correto
 
@@ -3699,18 +3928,17 @@ function confirmarDelLinha() {
   db.ref('pedidos_vale/' + _delPedidoKey + '/linhas/' + _delLinhaKey).remove()
     .then(() => {
       closeM('m-dellinha');
-      showToast('Linha excluída com sucesso', 'ok');
+      toast('Linha excluída com sucesso', 'ok');
       _delLinhaKey = null;
       _delPedidoKey = null;
-      carregarPedidos(); // recarrega a lista
+      rpedidos(); rdash(); rtrat(); // recarrega a lista
     })
-    .catch(e => showToast('Erro ao excluir: ' + e.message, 'err'));
+    .catch(e => toast('Erro ao excluir: ' + e.message, 'err'));
 }
 
 // ══════════════════════════════════════════════
 // COMISSÃO SECRETA
 // ══════════════════════════════════════════════
-const COM_SENHA = 'vale2026';
 let _comClicks=0,_comTimer=null;
 function comissaoClick(){
   _comClicks++;clearTimeout(_comTimer);
@@ -3733,7 +3961,7 @@ function verificarComSenha(){
   }
 }
 function renderComissao(){
-  const ano=document.getElementById('d-ano')?.value||'2026';
+  const ano=document.getElementById('d-ano')?.value|| new Date().getFullYear().toString();
   const comFiltMes=window._comFiltMes||'todos';
   const comFiltPes=window._comFiltPes||'todos';
 
