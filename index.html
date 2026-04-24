@@ -1206,6 +1206,21 @@ body.logged-out .main{display:none !important}
   </div>
 </div>
 
+<!-- MODAL EDITAR PEDIDO -->
+<div class="modal-bg" id="m-edit">
+  <div class="modal" style="max-width:820px">
+    <div class="mh">
+      <h3>Editar Pedido</h3>
+      <button class="mclose" onclick="closeM('m-edit')">✕</button>
+    </div>
+    <div class="mc" id="m-edit-body"></div>
+    <div class="mf" style="justify-content:flex-end">
+      <button class="btn btn-sec" onclick="closeM('m-edit')">Cancelar</button>
+      <button class="btn btn-p" id="m-edit-save" onclick="salvarEdicao()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-w" id="toasts"></div>
 
 <script>
@@ -2948,7 +2963,10 @@ function rpedidos(){
       <td>${qTot}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${brl(vTot)}</td>
       <td>${badge(dom, ped.dataPedido, lns.length===1?lns[0][1].dataEntrega:'')}</td>
-      <td><button class="btn btn-sm btn-b" onclick="event.stopPropagation();abrirPed('${pk}')">Ver</button></td>
+      <td style="white-space:nowrap;display:flex;gap:4px">
+        <button class="btn btn-sm btn-b" onclick="event.stopPropagation();abrirPed('${pk}')">Ver</button>
+        <button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(212,175,55,.15);color:var(--gold);border:1px solid rgba(212,175,55,.3)" onclick="event.stopPropagation();openEditPed('${pk}')" title="Editar Pedido">✏️ Editar</button>
+      </td>
     </tr>
     <tr id="sub-${pk}" style="display:none"><td colspan="11" style="padding:0">
       <div style="background:rgba(0,0,0,.2);padding:4px 10px">
@@ -3023,6 +3041,121 @@ function abrirPed(pk){
         </div>
       </div>`).join('')}`;
   openM('m-ped');
+}
+
+// ══════════════════════════════════════════════
+// EDIÇÃO DE PEDIDOS
+// ══════════════════════════════════════════════
+let editPk = null;
+function openEditPed(pk){
+  const ped = PEDS[pk]; if(!ped) return;
+  editPk = pk;
+  const lns = Object.entries(ped.linhas || {});
+  
+  let h = `
+    <div class="fgrid g3" style="margin-bottom:12px">
+      <div class="fg"><label>Nº Pedido</label><input readonly value="${ped.numPedido||'—'}"/></div>
+      <div class="fg"><label>Planta</label><input readonly value="${ped.planta||'—'}"/></div>
+      <div class="fg"><label>Cliente</label><input readonly value="${ped.cliente||'—'}"/></div>
+    </div>
+    <div class="sec" style="font-size:9px;margin-bottom:8px">Itens do Pedido</div>
+  `;
+  
+  h += `<div style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto;padding-right:5px">`;
+  lns.forEach(([lk, ln], i) => {
+    h += `
+      <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.05)" id="edit-ln-${lk}">
+        <div style="font-weight:bold;margin-bottom:8px;font-size:12px;color:var(--gold)">${ln.nomeProduto || ln.codProduto || '—'}</div>
+        <div class="fgrid g3">
+          <div class="fg">
+            <label>Quantidade</label>
+            <input type="number" id="edit-qtd-${lk}" value="${ln.qtd||0}" oninput="calcEditTot('${lk}')" />
+          </div>
+          <div class="fg">
+            <label>Valor Unitário</label>
+            <input type="number" step="0.01" id="edit-vlr-${lk}" value="${ln.vlrUnitario||0}" oninput="calcEditTot('${lk}')" />
+          </div>
+          <div class="fg">
+            <label>Valor Total</label>
+            <input type="number" step="0.01" id="edit-tot-${lk}" value="${ln.vlrTotal||0}" readonly />
+          </div>
+        </div>
+        <div class="fgrid g2" style="margin-top:8px">
+          <div class="fg">
+            <label>Status</label>
+            <select id="edit-st-${lk}" style="width:100%;padding:8px;background:var(--input);border:1px solid rgba(255,255,255,0.1);color:var(--text);border-radius:4px">
+              <option value="AGUARDANDO PRODUÇÃO" ${ln.status==='AGUARDANDO PRODUÇÃO'?'selected':''}>AGUARDANDO PRODUÇÃO</option>
+              <option value="AGUARDANDO COLETA" ${ln.status==='AGUARDANDO COLETA'?'selected':''}>AGUARDANDO COLETA</option>
+              <option value="ENTREGUE Á TRANSPORTADORA" ${ln.status==='ENTREGUE Á TRANSPORTADORA'?'selected':''}>ENTREGUE Á TRANSPORTADORA</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Observações</label>
+            <input type="text" id="edit-obs-${lk}" value="${ln.obs||''}" />
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  h += `</div>`;
+  
+  document.getElementById('m-edit-body').innerHTML = h;
+  openM('m-edit');
+}
+
+function calcEditTot(lk){
+  const qtd = parseFloat(document.getElementById('edit-qtd-'+lk).value) || 0;
+  const vlr = parseFloat(document.getElementById('edit-vlr-'+lk).value) || 0;
+  document.getElementById('edit-tot-'+lk).value = (qtd * vlr).toFixed(2);
+}
+
+async function salvarEdicao(){
+  if(!editPk || !PEDS[editPk]) return;
+  const ped = PEDS[editPk];
+  const lns = Object.entries(ped.linhas || {});
+  
+  const b = document.getElementById('m-edit-save');
+  b.disabled = true;
+  b.textContent = 'Salvando...';
+  
+  try {
+    const pms = [];
+    for(const [lk, ln] of lns) {
+      const qtd = parseFloat(document.getElementById('edit-qtd-'+lk).value) || 0;
+      const vlr = parseFloat(document.getElementById('edit-vlr-'+lk).value) || 0;
+      const tot = parseFloat(document.getElementById('edit-tot-'+lk).value) || 0;
+      const st = document.getElementById('edit-st-'+lk).value;
+      const obs = document.getElementById('edit-obs-'+lk).value;
+      
+      const changes = {
+        qtd: qtd,
+        vlrUnitario: vlr,
+        vlrTotal: tot,
+        status: st,
+        obs: obs
+      };
+      
+      Object.assign(PEDS[editPk].linhas[lk], changes);
+      
+      if(window.db) {
+        pms.push(db.ref('pedidos_vale/'+editPk+'/linhas/'+lk).update(changes));
+      }
+    }
+    
+    if(pms.length) await Promise.all(pms);
+    
+    toast('Pedido editado com sucesso!','ok');
+    closeM('m-edit');
+    if(typeof rdash === 'function') rdash();
+    if(typeof rpedidos === 'function') rpedidos();
+    if(typeof rtrat === 'function') rtrat();
+  } catch(e) {
+    console.error(e);
+    toast('Erro ao editar pedido.','err');
+  } finally {
+    b.disabled = false;
+    b.textContent = 'Salvar Alterações';
+  }
 }
 
 // ══════════════════════════════════════════════
