@@ -1289,7 +1289,7 @@ function pedPrev(){ if(pedPage>0){pedPage--; rpedidos();} }
 function pedNext(){ pedPage++; rpedidos(); }
 
 function init(){
-const dRped=debounce(rpedidos,300); const dRtrat=debounce(rtrat,300); const dRprod=debounce(rprod,300);
+window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.dRprod=debounce(rprod,300);
   restoreFilters();
   document.getElementById('chip-date').textContent = new Date().toLocaleDateString('pt-BR');
 
