@@ -3164,7 +3164,7 @@ function rpedidos(){
   document.getElementById('rc-ped').textContent=rows.length+' pedidos';
   if(!rows.length){document.getElementById('tb-ped').innerHTML=`<tr><td colspan="11" class="empty">Nenhum pedido. <span onclick="nav('novo')" style="color:var(--gold);cursor:pointer">Criar novo</span></td></tr>`;return;}
   let h='';
-  paginatedRows.forEach(({pk,ped,lns,vTot,qTot,dom})=>{
+  rows.forEach(({pk,ped,lns,vTot,qTot,dom})=>{
     h+=`<tr class="ph" onclick="toggleLns('${pk}')">
       <td><span class="exp" id="exp-${pk}">▶</span></td>
       <td><span style="font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:11px">${ped.numPedido||'—'}</span></td>
