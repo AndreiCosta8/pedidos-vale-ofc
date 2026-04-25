@@ -4177,6 +4177,21 @@ function renderComissao(){
     </div>
   `;
 }
+
+// ── DEEP LINK: ?tab=X navega direto para a aba ────────────────
+// Mapa: chaves vindas do workspace → IDs de view internos do app.
+// Aceita tanto a chave amigável ("pedidos") como o ID interno ("dash") para flexibilidade.
+(function(){
+  const validTabs = ['dash','pedidos','novo','tratativa','evolucao','metas','previsao','produtos','ranking','distribuidora','config'];
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if(tab && validTabs.includes(tab)){
+    // Aguarda app montar (500ms) antes de chamar navMobile
+    window.addEventListener('load', () => setTimeout(() => {
+      try { navMobile(tab); } catch(e){ console.warn('Deep-link falhou:', e); }
+    }, 500));
+  }
+})();
 </script>
 
 <!-- MODAL DEVOLUÇÃO (IN FULL) -->
