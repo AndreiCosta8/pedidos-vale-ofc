@@ -1447,7 +1447,9 @@ function pedPrev(){ if(pedPage>0){pedPage--; rpedidos();} }
 function pedNext(){ pedPage++; rpedidos(); }
 
 function init(){
-window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.dRprod=debounce(rprod,300);
+  if(window._initDone) return; // evita dupla chamada pelo onAuthStateChanged
+  window._initDone = true;
+  window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.dRprod=debounce(rprod,300);
   restoreFilters();
   document.getElementById('chip-date').textContent = new Date().toLocaleDateString('pt-BR');
 
@@ -1486,6 +1488,7 @@ window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.d
   // Contatos e configs dependem do db — inicializar APÓS Firebase estar pronto
     listenContatos();
     listenConfigs();
+    initConexao(); // banner offline
   } catch(e) {
     document.getElementById('fb-lbl').textContent = 'Sem Firebase (dados locais)';
     document.querySelector('.fb-dot').style.background = 'var(--amber)';
@@ -1567,12 +1570,8 @@ function listenProdutos(){
       if(!PRODUTOS.find(p => p.cod === fp.cod)) PRODUTOS.push(fp);
     });
     rprod();
-    // Atualiza select de produto no formulário de novo pedido
-    const prodSel = document.getElementById('lc-1');
-    if(prodSel) {
-      prodSel.innerHTML = '<option value="">Selecione o produto...</option>' +
-        PRODUTOS.map(p=>`<option value="${p.cod}">${p.cod} — ${p.nome.substring(0,45)}</option>`).join('');
-    }
+    // Rebuilds autocomplete for item 1 (text input now, not select)
+    // No action needed - onProdInput reads from PRODUTOS array dynamically
   }, ()=>{}); // ignora erro silenciosamente
 }
 
@@ -2153,8 +2152,9 @@ function salvarContato() {
     closeM('m-addcontato');
     toast(editId ? 'Contato atualizado!' : 'Contato adicionado!', 'ok');
   }).catch(e => {
-    const msg = e.code === 'PERMISSION_DENIED' || e.message?.includes('PERMISSION_DENIED')
-      ? '❌ Sem permissão no Firebase. Verifique as Regras do Realtime Database.'
+    const isPermission = e.code === 'PERMISSION_DENIED' || e.message?.includes('PERMISSION_DENIED');
+    const msg = isPermission
+      ? '❌ Sem permissão. Publique as regras no projeto correto: pedidos-vale (NÃO epi-manager-parauapebas)'
       : '❌ Erro ao salvar: ' + e.message;
     toast(msg, 'err');
     console.error('salvarContato erro:', e);
@@ -4438,13 +4438,15 @@ function previewProdImg() {
 }
 
 function loadProdImgFile() {
-  const file = document.getElementById('mp-img-file')?.files?.[0];
+  const fileInput = document.getElementById('mp-img-file');
+  const file = fileInput?.files?.[0];
   if (!file) return;
-  if (file.size > 500 * 1024) { toast('Imagem muito grande. Use uma imagem menor que 500KB ou cole uma URL.','err'); return; }
+  if (file.size > 2 * 1024 * 1024) { toast('Imagem muito grande. Use uma imagem menor que 2MB ou cole uma URL.','err'); fileInput.value=''; return; }
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('mp-img-url').value = e.target.result;
     previewProdImg();
+    fileInput.value = ''; // reset para permitir selecionar o mesmo arquivo novamente
   };
   reader.readAsDataURL(file);
 }
