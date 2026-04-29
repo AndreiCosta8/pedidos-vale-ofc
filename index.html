@@ -1351,6 +1351,9 @@ window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.d
 
   addLi();
   document.getElementById('n-dp').value = new Date().toISOString().split('T')[0];
+
+  // Sempre abre no Dashboard ao carregar/refresh — independente da aba anterior
+  nav('dash');
 }
 
 async function importarDados(){
@@ -2790,6 +2793,8 @@ function atualizarContador(){
 }
 
 function nav(pg){
+  // Sempre salva a aba atual — mas nunca salva 'comissao' (área secreta)
+  if(pg !== 'comissao') sessionStorage.setItem('vp_last_tab', pg);
   document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('on'));
   document.getElementById('pg-'+pg).classList.add('on');
