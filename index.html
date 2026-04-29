@@ -118,6 +118,121 @@ tbody td{padding:8px 9px;vertical-align:middle}
 .btn-out:hover{background:var(--card2);color:var(--text)}
 .btn-danger{background:rgba(232,80,58,.15);border-color:rgba(232,80,58,.4);color:var(--red)}
 .btn-danger:hover{background:rgba(232,80,58,.28)}
+
+/* ══════════════════════════════════════
+   MELHORIAS VISUAIS v3
+══════════════════════════════════════ */
+
+/* Modo claro */
+body.light-mode{
+  --navy:#f0f4f9;--card:#ffffff;--card2:#e8eef6;--border:#c8d8ea;
+  --text:#1a2e42;--muted:#6a8caa;--faint:#dde8f4;
+}
+body.light-mode .sb{box-shadow:2px 0 12px rgba(0,0,0,.08)}
+body.light-mode .topbar{box-shadow:0 1px 8px rgba(0,0,0,.06)}
+body.light-mode .fs,.si{color-scheme:light}
+
+/* Toggle tema */
+.theme-toggle{
+  width:36px;height:20px;border-radius:10px;
+  background:var(--border);border:1px solid var(--border);
+  position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;
+}
+.theme-toggle.light{background:var(--gold)}
+.theme-toggle::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;background:#fff;
+  transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+.theme-toggle.light::after{transform:translateX(16px)}
+
+/* Busca global na topbar */
+.tb-search{
+  position:relative;display:flex;align-items:center;
+}
+.tb-search input{
+  background:var(--card2);border:1px solid var(--border);border-radius:20px;
+  color:var(--text);padding:5px 12px 5px 30px;font-size:11px;
+  font-family:'Sora',sans-serif;outline:none;width:180px;
+  transition:width .25s,border-color .15s;
+}
+.tb-search input:focus{border-color:var(--gold);width:240px}
+.tb-search-icon{position:absolute;left:9px;font-size:12px;color:var(--muted);pointer-events:none}
+
+/* Resultados da busca global */
+#global-search-results{
+  position:absolute;top:calc(100% + 6px);left:0;right:0;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  z-index:500;max-height:320px;overflow-y:auto;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  display:none;
+}
+#global-search-results.open{display:block}
+.gsr-item{
+  padding:9px 13px;cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.04);
+  font-size:11px;transition:background .1s;
+  display:flex;align-items:center;gap:9px;
+}
+.gsr-item:hover{background:rgba(255,255,255,.04)}
+.gsr-item:last-child{border-bottom:none}
+.gsr-tag{font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(59,143,212,.15);color:var(--blue);font-weight:600;flex-shrink:0}
+.gsr-main{font-weight:600;color:var(--text)}
+.gsr-sub{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* Dias em aberto badge */
+.dias-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;
+  font-family:'JetBrains Mono',monospace;white-space:nowrap;
+}
+.dias-badge.ok{background:rgba(34,201,122,.12);color:var(--green);border:1px solid rgba(34,201,122,.3)}
+.dias-badge.warn{background:rgba(240,160,32,.12);color:var(--amber);border:1px solid rgba(240,160,32,.3)}
+.dias-badge.crit{background:rgba(232,80,58,.12);color:var(--red);border:1px solid rgba(232,80,58,.3);animation:blink 2s infinite}
+
+/* Cards com hover lift */
+.card{transition:border-color .15s,box-shadow .15s}
+.card:hover{border-color:rgba(255,255,255,.1);box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.kpi{transition:border-color .15s,transform .15s,box-shadow .15s}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.gbox{transition:border-color .15s,box-shadow .15s}
+.gbox:hover{border-color:rgba(255,255,255,.12);box-shadow:0 4px 16px rgba(0,0,0,.2)}
+
+/* Animação de entrada para cards */
+@keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.pg.on .card,.pg.on .kpi,.pg.on .gbox{animation:slideUp .25s ease both}
+.pg.on .kpi:nth-child(1){animation-delay:.03s}
+.pg.on .kpi:nth-child(2){animation-delay:.06s}
+.pg.on .kpi:nth-child(3){animation-delay:.09s}
+.pg.on .kpi:nth-child(4){animation-delay:.12s}
+.pg.on .kpi:nth-child(5){animation-delay:.15s}
+
+/* Toast melhorado */
+.toast{backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+
+/* KPI trend badge */
+.trend{font-size:9px;margin-left:5px;font-weight:600}
+.trend.up{color:var(--green)}
+.trend.down{color:var(--red)}
+.trend.neu{color:var(--muted)}
+
+/* Borda gradiente no card ativo */
+.kpi.destaque{
+  background:linear-gradient(135deg,var(--card) 0%,rgba(245,196,24,.04) 100%);
+  border-left-width:4px;
+}
+
+/* Indicador de rascunho no menu */
+.draft-dot{
+  width:6px;height:6px;background:var(--amber);border-radius:50%;
+  margin-left:auto;flex-shrink:0;
+}
+
+/* Scroll suave */
+html{scroll-behavior:smooth}
+
+/* Melhor seleção de texto */
+::selection{background:rgba(245,196,24,.25);color:#fff}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:14px}
 .modal-bg.open{display:flex}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto}
@@ -518,7 +633,7 @@ body.logged-out .main{display:none !important}
   <div class="ni on" onclick="nav('dash')" data-pg="dash"><span class="ni-icon">📊</span>Dashboard</div>
   <div class="sb-sec">Pedidos</div>
   <div class="ni" onclick="nav('pedidos')" data-pg="pedidos"><span class="ni-icon">📋</span>Todos os Pedidos</div>
-  <div class="ni" onclick="nav('novo')" data-pg="novo"><span class="ni-icon">➕</span>Novo Pedido</div>
+  <div class="ni" onclick="nav('novo')" data-pg="novo"><span class="ni-icon">➕</span>Novo Pedido <span class="draft-dot" id="draft-dot" style="display:none"></span></div>
   <div class="ni" onclick="nav('tratativa')" data-pg="tratativa"><span class="ni-icon">⚡</span>Tratativa <span class="nb amber" id="nb-trat">0</span></div>
   <div class="sb-sec">Inteligência</div>
   <div class="ni" onclick="nav('evolucao')" data-pg="evolucao"><span class="ni-icon">📈</span>Evolução OTIFF</div>
@@ -553,6 +668,15 @@ body.logged-out .main{display:none !important}
       </div>
     </div>
     <div class="tb-right">
+      <!-- Busca Global -->
+      <div class="tb-search" id="tb-search-wrap">
+        <span class="tb-search-icon">🔍</span>
+        <input type="text" id="global-search" placeholder="Buscar pedido, produto..." autocomplete="off"
+          oninput="globalSearch(this.value)" onblur="setTimeout(()=>closeGlobalSearch(),200)"/>
+        <div id="global-search-results"></div>
+      </div>
+      <!-- Toggle Tema -->
+      <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Alternar modo claro/escuro"></div>
       <span class="chip live" id="chip-fb">● Firebase</span>
       <span class="chip" id="chip-date"></span>
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px" onclick="importarDados()">⬆ Importar Planilha</button>
@@ -754,9 +878,9 @@ body.logged-out .main{display:none !important}
     <div class="card card-accent" style="--accent:var(--gold);max-width:940px">
       <div class="sec">Dados do Pedido</div>
       <div class="fgrid g3">
-        <div class="fg"><label class="req">Nº do Pedido (SAP)</label><input id="n-np" placeholder="Ex: 4511755996"/></div>
-        <div class="fg"><label class="req">Planta de Destino</label><select id="n-pl" onchange="onPlanta()"><option value="">Selecione...</option></select></div>
-        <div class="fg"><label>Data do Pedido</label><input id="n-dp" type="date"/></div>
+        <div class="fg"><label class="req">Nº do Pedido (SAP)</label><input id="n-np" placeholder="Ex: 4511755996" oninput="saveDraft()"/></div>
+        <div class="fg"><label class="req">Planta de Destino</label><select id="n-pl" onchange="onPlanta();saveDraft()"><option value="">Selecione...</option></select></div>
+        <div class="fg"><label>Data do Pedido</label><input id="n-dp" type="date" onchange="saveDraft()"/></div>
         <div class="fg"><label>Cliente (auto)</label><input id="n-cl" readonly/></div>
         <div class="fg"><label>UF (auto)</label><input id="n-uf" readonly/></div>
         <div class="fg"><label>Status Inicial</label><select id="n-st"><option value="AGUARDANDO PRODUÇÃO">Aguardando Produção</option><option value="AGUARDANDO COLETA">Aguardando Coleta</option><option value="ENTREGUE Á TRANSPORTADORA">Entregue à Transportadora</option></select></div>
@@ -768,7 +892,7 @@ body.logged-out .main{display:none !important}
       <div class="dv"></div>
       <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
         <div style="font-size:11px;color:var(--muted)">Total: <span id="tot-ped" style="color:var(--gold);font-weight:700;font-family:'JetBrains Mono',monospace">R$ 0,00</span></div>
-        <button class="btn btn-s" onclick="nav('pedidos')">Cancelar</button>
+        <button class="btn btn-s" onclick="clearDraft();nav('pedidos')">Cancelar</button>
         <button class="btn btn-p" onclick="salvarPed()">💾 Salvar Pedido</button>
       </div>
     </div>
@@ -789,8 +913,8 @@ body.logged-out .main{display:none !important}
     </div>
     <div class="tw"><table><thead><tr>
       <th>Nº Pedido</th><th>Produto</th><th>Planta</th><th>UF</th><th>Qtd.</th><th>Vlr. Total</th><th>Status</th>
-      <th>Data Fat.</th><th>Nº NF (EP)</th><th>ASN</th><th>Data Entrega Transp.</th><th>Prev. Entrega</th><th>Ocorrência</th><th>⏱ Prazo</th><th style="min-width:80px">Ação</th>
-    </tr></thead><tbody id="tb-trat"><tr><td colspan="13" class="empty">Carregando...</td></tr></tbody></table></div>
+      <th>Data Fat.</th><th>Nº NF (EP)</th><th>ASN</th><th>Data Entrega Transp.</th><th>Prev. Entrega</th><th>Ocorrência</th><th>⏱ Prazo</th><th>📅 Dias Aberto</th><th style="min-width:80px">Ação</th>
+    </tr></thead><tbody id="tb-trat"><tr><td colspan="15" class="empty">Carregando...</td></tr></tbody></table></div>
   </div>
 
   <!-- PRODUTOS -->
@@ -1331,8 +1455,6 @@ window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.d
   popularClasses();
   initNotificacoes();
   initModoConsulta();
-  listenContatos();
-  listenConfigs();
 
   rdash(); rpedidos(); rtrat(); rprod();
 
@@ -1341,7 +1463,9 @@ window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.d
     document.getElementById('fb-lbl').textContent = 'Conectando...';
     listenPeds();
     listenProdutos(); // sincroniza SAP e preços do Firebase
-    initConexao(); // banner offline
+  // Contatos e configs dependem do db — inicializar APÓS Firebase estar pronto
+    listenContatos();
+    listenConfigs();
   } catch(e) {
     document.getElementById('fb-lbl').textContent = 'Sem Firebase (dados locais)';
     document.querySelector('.fb-dot').style.background = 'var(--amber)';
@@ -1351,6 +1475,11 @@ window.dRped=debounce(rpedidos,300); window.dRtrat=debounce(rtrat,300); window.d
 
   addLi();
   document.getElementById('n-dp').value = new Date().toISOString().split('T')[0];
+
+  // Restaurar tema salvo
+  initTheme();
+  // Restaurar rascunho do novo pedido (se houver)
+  restoreDraft();
 
   // Sempre abre no Dashboard ao carregar/refresh — independente da aba anterior
   nav('dash');
@@ -1982,6 +2111,7 @@ function editarContato(id) {
 
 // Salvar contato (novo ou edição)
 function salvarContato() {
+  if (!db) { toast('Firebase não conectado. Aguarde a conexão e tente novamente.', 'err'); return; }
   const nome = document.getElementById('contato-nome').value.trim();
   const wa   = document.getElementById('contato-wa').value.trim().replace(/\D/g,'');
   const cargo = document.getElementById('contato-cargo').value.trim();
@@ -1989,7 +2119,7 @@ function salvarContato() {
   const editId = document.getElementById('contato-edit-id').value;
 
   if (!nome) { toast('Informe o nome do contato.','err'); return; }
-  if (!wa || wa.length < 10) { toast('Informe um número WhatsApp válido.','err'); return; }
+  if (!wa || wa.length < 10 || wa.length > 15) { toast('Número inválido. Use DDI + DDD + número. Ex: 5594912345678','err'); return; }
 
   const payload = { nome, whatsapp: wa, cargo, ativo };
   if (editId) {
@@ -3504,6 +3634,7 @@ async function salvarPed(){
     if(db) await db.ref('pedidos_vale/'+np).set(ped);
     else PEDS[np]=ped;
     toast('Pedido '+np+' salvo!');
+    clearDraft();
     nav('pedidos');
   }catch(e){
     if(e.code==='PERMISSION_DENIED'||e.message?.includes('PERMISSION_DENIED')){
@@ -3560,6 +3691,12 @@ function rtrat(){
       const urgente=sp==='urgente';
       const vencido=sp==='vencido';
       const pendente=ln.status==='AGUARDANDO COLETA';
+      // Calcular dias em aberto (desde a data do pedido)
+      const diasAbertos = ped.dataPedido ? Math.floor((Date.now() - new Date(ped.dataPedido)) / 86400000) : null;
+      const diasAbertoBadge = diasAbertos === null ? '—'
+        : diasAbertos <= 10 ? `<span class="dias-badge ok">${diasAbertos}d</span>`
+        : diasAbertos <= 25 ? `<span class="dias-badge warn">${diasAbertos}d</span>`
+        : `<span class="dias-badge crit">${diasAbertos}d</span>`;
       cnt++;
       h+=`<tr class="trat-row ${vencido?'vencido':urgente?'urgente':pendente?'pendente':''}">
         <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold)">${ped.numPedido||'—'}</td>
@@ -3576,6 +3713,7 @@ function rtrat(){
         <td style="font-size:10px">${fdt(ln.prevEntrega)||'—'}</td>
         <td><span class="badge" style="${ln.ocorrencia?'background:rgba(232,80,58,.12);color:var(--red);border:1px solid rgba(232,80,58,.3)':''}">${ln.ocorrencia||0}</span></td>
         <td>${alertaBadge(dr)}</td>
+        <td style="text-align:center">${diasAbertoBadge}</td>
         <td style="display:flex;gap:4px;align-items:center">
       <button class="btn btn-g btn-sm" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
       ${isAdmin() ? `<button class="btn btn-sm" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>` : ``}
@@ -3600,7 +3738,7 @@ function rtrat(){
     banEl.innerHTML='🔴 <strong>'+nLinhasVenc+' linha(s)</strong> com prazo VENCIDO em '
       +arr.length+' pedido(s): '+arr.slice(0,4).join(', ')+(arr.length>4?' e mais '+(arr.length-4)+'...':'');
   } else { banEl.style.display='none'; }
-  document.getElementById('tb-trat').innerHTML=h||`<tr><td colspan="13" class="empty">Nenhum item encontrado</td></tr>`;
+  document.getElementById('tb-trat').innerHTML=h||`<tr><td colspan="15" class="empty">Nenhum item encontrado</td></tr>`;
 }
 
 // ══════════════════════════════════════════════
@@ -4195,6 +4333,125 @@ function renderComissao(){
       Andrei: linhas com NF emitida · Myrelle: total de todos os pedidos S11D
     </div>
   `;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// BUSCA GLOBAL
+// ══════════════════════════════════════════════════════════════════
+function globalSearch(q) {
+  const res = document.getElementById('global-search-results');
+  q = q.trim().toLowerCase();
+  if (q.length < 2) { res.classList.remove('open'); return; }
+  const hits = [];
+  // Buscar em pedidos
+  Object.entries(PEDS).forEach(([pk, ped]) => {
+    const matchPed = (ped.numPedido||'').toLowerCase().includes(q)
+      || (ped.planta||'').toLowerCase().includes(q)
+      || (ped.cliente||'').toLowerCase().includes(q);
+    if (matchPed) {
+      hits.push({
+        tag:'Pedido', icon:'📋',
+        main: ped.numPedido || pk,
+        sub: `${ped.planta||'—'} · ${ped.cliente||'—'}`,
+        action: () => { nav('pedidos'); document.getElementById('s-ped').value = ped.numPedido||''; window.dRped(); }
+      });
+    }
+    Object.values(ped.linhas||{}).forEach(ln => {
+      const matchLn = (ln.nomeProduto||'').toLowerCase().includes(q)
+        || (ln.codProduto||'').toLowerCase().includes(q);
+      if (matchLn && !matchPed) {
+        hits.push({
+          tag:'Produto', icon:'📦',
+          main: ln.nomeProduto || ln.codProduto || '—',
+          sub: `Pedido ${ped.numPedido||'—'} · ${ped.planta||'—'}`,
+          action: () => { nav('pedidos'); document.getElementById('s-ped').value = ped.numPedido||''; window.dRped(); }
+        });
+      }
+    });
+    if (hits.length >= 8) return;
+  });
+  // Buscar em produtos cadastrados
+  Object.values(PRODUTOS||{}).forEach(pr => {
+    if ((pr.nome||'').toLowerCase().includes(q) || (pr.cod||'').toLowerCase().includes(q)) {
+      hits.push({
+        tag:'Cadastro', icon:'🗂',
+        main: pr.nome || pr.cod,
+        sub: `Cod: ${pr.cod||'—'} · ${pr.linha||'—'}`,
+        action: () => nav('produtos')
+      });
+    }
+    if (hits.length >= 10) return;
+  });
+  if (!hits.length) {
+    res.innerHTML = '<div class="gsr-item" style="color:var(--muted);justify-content:center">Nenhum resultado encontrado</div>';
+  } else {
+    res.innerHTML = hits.slice(0, 8).map((h, i) => `
+      <div class="gsr-item" onclick="window._gsrHits[${i}].action();closeGlobalSearch()">
+        <span style="font-size:14px">${h.icon}</span>
+        <div style="flex:1;min-width:0">
+          <div class="gsr-main">${h.main}</div>
+          <div class="gsr-sub">${h.sub}</div>
+        </div>
+        <span class="gsr-tag">${h.tag}</span>
+      </div>`).join('');
+    window._gsrHits = hits;
+  }
+  res.classList.add('open');
+}
+function closeGlobalSearch() {
+  document.getElementById('global-search-results')?.classList.remove('open');
+  document.getElementById('global-search').value = '';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// TOGGLE TEMA CLARO / ESCURO
+// ══════════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const body = document.body;
+  const btn = document.getElementById('theme-toggle');
+  const isLight = body.classList.toggle('light-mode');
+  btn.classList.toggle('light', isLight);
+  localStorage.setItem('vp_theme', isLight ? 'light' : 'dark');
+}
+function initTheme() {
+  const saved = localStorage.getItem('vp_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('theme-toggle')?.classList.add('light');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// RASCUNHO — NOVO PEDIDO
+// ══════════════════════════════════════════════════════════════════
+function saveDraft() {
+  const np = document.getElementById('n-np')?.value?.trim();
+  const pl = document.getElementById('n-pl')?.value;
+  const dp = document.getElementById('n-dp')?.value;
+  const hasDraft = !!(np || pl);
+  if (hasDraft) {
+    sessionStorage.setItem('vp_draft_np', np||'');
+    sessionStorage.setItem('vp_draft_pl', pl||'');
+    sessionStorage.setItem('vp_draft_dp', dp||'');
+    document.getElementById('draft-dot').style.display = '';
+  } else {
+    clearDraft();
+  }
+}
+function restoreDraft() {
+  const np = sessionStorage.getItem('vp_draft_np');
+  const pl = sessionStorage.getItem('vp_draft_pl');
+  const dp = sessionStorage.getItem('vp_draft_dp');
+  if (!np && !pl) return;
+  if (np) document.getElementById('n-np').value = np;
+  if (pl) { document.getElementById('n-pl').value = pl; onPlanta(); }
+  if (dp) document.getElementById('n-dp').value = dp;
+  document.getElementById('draft-dot').style.display = '';
+  toast('📝 Rascunho restaurado automaticamente.', 'info');
+}
+function clearDraft() {
+  ['vp_draft_np','vp_draft_pl','vp_draft_dp'].forEach(k => sessionStorage.removeItem(k));
+  document.getElementById('draft-dot').style.display = 'none';
 }
 
 // ── DEEP LINK: ?tab=X navega direto para a aba ────────────────
