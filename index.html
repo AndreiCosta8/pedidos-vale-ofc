@@ -228,8 +228,10 @@ body.light-mode .fs,.si{color-scheme:light}
   margin-left:auto;flex-shrink:0;
 }
 
-/* Scroll suave */
-html{scroll-behavior:smooth}
+/* Campo de código de produto no novo pedido */
+.li-prod-inp{background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:7px 9px;font-size:11px;font-family:'JetBrains Mono',monospace;outline:none;width:100%;transition:border-color .12s}
+.li-prod-inp:focus{border-color:var(--gold)}
+.prod-ac-item:hover{background:rgba(255,255,255,.05)}
 
 /* Melhor seleção de texto */
 ::selection{background:rgba(245,196,24,.25);color:#fff}
@@ -926,7 +928,7 @@ body.logged-out .main{display:none !important}
       <button class="btn btn-p btn-sm" onclick="openModalProd(null)">+ Novo Produto</button>
     </div>
     <div class="tw"><table><thead><tr>
-      <th>Cód. Vale</th><th>SAP</th><th>Produto</th><th>Linha / Classe</th><th>PA (Ferrosos)</th><th>MG</th><th>ES</th><th>MA</th><th>RJ</th><th>Metais Básicos (PA)</th><th>Ações</th>
+      <th style="width:44px"></th><th>Cód. Vale</th><th>SAP</th><th>Produto</th><th>Linha / Classe</th><th>PA (Ferrosos)</th><th>MG</th><th>ES</th><th>MA</th><th>RJ</th><th>Metais Básicos (PA)</th><th>Ações</th>
     </tr></thead><tbody id="tb-prod"><tr><td colspan="11" class="empty">Carregando...</td></tr></tbody></table></div>
   </div>
 
@@ -1307,6 +1309,24 @@ body.logged-out .main{display:none !important}
       <div class="fgrid g2" style="margin-top:8px">
         <div class="fg"><label class="req">Linha / Classe</label><input id="mp-lnha" list="linhas-list"/><datalist id="linhas-list"></datalist></div>
         <div class="fg"></div>
+      </div>
+      <!-- Imagem do produto -->
+      <div class="fgrid g1" style="margin-top:8px">
+        <div class="fg">
+          <label>🖼 Imagem do Produto (URL ou cole Base64)</label>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <div style="flex:1">
+              <input id="mp-img-url" placeholder="https://... ou cole uma URL de imagem" oninput="previewProdImg()" style="width:100%;margin-bottom:6px"/>
+              <label style="font-size:9px;color:var(--muted);cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:5px 10px">
+                📁 Carregar arquivo
+                <input type="file" id="mp-img-file" accept="image/*" onchange="loadProdImgFile()" style="display:none"/>
+              </label>
+            </div>
+            <div id="mp-img-preview" style="width:72px;height:72px;border-radius:8px;border:1px solid var(--border);background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden">
+              📦
+            </div>
+          </div>
+        </div>
       </div>
       <div class="dv"></div>
       <div class="sec" style="font-size:9px">Preços por UF — Ferrosos</div>
@@ -2121,14 +2141,26 @@ function salvarContato() {
   if (!nome) { toast('Informe o nome do contato.','err'); return; }
   if (!wa || wa.length < 10 || wa.length > 15) { toast('Número inválido. Use DDI + DDD + número. Ex: 5594912345678','err'); return; }
 
+  const btnSalvar = document.querySelector('#m-addcontato .btn-p, #m-addcontato [onclick="salvarContato()"]');
+  if (btnSalvar) { btnSalvar.disabled = true; btnSalvar.textContent = 'Salvando...'; }
+
   const payload = { nome, whatsapp: wa, cargo, ativo };
-  if (editId) {
-    db.ref('config/contatos/'+editId).update(payload)
-      .then(()=>{ closeM('m-addcontato'); toast('Contato atualizado!','ok'); });
-  } else {
-    db.ref('config/contatos').push(payload)
-      .then(()=>{ closeM('m-addcontato'); toast('Contato adicionado!','ok'); });
-  }
+  const op = editId
+    ? db.ref('config/contatos/'+editId).update(payload)
+    : db.ref('config/contatos').push(payload);
+
+  op.then(() => {
+    closeM('m-addcontato');
+    toast(editId ? 'Contato atualizado!' : 'Contato adicionado!', 'ok');
+  }).catch(e => {
+    const msg = e.code === 'PERMISSION_DENIED' || e.message?.includes('PERMISSION_DENIED')
+      ? '❌ Sem permissão no Firebase. Verifique as Regras do Realtime Database.'
+      : '❌ Erro ao salvar: ' + e.message;
+    toast(msg, 'err');
+    console.error('salvarContato erro:', e);
+  }).finally(() => {
+    if (btnSalvar) { btnSalvar.disabled = false; btnSalvar.textContent = 'Salvar Contato'; }
+  });
 }
 
 // Pausar / reativar contato
@@ -3545,11 +3577,11 @@ function addLi(){
     <div class="li-num">Item ${liIdx}</div>
     ${liIdx>1?`<button class="rm-li" onclick="rmLi(${liIdx})">✕</button>`:''}
     <div class="fgrid g3">
-      <div class="fg"><label class="req">Cód. Produto (Vale)</label>
-        <select class="li-prod" id="lc-${liIdx}" onchange="onProd(this,${liIdx})">
-          <option value="">Selecione o produto...</option>
-          ${PRODUTOS.map(p=>`<option value="${p.cod}">${p.cod} — ${p.nome.substring(0,45)}</option>`).join('')}
-        </select>
+      <div class="fg" style="position:relative"><label class="req">Cód. Produto (Vale)</label>
+        <input class="li-prod-inp" id="lc-${liIdx}" placeholder="Cole ou digite o código..."
+          oninput="onProdInput(this,${liIdx})" autocomplete="off"
+          onkeydown="onProdKey(event,${liIdx})"/>
+        <div class="prod-ac" id="pac-${liIdx}" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:8px;z-index:300;max-height:200px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
       </div>
       <div class="fg"><label>Descrição (auto)</label><input id="ld-${liIdx}" readonly/></div>
       <div class="fg"><label>Linha/Classe (auto)</label><input id="ll-${liIdx}" readonly/></div>
@@ -3564,21 +3596,67 @@ function addLi(){
 
 function rmLi(i){ document.getElementById('li-'+i)?.remove(); calcTot(); }
 
-function onProd(sel,i){
-  const id=i||sel.id.replace('lc-','');
-  const prod=PRODUTOS.find(p=>p.cod===sel.value);
-  const uf=document.getElementById('n-uf').value||'PA';
-  const cli=document.getElementById('n-cl').value||'FERROSOS';
-  if(prod){
-    document.getElementById('ld-'+id).value=prod.nome;
-    document.getElementById('ll-'+id).value=prod.linha;
-    const preco=getPreco(prod,uf,cli);
-    const el=document.getElementById('lu-'+id);
-    el.value=preco?'R$ '+preco.toFixed(2):'Consultar';
-    el.dataset.v=preco||0;
+// ── AUTOCOMPLETE PRODUTO ────────────────────────────────
+function onProdInput(el, i) {
+  const q = el.value.trim().toLowerCase();
+  const pac = document.getElementById('pac-'+i);
+  if (!q) { pac.style.display='none'; setProdFields(i, null); return; }
+  // Tenta match exato primeiro (colar código)
+  const exact = PRODUTOS.find(p => p.cod.toLowerCase() === q || p.sap?.toLowerCase() === q);
+  if (exact) { setProdFields(i, exact); pac.style.display='none'; return; }
+  // Filtra sugestões
+  const hits = PRODUTOS.filter(p =>
+    p.cod.toLowerCase().includes(q) ||
+    p.sap?.toLowerCase().includes(q) ||
+    p.nome.toLowerCase().includes(q)
+  ).slice(0,10);
+  if (!hits.length) { pac.style.display='none'; setProdFields(i, null); return; }
+  pac.innerHTML = hits.map((p,idx) =>
+    `<div class="prod-ac-item" data-idx="${idx}" style="padding:8px 12px;cursor:pointer;font-size:11px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;align-items:center"
+      onmousedown="selectProdAC(${i},'${p.cod}')">
+      ${p.img ? `<img src="${p.img}" style="width:28px;height:28px;border-radius:4px;object-fit:cover" onerror="this.style.display='none'">` : '<span style="font-size:18px">📦</span>'}
+      <div>
+        <div style="font-family:\'JetBrains Mono\',monospace;color:var(--gold);font-size:10px">${p.cod}</div>
+        <div style="color:var(--text)">${p.nome.substring(0,50)}</div>
+      </div>
+    </div>`).join('');
+  pac.style.display='block';
+}
+
+function onProdKey(e, i) {
+  if (e.key === 'Escape') { document.getElementById('pac-'+i).style.display='none'; }
+  if (e.key === 'Enter') {
+    const q = document.getElementById('lc-'+i).value.trim().toLowerCase();
+    const exact = PRODUTOS.find(p => p.cod.toLowerCase() === q || p.sap?.toLowerCase() === q);
+    if (exact) { selectProdAC(i, exact.cod); }
   }
+}
+
+function selectProdAC(i, cod) {
+  const inp = document.getElementById('lc-'+i);
+  if (inp) inp.value = cod;
+  document.getElementById('pac-'+i).style.display = 'none';
+  const prod = PRODUTOS.find(p => p.cod === cod);
+  setProdFields(i, prod);
+}
+
+function setProdFields(i, prod) {
+  const uf  = document.getElementById('n-uf').value||'PA';
+  const cli = document.getElementById('n-cl').value||'FERROSOS';
+  document.getElementById('ld-'+i).value = prod?.nome || '';
+  document.getElementById('ll-'+i).value = prod?.linha || '';
+  const preco = prod ? getPreco(prod, uf, cli) : 0;
+  const el = document.getElementById('lu-'+i);
+  if (el) { el.value = preco ? 'R$ '+preco.toFixed(2) : (prod ? 'Consultar' : ''); el.dataset.v = preco||0; }
   calcTot();
 }
+
+// Fecha autocomplete ao clicar fora
+document.addEventListener('click', e => {
+  if (!e.target.closest('.li-item')) {
+    document.querySelectorAll('.prod-ac').forEach(p => p.style.display='none');
+  }
+});
 
 function calcTot(){
   let g=0;
@@ -3613,7 +3691,7 @@ async function salvarPed(){
   let err=false;
   liEls.forEach(div=>{
     const id=div.id.replace('li-','');
-    const cod=document.getElementById('lc-'+id)?.value;
+    const cod=document.getElementById('lc-'+id)?.value?.trim();
     const desc=document.getElementById('ld-'+id)?.value;
     const lnha=document.getElementById('ll-'+id)?.value;
     const qtd=+(document.getElementById('lq-'+id)?.value||0);
@@ -3795,6 +3873,11 @@ function rprod(){
   });
   document.getElementById('rc-prod').textContent=list.length+' produtos';
   document.getElementById('tb-prod').innerHTML=list.map((p,i)=>`<tr>
+    <td style="width:44px;padding:4px 6px">
+      ${p.img
+        ? `<img src="${p.img}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;border:1px solid var(--border)" onerror="this.outerHTML='<span style=\'font-size:20px\'>📦</span>'">`
+        : `<span style="font-size:20px;display:block;text-align:center">📦</span>`}
+    </td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold)">${p.cod}</td>
     <td style="font-size:9px;color:var(--muted)">${p.sap||'—'}</td>
     <td style="font-size:10px">${p.nome}</td>
@@ -3806,7 +3889,7 @@ function rprod(){
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.RJ?brl(p.RJ):'—'}</td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.MB_PA?brl(p.MB_PA):'<span style="color:var(--muted)">= PA</span>'}</td>
     <td><button class="btn btn-b btn-sm" onclick="openModalProd(${PRODUTOS.indexOf(p)})">✏️ Editar</button></td>
-  </tr>`).join('')||`<tr><td colspan="11" class="empty">Nenhum produto</td></tr>`;
+  </tr>`).join('')||`<tr><td colspan="12" class="empty">Nenhum produto</td></tr>`;
 }
 
 function openModalProd(idx){
@@ -3827,6 +3910,9 @@ function openModalProd(idx){
   document.getElementById('mp-mb-mg').value=p?.MB_MG||''
   document.getElementById('mp-mb-es').value=p?.MB_ES||''
   document.getElementById('mp-mb-ma').value=p?.MB_MA||''
+  // Imagem
+  document.getElementById('mp-img-url').value=p?.img||'';
+  previewProdImg();
   openM('m-prod');
 }
 
@@ -3846,6 +3932,7 @@ async function salvarProd(){
     MB_MG:+document.getElementById('mp-mb-mg').value||null,
     MB_ES:+document.getElementById('mp-mb-es').value||null,
     MB_MA:+document.getElementById('mp-mb-ma').value||null,
+    img: document.getElementById('mp-img-url').value.trim()||null,
   };
   if(!prod.cod||!prod.nome){toast('Preencha Código e Nome','err');return;}
   if(idx>=0) PRODUTOS[idx]=prod; else PRODUTOS.push(prod);
@@ -4333,6 +4420,33 @@ function renderComissao(){
       Andrei: linhas com NF emitida · Myrelle: total de todos os pedidos S11D
     </div>
   `;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// IMAGEM DO PRODUTO
+// ══════════════════════════════════════════════════════════════════
+function previewProdImg() {
+  const url = document.getElementById('mp-img-url')?.value?.trim();
+  const el  = document.getElementById('mp-img-preview');
+  if (!el) return;
+  if (url) {
+    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px"
+      onerror="this.parentElement.innerHTML='<span style=\'font-size:22px\'>❌</span>'" />`;
+  } else {
+    el.innerHTML = '📦';
+  }
+}
+
+function loadProdImgFile() {
+  const file = document.getElementById('mp-img-file')?.files?.[0];
+  if (!file) return;
+  if (file.size > 500 * 1024) { toast('Imagem muito grande. Use uma imagem menor que 500KB ou cole uma URL.','err'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('mp-img-url').value = e.target.result;
+    previewProdImg();
+  };
+  reader.readAsDataURL(file);
 }
 
 // ══════════════════════════════════════════════════════════════════
