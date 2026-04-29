@@ -1347,7 +1347,7 @@ body.logged-out .main{display:none !important}
       </div>
     </div>
     <div class="mf">
-      ${isAdmin() ? `<button class="btn btn-r btn-sm" id="mp-del-btn" onclick="deletarProd()" style="margin-right:auto;display:none">🗑 Excluir</button>` : ``}
+      <button class="btn btn-r btn-sm" id="mp-del-btn" onclick="deletarProd()" style="margin-right:auto;display:none">🗑 Excluir</button>
       <button class="btn btn-s" onclick="closeM('m-prod')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarProd()">💾 Salvar Produto</button>
     </div>
@@ -3896,7 +3896,7 @@ function openModalProd(idx){
   const p=idx!=null?PRODUTOS[idx]:null;
   document.getElementById('mp-idx').value=idx??-1;
   document.getElementById('mp-title').textContent=p?'Editar Produto':'Novo Produto';
-  document.getElementById('mp-del-btn').style.display=p?'':' none';
+  document.getElementById('mp-del-btn').style.display = (p && isAdmin()) ? '' : 'none';
   document.getElementById('mp-cod').value=p?.cod||''
   document.getElementById('mp-sap').value=p?.sap||''
   document.getElementById('mp-nome').value=p?.nome||''
