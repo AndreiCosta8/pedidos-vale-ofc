@@ -640,6 +640,7 @@ body.logged-out .main{display:none !important}
   <div class="sb-sec">Inteligência</div>
   <div class="ni" onclick="nav('evolucao')" data-pg="evolucao"><span class="ni-icon">📈</span>Evolução OTIFF</div>
   <div class="ni" onclick="nav('metas')" data-pg="metas"><span class="ni-icon">🎯</span>Metas por Planta</div>
+  <div class="ni" onclick="nav('plantas')" data-pg="plantas"><span class="ni-icon">🏭</span>Análise de Plantas <span class="nb red" id="nb-plantas">0</span></div>
   <div class="ni" onclick="nav('previsao')" data-pg="previsao"><span class="ni-icon">🔮</span>Previsão 30 dias</div>
   <div class="ni" onclick="nav('ranking')" data-pg="ranking"><span class="ni-icon">🏆</span>Ranking Clientes</div>
   <div class="ni" onclick="nav('distribuidora')" data-pg="distribuidora"><span class="ni-icon">🚚</span>Status Distribuidora</div>
@@ -1018,6 +1019,60 @@ body.logged-out .main{display:none !important}
   <!-- Grid de semáforos por planta -->
   <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px" id="mt-grid"></div>
 </div>
+
+<!-- PÁGINA ANÁLISE DE PLANTAS -->
+<div class="pg" id="pg-plantas" style="max-width:1200px">
+  <!-- Barra de controles -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="pl-status" onchange="rPlantas()">
+      <option value="all">Todos os Status</option>
+      <option value="vermelho">🔴 Alerta</option>
+      <option value="amarelo">🟡 Atenção</option>
+      <option value="verde">🟢 No Ritmo</option>
+      <option value="inativa">⚫ Inativas</option>
+    </select>
+    <select class="fs" id="pl-ord" onchange="rPlantas()">
+      <option value="dias">Ordenar: Dias sem comprar</option>
+      <option value="valor">Ordenar: Total comprado</option>
+      <option value="freq">Ordenar: Frequência</option>
+      <option value="nome">Ordenar: Nome</option>
+    </select>
+    <button class="btn btn-sec" style="font-size:11px;padding:4px 10px" onclick="exportarPlantasCSV()">📥 CSV</button>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto" id="pl-sub"></span>
+  </div>
+
+  <!-- Cards de resumo (4 status) -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px" id="pl-kpis"></div>
+
+  <!-- Texto explicativo (compacto) -->
+  <div style="background:rgba(245,196,24,.06);border:1px solid rgba(245,196,24,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted);line-height:1.6">
+    <strong style="color:var(--gold)">ℹ️</strong> O alerta compara <strong>dias sem comprar</strong> com a <strong>frequência média</strong> de cada planta. Clique numa linha para ver detalhes e marcar contato.
+  </div>
+
+  <!-- Tabela de plantas -->
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table style="width:100%;min-width:900px;border-collapse:collapse">
+      <thead>
+        <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.08)">
+          <th style="padding:8px 6px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;width:24px"></th>
+          <th style="padding:8px 6px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Planta</th>
+          <th style="padding:8px 6px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Últ. Compra</th>
+          <th style="padding:8px 6px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Dias</th>
+          <th style="padding:8px 6px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Freq.</th>
+          <th style="padding:8px 6px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Status</th>
+          <th style="padding:8px 6px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Total R$</th>
+          <th style="padding:8px 6px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Pedidos</th>
+          <th style="padding:8px 6px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Top Produto</th>
+          <th style="padding:8px 6px;text-align:center;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Tendência</th>
+        </tr>
+      </thead>
+      <tbody id="pl-tbody">
+        <tr><td colspan="10" style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Carregando análise...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
 <!-- PÁGINA PREVISÃO 30 DIAS -->
 <div class="pg" id="pg-previsao" style="max-width:900px">
@@ -1582,6 +1637,8 @@ function listenPeds(){
       // Firebase tem dados reais — usar esses
       PEDS = val;
       rdash(); rpedidos(); rtrat();
+      atualizarBadgePlantas(); // mantém o badge vermelho do menu sempre atualizado
+      if(document.getElementById('pg-plantas')?.classList.contains('on')) rPlantas();
       const total = Object.keys(PEDS).length;
       // Contar total de linhas (itens) somando todas as linhas de todos os pedidos
       const totalLinhas = Object.values(PEDS).reduce((s, p) => s + Object.keys(p.linhas || {}).length, 0);
@@ -1624,6 +1681,7 @@ const TITLES = {
   comissao:['Desempenho Comercial','S11D · Resultados e Comissões'],
   evolucao:['Evolução OTIFF · ONTIME · IN FULL','Performance mês a mês · Gráfico de linha'],
   metas:['Metas por Planta','Semáforo verde/amarelo/vermelho por planta · Meta geral 80%'],
+  plantas:['Análise de Plantas','Alertas de inatividade · Top produtos'],
   previsao:['Previsão de Faturamento','Projeção 30 dias por cliente, planta e produto'],
   config:['Configurações','Contatos de alerta · Notificações de prazo'],
   ranking:['Ranking de Clientes','OTIFF por cliente · Semáforo · Volume e performance'],
@@ -2954,6 +3012,417 @@ function atualizarContador(){
   if(el) el.innerHTML = `Firebase · ${ano}<br>${total.toLocaleString('pt-BR')} pedidos · ${totalLinhas.toLocaleString('pt-BR')} itens`;
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// FEATURE: ANÁLISE DE PLANTAS (alertas de inatividade + tendências)
+// ══════════════════════════════════════════════════════════════════════════
+
+// Converte nome da planta em chave segura (sem acento, espaço, etc.)
+function plantaKey(nome){
+  return (nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase();
+}
+
+// Coração da feature: calcula todas as métricas de cada planta
+function calcularMetricasPlantas(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const porPlanta = {};
+  
+  // Agrupa pedidos por planta
+  Object.entries(PEDS||{}).forEach(([pk, ped]) => {
+    if(!ped.planta || !ped.dataPedido) return;
+    if(!porPlanta[ped.planta]) porPlanta[ped.planta] = [];
+    porPlanta[ped.planta].push({pk, ped});
+  });
+  
+  // Para cada planta, calcula métricas
+  return Object.entries(porPlanta).map(([nome, peds]) => {
+    // Ordena por data (mais recente primeiro)
+    peds.sort((a,b) => new Date(b.ped.dataPedido) - new Date(a.ped.dataPedido));
+    
+    const ultimaCompra = peds[0].ped.dataPedido;
+    const dataUltima = new Date(ultimaCompra+'T12:00:00');
+    const diasSemComprar = Math.floor((hoje - dataUltima) / (1000*60*60*24));
+    
+    // Frequência média = média dos intervalos entre pedidos consecutivos
+    let freqMedia = 0;
+    if(peds.length >= 2){
+      const intervalos = [];
+      for(let i=0; i<peds.length-1; i++){
+        const d1 = new Date(peds[i].ped.dataPedido+'T12:00:00');
+        const d2 = new Date(peds[i+1].ped.dataPedido+'T12:00:00');
+        const diff = (d1-d2)/(1000*60*60*24);
+        if(diff>0) intervalos.push(diff);
+      }
+      if(intervalos.length) freqMedia = intervalos.reduce((a,b)=>a+b,0)/intervalos.length;
+    }
+    
+    // Determina status (alerta inteligente)
+    let status, cor;
+    const f = freqMedia || 30; // se só tem 1 pedido, assume 30 dias como base
+    if(diasSemComprar > 90 || (freqMedia && diasSemComprar > f*3)){
+      status = 'inativa'; cor = '#666';
+    } else if(diasSemComprar > f*1.5){
+      status = 'vermelho'; cor = '#e8503a';
+    } else if(diasSemComprar > f){
+      status = 'amarelo'; cor = '#f5c418';
+    } else {
+      status = 'verde'; cor = '#22c97a';
+    }
+    
+    // Acumula totais e produtos
+    const produtos = {};
+    let totalValor = 0, totalQtd = 0, totalLinhas = 0;
+    peds.forEach(({ped}) => {
+      Object.values(ped.linhas||{}).forEach(l => {
+        const v = +l.vlrTotal || 0;
+        const q = +l.qtd || 0;
+        totalValor += v;
+        totalQtd += q;
+        totalLinhas++;
+        const np = l.nomeProduto || '—';
+        if(!produtos[np]) produtos[np] = {qtd:0, vlr:0, count:0};
+        produtos[np].qtd += q;
+        produtos[np].vlr += v;
+        produtos[np].count++;
+      });
+    });
+    
+    const topProdutos = Object.entries(produtos)
+      .sort((a,b)=>b[1].vlr-a[1].vlr)
+      .slice(0,5);
+    const topProduto = topProdutos[0]?.[0] || '—';
+    
+    // Tendência: compara R$ dos últimos 90 dias com a média histórica equivalente
+    const dias90 = 90 * 24*60*60*1000;
+    const corte = new Date(hoje - dias90);
+    let vlrRecente = 0, vlrAnterior = 0;
+    let diasAnteriores = 0;
+    let dataMaisAntiga = null;
+    peds.forEach(({ped}) => {
+      const dt = new Date(ped.dataPedido+'T12:00:00');
+      const vlr = Object.values(ped.linhas||{}).reduce((s,l)=>s+(+l.vlrTotal||0),0);
+      if(dt >= corte) vlrRecente += vlr;
+      else { vlrAnterior += vlr; if(!dataMaisAntiga || dt < dataMaisAntiga) dataMaisAntiga = dt; }
+    });
+    if(dataMaisAntiga) diasAnteriores = Math.max(1, (corte - dataMaisAntiga)/(24*60*60*1000));
+    const mediaAnterior90 = diasAnteriores>0 ? (vlrAnterior/diasAnteriores)*90 : 0;
+    let tendencia, tendIcone, tendLabel;
+    if(!mediaAnterior90 || vlrAnterior===0){
+      tendencia = 'novo'; tendIcone = '🆕'; tendLabel = 'Cliente novo';
+    } else if(vlrRecente > mediaAnterior90 * 1.2){
+      tendencia = 'subindo'; tendIcone = '📈'; tendLabel = 'Comprando mais';
+    } else if(vlrRecente < mediaAnterior90 * 0.7){
+      tendencia = 'descendo'; tendIcone = '📉'; tendLabel = 'Comprando menos';
+    } else {
+      tendencia = 'estavel'; tendIcone = '➡️'; tendLabel = 'Estável';
+    }
+    
+    // Compras por mês (últimos 12 meses)
+    const porMes = {};
+    peds.forEach(({ped}) => {
+      const m = ped.dataPedido?.slice(0,7); // YYYY-MM
+      if(!m) return;
+      if(!porMes[m]) porMes[m] = {vlr:0, count:0};
+      Object.values(ped.linhas||{}).forEach(l => { porMes[m].vlr += +l.vlrTotal || 0; });
+      porMes[m].count++;
+    });
+    
+    return {
+      nome, ultimaCompra, diasSemComprar, freqMedia: Math.round(freqMedia),
+      status, cor, topProduto, topProdutos, totalValor, totalQtd, totalLinhas,
+      totalPedidos: peds.length, peds, porMes,
+      tendencia, tendIcone, tendLabel, vlrRecente, mediaAnterior90
+    };
+  });
+}
+
+// Função principal — chamada quando a aba é aberta ou os filtros mudam
+function rPlantas(){
+  const tbody = document.getElementById('pl-tbody');
+  const kpis = document.getElementById('pl-kpis');
+  if(!tbody || !kpis) return;
+  
+  const dados = calcularMetricasPlantas();
+  
+  // Renderiza cards (sempre com totais gerais, ignorando filtro de status)
+  renderCardsPlantas(dados);
+  
+  // Aplica filtro de status
+  const fStatus = document.getElementById('pl-status')?.value || 'all';
+  let lista = fStatus==='all' ? dados : dados.filter(d => d.status===fStatus);
+  
+  // Aplica ordenação
+  const fOrd = document.getElementById('pl-ord')?.value || 'dias';
+  if(fOrd==='dias') lista.sort((a,b)=>b.diasSemComprar-a.diasSemComprar);
+  else if(fOrd==='valor') lista.sort((a,b)=>b.totalValor-a.totalValor);
+  else if(fOrd==='freq') lista.sort((a,b)=>a.freqMedia-b.freqMedia);
+  else if(fOrd==='nome') lista.sort((a,b)=>a.nome.localeCompare(b.nome));
+  
+  document.getElementById('pl-sub').textContent = `${lista.length} de ${dados.length} plantas`;
+  
+  // Renderiza tabela
+  renderTabelaPlantas(lista);
+}
+
+function renderCardsPlantas(dados){
+  const counts = { vermelho:0, amarelo:0, verde:0, inativa:0 };
+  dados.forEach(d => counts[d.status]++);
+  
+  const card = (label, count, cor, icone, descricao) => `
+    <div class="card" style="border-left:3px solid ${cor};padding:10px 12px;cursor:pointer" 
+         onclick="document.getElementById('pl-status').value='${label}';rPlantas()">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">${icone} ${descricao}</div>
+      <div style="font-size:24px;font-weight:700;color:${cor};margin-top:2px;line-height:1">${count}</div>
+      <div style="font-size:10px;color:var(--muted)">planta${count!==1?'s':''}</div>
+    </div>`;
+  
+  document.getElementById('pl-kpis').innerHTML = 
+    card('vermelho', counts.vermelho, '#e8503a', '🔴', 'Alerta — Contatar') +
+    card('amarelo',  counts.amarelo,  '#f5c418', '🟡', 'Atenção') +
+    card('verde',    counts.verde,    '#22c97a', '🟢', 'No Ritmo') +
+    card('inativa',  counts.inativa,  '#666',    '⚫', 'Inativas');
+}
+
+function renderTabelaPlantas(lista){
+  const tbody = document.getElementById('pl-tbody');
+  if(!lista.length){
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">Nenhuma planta nesse filtro.</td></tr>';
+    return;
+  }
+  
+  let html = '';
+  lista.forEach(d => {
+    const labelStatus = d.status==='vermelho'?'🔴 Alerta':d.status==='amarelo'?'🟡 Atenção':d.status==='verde'?'🟢 No Ritmo':'⚫ Inativa';
+    const tendCel = `<span title="${d.tendLabel}" style="font-size:14px">${d.tendIcone}</span>`;
+    const corDias = d.cor;
+    const freqTxt = d.freqMedia ? `${d.freqMedia}d` : '—';
+    
+    html += `
+      <tr class="ph" onclick="togglePlantaDetalhe('${plantaKey(d.nome)}')" style="border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer">
+        <td style="padding:7px 6px"><span class="exp" id="exp-pl-${plantaKey(d.nome)}">▶</span></td>
+        <td style="padding:7px 6px;font-weight:600;font-size:12px">${d.nome}</td>
+        <td style="padding:7px 6px;font-size:11px">${fdt(d.ultimaCompra)}</td>
+        <td style="padding:7px 6px;text-align:right;font-weight:700;font-size:12px;color:${corDias}">${d.diasSemComprar}d</td>
+        <td style="padding:7px 6px;text-align:right;font-size:11px">${freqTxt}</td>
+        <td style="padding:7px 6px"><span style="background:${d.cor}22;color:${d.cor};padding:2px 7px;border-radius:9px;font-size:10px;font-weight:600;white-space:nowrap">${labelStatus}</span></td>
+        <td style="padding:7px 6px;text-align:right;font-size:11px">${brl(d.totalValor)}</td>
+        <td style="padding:7px 6px;text-align:right;font-size:11px">${d.totalPedidos}</td>
+        <td style="padding:7px 6px;font-size:10px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.topProduto}</td>
+        <td style="padding:7px 6px;text-align:center">${tendCel}</td>
+      </tr>
+      <tr id="det-pl-${plantaKey(d.nome)}" style="display:none;background:rgba(255,255,255,.02)">
+        <td colspan="10" style="padding:0">
+          <div id="cont-pl-${plantaKey(d.nome)}" style="padding:14px"></div>
+        </td>
+      </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+// Drill-down: expande/recolhe os detalhes de uma planta
+function togglePlantaDetalhe(key){
+  const tr = document.getElementById('det-pl-'+key);
+  const exp = document.getElementById('exp-pl-'+key);
+  if(!tr) return;
+  if(tr.style.display==='none'){
+    tr.style.display='';
+    exp.textContent='▼';
+    renderDetalhePlanta(key);
+  } else {
+    tr.style.display='none';
+    exp.textContent='▶';
+  }
+}
+
+function renderDetalhePlanta(key){
+  const dados = calcularMetricasPlantas();
+  const d = dados.find(x => plantaKey(x.nome)===key);
+  if(!d) return;
+  const cont = document.getElementById('cont-pl-'+key);
+  
+  // Histórico das últimas 10 compras
+  const hist = d.peds.slice(0,10).map(({ped}) => {
+    const v = Object.values(ped.linhas||{}).reduce((s,l)=>s+(+l.vlrTotal||0),0);
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+      <td style="padding:6px;font-size:11px">${fdt(ped.dataPedido)}</td>
+      <td style="padding:6px;font-size:11px;color:var(--gold)">${ped.numPedido||'—'}</td>
+      <td style="padding:6px;font-size:11px">${ped.cliente||'—'}</td>
+      <td style="padding:6px;font-size:11px;text-align:right">${brl(v)}</td>
+    </tr>`;
+  }).join('');
+  
+  // Top 5 produtos
+  const top5 = d.topProdutos.map(([nome, info]) => `
+    <tr style="border-bottom:1px solid rgba(255,255,255,.04)">
+      <td style="padding:6px;font-size:11px">${nome}</td>
+      <td style="padding:6px;font-size:11px;text-align:right">${info.qtd.toLocaleString('pt-BR')}</td>
+      <td style="padding:6px;font-size:11px;text-align:right;color:var(--gold)">${brl(info.vlr)}</td>
+    </tr>`).join('');
+  
+  // Gráfico mensal (últimos 12 meses) — com áreas separadas para texto e barra
+  const meses = Object.keys(d.porMes).sort().slice(-12);
+  const maxVlr = Math.max(1, ...meses.map(m => d.porMes[m].vlr));
+  const mNomes = ['','Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const grafico = meses.map(m => {
+    const v = d.porMes[m].vlr;
+    const alturaBarra = Math.max(3, (v/maxVlr) * 90); // barra ocupa no máximo 90px
+    const [ano,mes] = m.split('-');
+    const valorTxt = v >= 1000 ? `${(v/1000).toFixed(0)}k` : `${v.toFixed(0)}`;
+    return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;min-width:0">
+      <div style="font-size:9px;color:var(--muted);height:14px;line-height:14px">${valorTxt}</div>
+      <div style="display:flex;align-items:flex-end;height:96px;width:100%;justify-content:center">
+        <div style="width:70%;background:${d.cor};height:${alturaBarra}px;border-radius:3px 3px 0 0;opacity:.85"></div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);height:14px;line-height:14px;margin-top:3px">${mNomes[+mes]}/${ano.slice(2)}</div>
+    </div>`;
+  }).join('');
+  
+  // Painel de tendência: comparação dos últimos 90 dias com a média histórica
+  const corTend = d.tendencia==='subindo'?'#22c97a':d.tendencia==='descendo'?'#e8503a':d.tendencia==='estavel'?'#888':'#3b8fd4';
+  const variacao = d.mediaAnterior90 ? Math.round(((d.vlrRecente - d.mediaAnterior90)/d.mediaAnterior90)*100) : null;
+  const variacaoTxt = variacao===null ? '' : (variacao>=0?'+':'') + variacao + '%';
+  
+  cont.innerHTML = `
+    <!-- Cabeçalho com nome + botão copiar resumo -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div style="font-size:14px;font-weight:700;color:var(--gold)">🏭 ${d.nome}</div>
+      <button class="btn btn-p btn-sm" onclick="copiarResumoPlanta('${key}')">📋 Copiar resumo para envio</button>
+    </div>
+    
+    <!-- Painel de tendência (destaque) -->
+    <div style="background:rgba(255,255,255,.02);border-left:3px solid ${corTend};padding:10px 14px;margin-bottom:14px;border-radius:6px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">📊 Tendência (90 dias vs histórico)</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:24px">${d.tendIcone}</span>
+        <span style="font-size:14px;font-weight:600;color:${corTend}">${d.tendLabel}</span>
+        ${variacaoTxt?`<span style="font-size:12px;color:var(--muted)">(${variacaoTxt} no volume R$)</span>`:''}
+      </div>
+    </div>
+    
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <!-- Coluna esquerda: histórico -->
+      <div>
+        <div style="font-size:11px;color:var(--gold);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">📋 Últimas Compras</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:rgba(255,255,255,.03)">
+            <th style="padding:6px;text-align:left;font-size:10px;color:var(--muted)">Data</th>
+            <th style="padding:6px;text-align:left;font-size:10px;color:var(--muted)">Pedido</th>
+            <th style="padding:6px;text-align:left;font-size:10px;color:var(--muted)">Cliente</th>
+            <th style="padding:6px;text-align:right;font-size:10px;color:var(--muted)">Valor</th>
+          </tr></thead>
+          <tbody>${hist || '<tr><td colspan="4" style="padding:10px;color:var(--muted);font-size:11px">Sem histórico</td></tr>'}</tbody>
+        </table>
+      </div>
+      <!-- Coluna direita: top produtos -->
+      <div>
+        <div style="font-size:11px;color:var(--gold);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🏆 Top 5 Produtos</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr style="background:rgba(255,255,255,.03)">
+            <th style="padding:6px;text-align:left;font-size:10px;color:var(--muted)">Produto</th>
+            <th style="padding:6px;text-align:right;font-size:10px;color:var(--muted)">Qtd</th>
+            <th style="padding:6px;text-align:right;font-size:10px;color:var(--muted)">Valor</th>
+          </tr></thead>
+          <tbody>${top5 || '<tr><td colspan="3" style="padding:10px;color:var(--muted);font-size:11px">—</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Gráfico mensal -->
+    <div style="margin-top:18px">
+      <div style="font-size:11px;color:var(--gold);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">📈 Compras por Mês (últimos 12)</div>
+      <div style="display:flex;align-items:flex-end;gap:4px;background:rgba(255,255,255,.02);padding:10px;border-radius:6px;min-height:140px">
+        ${grafico || '<div style="color:var(--muted);font-size:11px;margin:auto">Sem dados mensais</div>'}
+      </div>
+    </div>
+  `;
+}
+
+// Gera um resumo formatado e copia para o clipboard
+function copiarResumoPlanta(key){
+  const dados = calcularMetricasPlantas();
+  const d = dados.find(x => plantaKey(x.nome)===key);
+  if(!d) return;
+  const stEmoji = d.status==='vermelho'?'🔴 ALERTA':d.status==='amarelo'?'🟡 ATENÇÃO':d.status==='verde'?'🟢 NO RITMO':'⚫ INATIVA';
+  const variacao = d.mediaAnterior90 ? Math.round(((d.vlrRecente - d.mediaAnterior90)/d.mediaAnterior90)*100) : null;
+  const variacaoTxt = variacao===null ? '' : ` (${(variacao>=0?'+':'')+variacao}% vs trimestre anterior)`;
+  const recomendacao = d.status==='vermelho' || d.status==='inativa'
+    ? '\n⚠️ Recomenda-se contato com o cliente.' 
+    : '';
+  
+  const texto = 
+`${stEmoji} — Planta ${d.nome}
+📅 Última compra: ${fdt(d.ultimaCompra)} (${d.diasSemComprar} dias atrás)
+📊 Frequência média: a cada ${d.freqMedia||'—'} dias
+💰 Total comprado: ${brl(d.totalValor)} em ${d.totalPedidos} pedido${d.totalPedidos!==1?'s':''}
+🛒 Top produto: ${d.topProduto}
+${d.tendIcone} Tendência: ${d.tendLabel}${variacaoTxt}${recomendacao}`;
+  
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(texto).then(
+      ()=>toast('Resumo copiado! Cole no WhatsApp ou e-mail.','ok'),
+      ()=>fallbackCopy(texto)
+    );
+  } else {
+    fallbackCopy(texto);
+  }
+}
+
+// Fallback caso o navegador não suporte navigator.clipboard
+function fallbackCopy(texto){
+  const ta = document.createElement('textarea');
+  ta.value = texto; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); toast('Resumo copiado!','ok'); }
+  catch(e){ toast('Não foi possível copiar — selecione manualmente.','err'); }
+  document.body.removeChild(ta);
+}
+
+// Atualiza o número vermelho ao lado de "Análise de Plantas" no menu
+function atualizarBadgePlantas(){
+  const badge = document.getElementById('nb-plantas');
+  if(!badge || !PEDS) return;
+  const dados = calcularMetricasPlantas();
+  const alertas = dados.filter(d => d.status==='vermelho').length;
+  badge.textContent = alertas;
+  badge.style.display = alertas>0 ? '' : 'none';
+}
+
+// Exporta a tabela atual para CSV
+function exportarPlantasCSV(){
+  const dados = calcularMetricasPlantas();
+  const sep = ';', NL = '\r\n';
+  const header = ['Planta','Última Compra','Dias sem Comprar','Frequência Média (dias)','Status','Total Comprado (R$)','Nº de Pedidos','Top Produto','Tendência','Variação % vs Trim. Anterior'].join(sep);
+  const linhas = dados.map(d => {
+    const variacao = d.mediaAnterior90 ? Math.round(((d.vlrRecente - d.mediaAnterior90)/d.mediaAnterior90)*100) : null;
+    return [
+      d.nome,
+      fdt(d.ultimaCompra),
+      d.diasSemComprar,
+      d.freqMedia||'—',
+      d.status.toUpperCase(),
+      (d.totalValor||0).toFixed(2).replace('.',','),
+      d.totalPedidos,
+      (d.topProduto||'').replace(/;/g,','),
+      d.tendLabel,
+      variacao===null ? '—' : (variacao>=0?'+':'')+variacao+'%'
+    ].join(sep);
+  });
+  const csv = ['Análise de Plantas — Vale','Gerado em:'+sep+new Date().toLocaleDateString('pt-BR'),'',header,...linhas].join(NL);
+  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `analise_plantas_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exportado!');
+}
+
+// Exporta funções para o escopo global (para os onclick do HTML)
+window.rPlantas = rPlantas;
+window.togglePlantaDetalhe = togglePlantaDetalhe;
+window.copiarResumoPlanta = copiarResumoPlanta;
+window.exportarPlantasCSV = exportarPlantasCSV;
+
 function nav(pg){
   // Sempre salva a aba atual — mas nunca salva 'comissao' (área secreta)
   if(pg !== 'comissao') sessionStorage.setItem('vp_last_tab', pg);
@@ -2972,6 +3441,7 @@ function nav(pg){
   if(pg==='novo') resetForm();
   if(pg==='evolucao') rEvolucao();
   if(pg==='metas') rMetas();
+  if(pg==='plantas') rPlantas();
   if(pg==='previsao') rPrevisao();
   if(pg==='config') { renderContatosConfig(); listenConfigs(); atualizarBotaoNotif(); }
   if(pg==='ranking') rRanking();
@@ -3019,7 +3489,7 @@ function toast(msg,type='ok'){
 function hbars(elId,entries,max100=true){
   const el=document.getElementById(elId); if(!el)return;
   const mx=max100?100:Math.max(...entries.map(e=>e[1]),1);
-  el.innerHTML=entries.sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>{
+  el.innerHTML=entries.sort((a,b)=>a[1]-b[1]).slice(0,10).map(([k,v])=>{
     const col=max100?bc(v):'#3b8fd4';
     const w=Math.round(v/mx*100);
     return `<div class="hbar-row"><div class="hbar-lbl">${k}</div><div class="hbar-tr"><div class="hbar-fi" style="width:${w}%;background:${col}"><span class="hbar-pct">${Math.round(v)}${max100?'%':''}</span></div></div></div>`;
