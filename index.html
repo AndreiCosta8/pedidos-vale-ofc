@@ -1046,7 +1046,7 @@ body.logged-out .main{display:none !important}
 
   <!-- Texto explicativo (compacto) -->
   <div style="background:rgba(245,196,24,.06);border:1px solid rgba(245,196,24,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted);line-height:1.6">
-    <strong style="color:var(--gold)">ℹ️</strong> O alerta compara <strong>dias sem comprar</strong> com a <strong>frequência média</strong> de cada planta. Clique numa linha para ver detalhes e marcar contato.
+    <strong style="color:var(--gold)">ℹ️</strong> O alerta dispara se a planta passar do tempo absoluto (15d/30d/90d) <strong>OU</strong> de múltiplos da frequência média dela (1,3× / 2× / 4×). Clique numa linha para ver detalhes.
   </div>
 
   <!-- Tabela de plantas -->
@@ -3055,14 +3055,16 @@ function calcularMetricasPlantas(){
       if(intervalos.length) freqMedia = intervalos.reduce((a,b)=>a+b,0)/intervalos.length;
     }
     
-    // Determina status (alerta inteligente)
+    // Determina status (alerta inteligente — regra v8 com OR entre absoluto e relativo)
+    // Cada nível dispara se QUALQUER um dos critérios for atingido:
+    //   absoluto (dias parados) OU relativo (múltiplo da frequência da própria planta).
+    // Isso captura tanto plantas que passaram do tempo razoável quanto as que fugiram do próprio padrão.
     let status, cor;
-    const f = freqMedia || 30; // se só tem 1 pedido, assume 30 dias como base
-    if(diasSemComprar > 90 || (freqMedia && diasSemComprar > f*3)){
+    if(diasSemComprar > 90 || (freqMedia && diasSemComprar > 60 && diasSemComprar > freqMedia*4)){
       status = 'inativa'; cor = '#666';
-    } else if(diasSemComprar > f*1.5){
+    } else if(diasSemComprar > 30 || (freqMedia && diasSemComprar > freqMedia*2)){
       status = 'vermelho'; cor = '#e8503a';
-    } else if(diasSemComprar > f){
+    } else if(diasSemComprar > 15 || (freqMedia && diasSemComprar > freqMedia*1.3)){
       status = 'amarelo'; cor = '#f5c418';
     } else {
       status = 'verde'; cor = '#22c97a';
