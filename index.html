@@ -882,7 +882,7 @@ body.logged-out .main{display:none !important}
       <div class="sec">Dados do Pedido</div>
       <div class="fgrid g3">
         <div class="fg"><label class="req">Nº do Pedido (SAP)</label><input id="n-np" placeholder="Ex: 4511755996" oninput="saveDraft()"/></div>
-        <div class="fg"><label class="req">Planta de Destino</label><select id="n-pl" onchange="onPlanta();saveDraft()"><option value="">Selecione...</option></select></div>
+        <div class="fg"><label class="req">Planta de Destino</label><div style="display:flex;gap:6px"><select id="n-pl" onchange="onPlanta();saveDraft()" style="flex:1"><option value="">Selecione...</option></select><button type="button" class="btn btn-sec" onclick="abrirModalNovaPlanta()" title="Cadastrar nova planta" style="padding:0 10px;font-size:14px;font-weight:700;flex-shrink:0">+</button></div></div>
         <div class="fg"><label>Data do Pedido</label><input id="n-dp" type="date" onchange="saveDraft()"/></div>
         <div class="fg"><label>Cliente (auto)</label><input id="n-cl" readonly/></div>
         <div class="fg"><label>UF (auto)</label><input id="n-uf" readonly/></div>
@@ -938,6 +938,51 @@ body.logged-out .main{display:none !important}
 
 <!-- PÁGINA COMISSÃO (SECRETA — sem item no menu) -->
 <div class="pg" id="pg-comissao" style="max-width:640px"></div>
+
+<!-- MODAL NOVA PLANTA -->
+<div class="modal-bg" id="m-nova-planta">
+  <div class="modal" style="max-width:380px">
+    <div class="mh">
+      <h3>🏭 Nova Planta</h3>
+      <button class="mclose" onclick="closeM('m-nova-planta')">✕</button>
+    </div>
+    <div class="mc" style="padding:16px 20px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+        Cadastre uma nova planta de destino. Ela ficará disponível em todos os dispositivos conectados ao Firebase.
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label class="req">Nome da Planta</label>
+        <input type="text" id="np-nome" class="si" placeholder="Ex: BRUCUTU" style="width:100%;text-transform:uppercase"
+          onkeydown="if(event.key==='Enter')document.getElementById('np-uf').focus()"/>
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <label class="req">UF (Estado)</label>
+        <select id="np-uf" class="fs" style="width:100%">
+          <option value="">Selecione...</option>
+          <option value="AC">AC — Acre</option><option value="AL">AL — Alagoas</option>
+          <option value="AP">AP — Amapá</option><option value="AM">AM — Amazonas</option>
+          <option value="BA">BA — Bahia</option><option value="CE">CE — Ceará</option>
+          <option value="DF">DF — Distrito Federal</option><option value="ES">ES — Espírito Santo</option>
+          <option value="GO">GO — Goiás</option><option value="MA">MA — Maranhão</option>
+          <option value="MT">MT — Mato Grosso</option><option value="MS">MS — Mato Grosso do Sul</option>
+          <option value="MG">MG — Minas Gerais</option><option value="PA">PA — Pará</option>
+          <option value="PB">PB — Paraíba</option><option value="PR">PR — Paraná</option>
+          <option value="PE">PE — Pernambuco</option><option value="PI">PI — Piauí</option>
+          <option value="RJ">RJ — Rio de Janeiro</option><option value="RN">RN — Rio Grande do Norte</option>
+          <option value="RS">RS — Rio Grande do Sul</option><option value="RO">RO — Rondônia</option>
+          <option value="RR">RR — Roraima</option><option value="SC">SC — Santa Catarina</option>
+          <option value="SP">SP — São Paulo</option><option value="SE">SE — Sergipe</option>
+          <option value="TO">TO — Tocantins</option>
+        </select>
+      </div>
+      <div id="np-err" style="font-size:11px;color:#e8503a;margin-top:8px;display:none"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-nova-planta')">Cancelar</button>
+      <button class="btn btn-p" onclick="salvarNovaPlanta()">✓ Salvar Planta</button>
+    </div>
+  </div>
+</div>
 
 <!-- MODAL LOGIN COMISSÃO -->
 <div class="modal-bg" id="m-comissao">
@@ -1466,7 +1511,7 @@ const SEED_PEDIDOS = {"4512704646":{"numPedido":"4512704646","planta":"LOCOMOTIV
 
 let PRODUTOS = [{"cod":"13192220","sap":"","nome":"BLUSÃO MAX DEFENDER VULCA TAM. 01 (P)","PA":1997.58,"MG":2111.08,"ES":null,"MA":1997.58,"RJ":null,"linha":"BLUSÃO MAX DEFENDER"},{"cod":"13192308","sap":"BLUSAO PROTEC M","nome":"BLUSÃO MAX DEFENDER VULCA TAM. 02 (M)","PA":1997.58,"MG":2111.08,"ES":null,"MA":1997.58,"RJ":null,"linha":"BLUSÃO MAX DEFENDER"},{"cod":"13192815","sap":"BLUSAO PROTEC 48","nome":"BLUSÃO MAX DEFENDER VULCA TAM. 03 (G)","PA":1997.58,"MG":2111.08,"ES":null,"MA":1997.58,"RJ":null,"linha":"BLUSÃO MAX DEFENDER"},{"cod":"13348525","sap":"","nome":"BLUSÃO MAX SOLDER TAM. 01 (P)","PA":null,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"BLUSÃO MAX SOLDER"},{"cod":"13348123","sap":"","nome":"BLUSÃO MAX SOLDER TAM. 02 (M)","PA":null,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"BLUSÃO MAX SOLDER"},{"cod":"13348122","sap":"","nome":"BLUSÃO MAX SOLDER TAM. 03 (G)","PA":null,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"BLUSÃO MAX SOLDER"},{"cod":"13156010","sap":"","nome":"CALÇA MAX DEFENDER VULCA TAM. 01 (P)","PA":1575.37,"MG":1664.87,"ES":1575.37,"MA":1575.37,"RJ":null,"linha":"CALÇA MAX DEFENDER"},{"cod":"13156020","sap":"CALCA SEGUR M","nome":"CALÇA MAX DEFENDER VULCA TAM. 02 (M)","PA":1575.37,"MG":1664.87,"ES":1575.37,"MA":1575.37,"RJ":null,"linha":"CALÇA MAX DEFENDER"},{"cod":"13155971","sap":"CALCA SEGUR G","nome":"CALÇA MAX DEFENDER VULCA TAM. 03 (G)","PA":1575.37,"MG":1664.87,"ES":1575.37,"MA":1575.37,"RJ":null,"linha":"CALÇA MAX DEFENDER"},{"cod":"13348153","sap":"","nome":"CALÇA MAX SOLDER TAM. 01 (P)","PA":null,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"CALÇA MAX SOLDER"},{"cod":"13348152","sap":"","nome":"CALÇA MAX SOLDER TAM. 02 (M)","PA":null,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"CALÇA MAX SOLDER"},{"cod":"13348151","sap":"","nome":"CALÇA MAX SOLDER TAM. 03 (G)","PA":null,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"CALÇA MAX SOLDER"},{"cod":"13156013","sap":"","nome":"CAMISA MAX DEFENDER VULCA TAM. 01 (P)","PA":null,"MG":null,"ES":1575.37,"MA":null,"RJ":null,"linha":"CAMISA MAX DEFENDER"},{"cod":"13155934","sap":"","nome":"CAMISA MAX DEFENDER VULCA TAM. 02 (M)","PA":null,"MG":null,"ES":1575.37,"MA":null,"RJ":null,"linha":"CAMISA MAX DEFENDER"},{"cod":"13155932","sap":"","nome":"CAMISA MAX DEFENDER VULCA TAM. 03 (G)","PA":null,"MG":null,"ES":1575.37,"MA":null,"RJ":null,"linha":"CAMISA MAX DEFENDER"},{"cod":"13381747","sap":"LUVA SEG AG MEC FIB ARAM 7","nome":"CLEAN CUT FLEX BLACK TAM. 07","PA":25.11,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"CLEAN BLACK"},{"cod":"13382041","sap":"LUVA SEG AG MEC FIB ARAM 8","nome":"CLEAN CUT FLEX BLACK TAM. 08","PA":25.11,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"CLEAN BLACK"},{"cod":"13382289","sap":"LUVA SEG AG MEC FIB ARAM 9","nome":"CLEAN CUT FLEX BLACK TAM. 09","PA":25.11,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"CLEAN BLACK"},{"cod":"13382271","sap":"LUVA SEG AG MEC FIB ARAM 10","nome":"CLEAN CUT FLEX BLACK TAM. 10","PA":25.11,"MG":null,"ES":null,"MA":null,"RJ":null,"linha":"CLEAN BLACK"},{"cod":"13415538","sap":"","nome":"LUVA ARCTÁTIL COBERTURA 7","PA":126.95,"MG":null,"ES":null,"MA":126.95,"RJ":151.36,"linha":"ARCTÁTIL COBERTURA"},{"cod":"13415562","sap":"","nome":"LUVA ARCTÁTIL COBERTURA 8","PA":126.95,"MG":null,"ES":null,"MA":126.95,"RJ":151.36,"linha":"ARCTÁTIL COBERTURA"},{"cod":"13415561","sap":"LUVA SEG AG TERM/MEC 9 45CAL/CM2","nome":"LUVA ARCTÁTIL COBERTURA 9","PA":126.95,"MG":null,"ES":null,"MA":126.95,"RJ":151.36,"linha":"ARCTÁTIL COBERTURA"},{"cod":"13415537","sap":"","nome":"LUVA ARCTÁTIL COBERTURA 10","PA":126.95,"MG":null,"ES":null,"MA":126.95,"RJ":151.36,"linha":"ARCTÁTIL COBERTURA"},{"cod":"13415448","sap":"","nome":"LUVA ARCTÁTIL COBERTURA 11","PA":126.95,"MG":null,"ES":null,"MA":126.95,"RJ":151.36,"linha":"ARCTÁTIL COBERTURA"},{"cod":"13316763","sap":"","nome":"LUVA ARCTÁTIL TAM. 06","PA":73.38,"MG":77.55,"ES":73.38,"MA":73.38,"RJ":87.49,"linha":"ARCTÁTIL "},{"cod":"13172268","sap":"LUVA SEG AG MEC FIBRA ARAMID/SINTET P","nome":"LUVA ARCTÁTIL TAM. 07","PA":73.38,"MG":77.55,"ES":73.38,"MA":73.38,"RJ":87.49,"linha":"ARCTÁTIL "},{"cod":"13172279","sap":"LUVA SEG AG MEC PAR AR/MET AR M","nome":"LUVA ARCTÁTIL TAM. 08","PA":73.38,"MG":77.55,"ES":73.38,"MA":73.38,"RJ":87.49,"linha":"ARCTÁTIL "},{"cod":"13172281","sap":"LUVA SEG AG MEC FIBRA ARAMID/SINTET G","nome":"LUVA ARCTÁTIL TAM. 09","PA":73.38,"MG":77.55,"ES":73.38,"MA":73.38,"RJ":87.49,"linha":"ARCTÁTIL "},{"cod":"13172256","sap":"LUVA SEG AG MEC FIBRA ARAMID/SINTET XG","nome":"LUVA ARCTÁTIL TAM. 10","PA":73.38,"MG":77.55,"ES":73.38,"MA":73.38,"RJ":87.49,"linha":"ARCTÁTIL "},{"cod":"13172493","sap":"","nome":"LUVA ARCTÁTIL TAM. 11","PA":73.38,"MG":77.55,"ES":73.38,"MA":73.38,"RJ":87.49,"linha":"ARCTÁTIL "},{"cod":"13329721","sap":"","nome":"LUVA EXTREME SOLDER TAM. 08","PA":216.24,"MG":null,"ES":216.24,"MA":null,"RJ":null,"linha":"EXTREME SOLDER"},{"cod":"13330241","sap":"","nome":"LUVA EXTREME SOLDER TAM. 09","PA":216.24,"MG":null,"ES":216.24,"MA":null,"RJ":null,"linha":"EXTREME SOLDER"},{"cod":"13330467","sap":"","nome":"LUVA EXTREME SOLDER TAM. 10","PA":216.24,"MG":null,"ES":216.24,"MA":null,"RJ":null,"linha":"EXTREME SOLDER"},{"cod":"13330466","sap":"|| LUVA SEG AG TERM GG/11 +500GRC/15S","nome":"LUVA EXTREME SOLDER TAM. 11","PA":216.24,"MG":null,"ES":216.24,"MA":null,"RJ":null,"linha":"EXTREME SOLDER"},{"cod":"13091872","sap":"","nome":"LUVA GRIP DEFENDER VULCA TAM. 07","PA":52.83,"MG":55.83,"ES":52.83,"MA":52.83,"RJ":null,"linha":"GRIP DEFENDER"},{"cod":"13093434","sap":"LUVA SEG AG MEC FB AR/FIO ACO/COURO M","nome":"LUVA GRIP DEFENDER VULCA TAM. 08","PA":52.83,"MG":55.83,"ES":52.83,"MA":52.83,"RJ":null,"linha":"GRIP DEFENDER"},{"cod":"13093554","sap":"LUVA SEG AG MEC FB AR/FIO ACO/COURO G/9","nome":"LUVA GRIP DEFENDER VULCA TAM. 09","PA":52.83,"MG":55.83,"ES":52.83,"MA":52.83,"RJ":null,"linha":"GRIP DEFENDER"},{"cod":"13093337","sap":"LUVA SEG AG MEC FB AR/FIO ACO/COURO XG","nome":"LUVA GRIP DEFENDER VULCA TAM. 10","PA":52.83,"MG":55.83,"ES":52.83,"MA":52.83,"RJ":null,"linha":"GRIP DEFENDER"},{"cod":"13400135","sap":"LUVA SEG AG TERM/MEC 7 250GRC","nome":"LUVA LIGHT POWER TAM. 07","PA":null,"MG":null,"ES":null,"MA":84.65,"RJ":null,"linha":"LIGHT POWER"},{"cod":"13399457","sap":"LUVA SEG AG TERM/MEC M/8 250GRC","nome":"LUVA LIGHT POWER TAM. 08","PA":null,"MG":null,"ES":null,"MA":84.65,"RJ":null,"linha":"LIGHT POWER"},{"cod":"13400137","sap":"LUVA SEG AG TERM/MEC G/9 250GRC","nome":"LUVA LIGHT POWER TAM. 09","PA":null,"MG":null,"ES":null,"MA":84.65,"RJ":null,"linha":"LIGHT POWER"},{"cod":"13402894","sap":"LUVA SEG AG TERM/MEC 10 250GRC","nome":"LUVA LIGHT POWER TAM. 10","PA":null,"MG":null,"ES":null,"MA":84.65,"RJ":null,"linha":"LIGHT POWER"},{"cod":"13402892","sap":"LUVA SEG AG TERM XG 250GRC","nome":"LUVA LIGHT POWER TAM. 11","PA":null,"MG":null,"ES":null,"MA":84.65,"RJ":null,"linha":"LIGHT POWER"},{"cod":"13136810","sap":"LUVA SEG AG MEC FIBRA ARAMIDA/ACO P","nome":"LUVA MASTER CUT FLEX TAM. 07","PA":53.47,"MG":56.51,"ES":null,"MA":null,"RJ":null,"linha":"MASTER CUT FLEX"},{"cod":"13136813","sap":"LUVA SEG AG MEC FIBRA ARAMIDA/ACO M","nome":"LUVA MASTER CUT FLEX TAM. 08","PA":53.47,"MG":56.51,"ES":null,"MA":null,"RJ":null,"linha":"MASTER CUT FLEX"},{"cod":"13136742","sap":"LUVA SEG AG MEC FIBRA ARAMIDA/ACO G","nome":"LUVA MASTER CUT FLEX TAM. 09","PA":53.47,"MG":56.51,"ES":null,"MA":null,"RJ":null,"linha":"MASTER CUT FLEX"},{"cod":"13136801","sap":"LUVA SEG AG MEC FIBRA ARAMIDA/ACO XG","nome":"LUVA MASTER CUT FLEX TAM. 10","PA":53.47,"MG":56.51,"ES":null,"MA":null,"RJ":null,"linha":"MASTER CUT FLEX"},{"cod":"13091909","sap":"","nome":"LUVA MAX DEFENDER VULCA TAM. 07","PA":null,"MG":80.39,"ES":76.06,"MA":null,"RJ":null,"linha":"MAX DEFENDER"},{"cod":"13093452","sap":"","nome":"LUVA MAX DEFENDER VULCA TAM. 08","PA":null,"MG":80.39,"ES":76.06,"MA":null,"RJ":null,"linha":"MAX DEFENDER"},{"cod":"13094254","sap":"","nome":"LUVA MAX DEFENDER VULCA TAM. 09","PA":null,"MG":80.39,"ES":76.06,"MA":null,"RJ":null,"linha":"MAX DEFENDER"},{"cod":"13093459","sap":"","nome":"LUVA MAX DEFENDER VULCA TAM. 10","PA":null,"MG":80.39,"ES":76.06,"MA":null,"RJ":null,"linha":"MAX DEFENDER"},{"cod":"13321321","sap":"LUVA SEG AG TERM/MEC 7 ","nome":"LUVA MAX SOLDER TAM. 07","PA":121.77,"MG":128.69,"ES":121.77,"MA":121.77,"RJ":null,"linha":"MAX SOLDER"},{"cod":"13321021","sap":"LUVA SEG AG TERM/MEC 8","nome":"LUVA MAX SOLDER TAM. 08","PA":121.77,"MG":128.69,"ES":121.77,"MA":121.77,"RJ":null,"linha":"MAX SOLDER"},{"cod":"13321020","sap":"LUVA SEG AG TERM/MEC 9 1400GRC","nome":"LUVA MAX SOLDER TAM. 09","PA":121.77,"MG":128.69,"ES":121.77,"MA":121.77,"RJ":null,"linha":"MAX SOLDER"},{"cod":"13320947","sap":"LUVA SEG AG TERM/MEC 10 1400GRC","nome":"LUVA MAX SOLDER TAM. 10","PA":121.77,"MG":128.69,"ES":121.77,"MA":121.77,"RJ":null,"linha":"MAX SOLDER"},{"cod":"13392674","sap":"LUVA SEG AG TERM/MEC 9 250GRC","nome":"LUVA TOTAL POWER TAM. 09 PCD","PA":null,"MG":null,"ES":null,"MA":132.03,"RJ":null,"linha":"TOTAL POWER"},{"cod":"13093458","sap":"","nome":"LUVA MAXGRIP TAM. 07","PA":null,"MG":null,"ES":53.17,"MA":null,"RJ":null,"linha":"MAX GRIP"},{"cod":"13093446","sap":"","nome":"LUVA MAXGRIP TAM. 08","PA":null,"MG":null,"ES":53.17,"MA":null,"RJ":null,"linha":"MAX GRIP"},{"cod":"13093448","sap":"","nome":"LUVA MAXGRIP TAM. 09","PA":null,"MG":null,"ES":53.17,"MA":null,"RJ":null,"linha":"MAX GRIP"},{"cod":"13093456","sap":"","nome":"LUVA MAXGRIP TAM. 10","PA":null,"MG":null,"ES":53.17,"MA":null,"RJ":null,"linha":"MAX GRIP"},{"cod":"13357234","sap":"","nome":"LUVA TOTAL POWER TAM. 07","PA":108.88,"MG":115.07,"ES":108.88,"MA":108.88,"RJ":129.82,"linha":"TOTAL POWER"},{"cod":"13296238","sap":"","nome":"LUVA TOTAL POWER TAM. 08","PA":108.88,"MG":115.07,"ES":108.88,"MA":108.88,"RJ":129.82,"linha":"TOTAL POWER"},{"cod":"13296237","sap":"","nome":"LUVA TOTAL POWER TAM. 09","PA":108.88,"MG":115.07,"ES":108.88,"MA":108.88,"RJ":129.82,"linha":"TOTAL POWER"},{"cod":"13296364","sap":"LUVA SEG AG TERM/MEC 10 ","nome":"LUVA TOTAL POWER TAM. 10","PA":108.88,"MG":115.07,"ES":108.88,"MA":108.88,"RJ":129.82,"linha":"TOTAL POWER"},{"cod":"13296363","sap":"","nome":"LUVA TOTAL POWER TAM. 11","PA":108.88,"MG":115.07,"ES":108.88,"MA":108.88,"RJ":129.82,"linha":"TOTAL POWER"},{"cod":"13296361","sap":"","nome":"LUVA TOTAL POWER TAM. 12","PA":108.88,"MG":115.07,"ES":108.88,"MA":108.88,"RJ":129.82,"linha":"TOTAL POWER"},{"cod":"13091089","sap":"","nome":"MANGOTE MAX DEFENDER TAM. 01 (P)","PA":435.57,"MG":460.32,"ES":435.57,"MA":435.57,"RJ":null,"linha":"MANGOTE MAX DEFENDER"},{"cod":"13091892","sap":"MANGA SEGUR FIB ARAM M/8","nome":"MANGOTE MAX DEFENDER TAM. 02 (M)","PA":435.57,"MG":460.32,"ES":435.57,"MA":435.57,"RJ":null,"linha":"MANGOTE MAX DEFENDER"},{"cod":"13092605","sap":"MANGA SEGUR POLIARAMIDA/ACO G/9","nome":"MANGOTE MAX DEFENDER TAM. 03 (G)","PA":435.57,"MG":460.32,"ES":435.57,"MA":435.57,"RJ":null,"linha":"MANGOTE MAX DEFENDER"},{"cod":"13092573","sap":"","nome":"MANGOTE MAX DEFENDER TAM. 04 (XG)","PA":435.57,"MG":460.32,"ES":435.57,"MA":435.57,"RJ":null,"linha":"MANGOTE MAX DEFENDER"}];
 
-const CLIENTES = [
+const CLIENTES_PADRAO = [
   {planta:'SERRA LESTE',uf:'PA',cliente:'FERROSOS'},{planta:'S11D',uf:'PA',cliente:'FERROSOS'},
   {planta:'CARAJÁS',uf:'PA',cliente:'FERROSOS'},{planta:'BARÃO COCAIS',uf:'MG',cliente:'FERROSOS'},
   {planta:'EFC SÃO LUIS',uf:'MA',cliente:'FERROSOS'},{planta:'TUBARÃO',uf:'ES',cliente:'FERROSOS'},
@@ -1480,6 +1525,7 @@ const CLIENTES = [
   {planta:'OURILÂNDIA',uf:'PA',cliente:'METAIS BÁSICOS'},{planta:'SOSSEGO',uf:'PA',cliente:'METAIS BÁSICOS'},
   {planta:'SALOBO',uf:'PA',cliente:'METAIS BÁSICOS'},
 ];
+let CLIENTES = [...CLIENTES_PADRAO]; // pode ser estendida em runtime com plantas extras do Firebase
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const C2R = Math.PI*2*30;
 
@@ -1543,6 +1589,7 @@ function init(){
   // Contatos e configs dependem do db — inicializar APÓS Firebase estar pronto
     listenContatos();
     listenConfigs();
+    listenPlantasExtras(); // sincroniza plantas cadastradas pelo usuário
     initConexao(); // banner offline
   } catch(e) {
     document.getElementById('fb-lbl').textContent = 'Sem Firebase (dados locais)';
@@ -3424,6 +3471,136 @@ window.rPlantas = rPlantas;
 window.togglePlantaDetalhe = togglePlantaDetalhe;
 window.copiarResumoPlanta = copiarResumoPlanta;
 window.exportarPlantasCSV = exportarPlantasCSV;
+
+// ══════════════════════════════════════════════════════════════════════════
+// FEATURE: CADASTRO DE NOVA PLANTA (a partir do dropdown de Novo Pedido)
+// Plantas extras são salvas no Firebase em config/plantas_extras e mescladas
+// com as plantas-padrão (CLIENTES_PADRAO) em runtime, sem duplicar.
+// ══════════════════════════════════════════════════════════════════════════
+
+// Gera chave segura para Firebase (sem acentos, espaços ou caracteres especiais)
+function plantaKeySafe(nome){
+  return (nome||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9]/g,'_').toUpperCase();
+}
+
+// Escuta plantas extras no Firebase em tempo real
+function listenPlantasExtras(){
+  if(!window.db) return;
+  window.db.ref('config/plantas_extras').on('value', snap => {
+    const extras = snap.val() || {};
+    // Reconstroi CLIENTES = padrão + extras (sem duplicatas, comparando por nome)
+    const nomesPadrao = new Set(CLIENTES_PADRAO.map(c => c.planta.toUpperCase()));
+    const extrasArray = Object.values(extras)
+      .filter(e => e && e.planta && !nomesPadrao.has(e.planta.toUpperCase()))
+      .map(e => ({ planta: e.planta, uf: e.uf || '', cliente: e.cliente || '' }));
+    CLIENTES = [...CLIENTES_PADRAO, ...extrasArray];
+    // Repopula os dropdowns que dependem dessa lista
+    repopularDropdownsPlantas();
+  });
+}
+
+// Repopula todos os dropdowns de planta quando a lista muda (preserva seleção atual)
+function repopularDropdownsPlantas(){
+  // Dropdowns simples: f-pl, f-trat-pl, d-pl (apenas nomes ordenados)
+  const plantas = CLIENTES.map(c => c.planta).sort();
+  ['f-pl','f-trat-pl','d-pl'].forEach(id => {
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const valorAtual = sel.value;
+    // Mantém a primeira option (geralmente "Todas as Plantas") e recria o resto
+    const primeiraOption = sel.querySelector('option:first-child');
+    sel.innerHTML = '';
+    if(primeiraOption) sel.appendChild(primeiraOption);
+    plantas.forEach(p => { sel.innerHTML += `<option value="${p}">${p}</option>`; });
+    sel.value = valorAtual; // restaura seleção
+  });
+  // Dropdown do Novo Pedido (n-pl): formato "Nome — UF"
+  const pSel = document.getElementById('n-pl');
+  if(pSel){
+    const valorAtual = pSel.value;
+    pSel.innerHTML = '<option value="">Selecione...</option>';
+    [...CLIENTES].sort((a,b) => a.planta.localeCompare(b.planta)).forEach(c => {
+      pSel.innerHTML += `<option value="${c.planta}">${c.planta} — ${c.uf}</option>`;
+    });
+    pSel.value = valorAtual;
+  }
+}
+
+// Abre o modal de cadastro com campos limpos
+function abrirModalNovaPlanta(){
+  document.getElementById('np-nome').value = '';
+  document.getElementById('np-uf').value = '';
+  document.getElementById('np-err').style.display = 'none';
+  document.getElementById('m-nova-planta').classList.add('on');
+  setTimeout(() => document.getElementById('np-nome').focus(), 100);
+}
+
+// Valida e salva a nova planta no Firebase
+async function salvarNovaPlanta(){
+  const errEl = document.getElementById('np-err');
+  errEl.style.display = 'none';
+  const nome = (document.getElementById('np-nome').value || '').trim().toUpperCase();
+  const uf = document.getElementById('np-uf').value;
+  
+  // Validações
+  if(!nome){
+    errEl.textContent = 'Informe o nome da planta.';
+    errEl.style.display = '';
+    return;
+  }
+  if(nome.length < 2){
+    errEl.textContent = 'O nome precisa ter ao menos 2 caracteres.';
+    errEl.style.display = '';
+    return;
+  }
+  if(!uf){
+    errEl.textContent = 'Selecione a UF.';
+    errEl.style.display = '';
+    return;
+  }
+  // Verifica duplicata (case-insensitive)
+  if(CLIENTES.some(c => c.planta.toUpperCase() === nome)){
+    errEl.textContent = `A planta "${nome}" já está cadastrada.`;
+    errEl.style.display = '';
+    return;
+  }
+  if(!window.db){
+    errEl.textContent = 'Sem conexão com o Firebase. Tente novamente.';
+    errEl.style.display = '';
+    return;
+  }
+  
+  // Salva no Firebase
+  const key = plantaKeySafe(nome);
+  const payload = {
+    planta: nome,
+    uf: uf,
+    cliente: '', // deixado vazio — usuário pode preencher manualmente no pedido
+    criadoEm: new Date().toISOString(),
+    criadoPor: window._currentUser?.email || '—'
+  };
+  try {
+    await window.db.ref('config/plantas_extras/' + key).set(payload);
+    if(typeof logAtividade === 'function') logAtividade('nova_planta', `${nome} (${uf})`);
+    closeM('m-nova-planta');
+    toast(`Planta "${nome}" cadastrada com sucesso!`, 'ok');
+    // Pré-seleciona a nova planta no dropdown (após o listener atualizar a lista)
+    setTimeout(() => {
+      const sel = document.getElementById('n-pl');
+      if(sel){
+        sel.value = nome;
+        if(typeof onPlanta === 'function') onPlanta();
+      }
+    }, 300);
+  } catch(e) {
+    errEl.textContent = 'Erro ao salvar: ' + (e.message || e);
+    errEl.style.display = '';
+  }
+}
+
+// Exporta para o escopo global (chamadas via onclick do HTML)
+window.abrirModalNovaPlanta = abrirModalNovaPlanta;
+window.salvarNovaPlanta = salvarNovaPlanta;
 
 function nav(pg){
   // Sempre salva a aba atual — mas nunca salva 'comissao' (área secreta)
