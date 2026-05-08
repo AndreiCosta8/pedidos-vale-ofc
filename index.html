@@ -955,7 +955,7 @@ body.logged-out .main{display:none !important}
         <input type="text" id="np-nome" class="si" placeholder="Ex: BRUCUTU" style="width:100%;text-transform:uppercase"
           onkeydown="if(event.key==='Enter')document.getElementById('np-uf').focus()"/>
       </div>
-      <div class="fg" style="margin-bottom:8px">
+      <div class="fg" style="margin-bottom:12px">
         <label class="req">UF (Estado)</label>
         <select id="np-uf" class="fs" style="width:100%">
           <option value="">Selecione...</option>
@@ -974,6 +974,17 @@ body.logged-out .main{display:none !important}
           <option value="SP">SP — São Paulo</option><option value="SE">SE — Sergipe</option>
           <option value="TO">TO — Tocantins</option>
         </select>
+      </div>
+      <div class="fg" style="margin-bottom:8px">
+        <label class="req">Cliente</label>
+        <select id="np-cliente" class="fs" style="width:100%" onchange="onClienteChange()">
+          <option value="">Selecione...</option>
+          <option value="FERROSOS">FERROSOS</option>
+          <option value="METAIS BÁSICOS">METAIS BÁSICOS</option>
+          <option value="__OUTRO__">Outro (digitar abaixo)</option>
+        </select>
+        <input type="text" id="np-cliente-outro" class="si" placeholder="Digite o nome do cliente"
+          style="width:100%;text-transform:uppercase;margin-top:6px;display:none"/>
       </div>
       <div id="np-err" style="font-size:11px;color:#e8503a;margin-top:8px;display:none"></div>
     </div>
@@ -3530,9 +3541,25 @@ function repopularDropdownsPlantas(){
 function abrirModalNovaPlanta(){
   document.getElementById('np-nome').value = '';
   document.getElementById('np-uf').value = '';
+  document.getElementById('np-cliente').value = '';
+  document.getElementById('np-cliente-outro').value = '';
+  document.getElementById('np-cliente-outro').style.display = 'none';
   document.getElementById('np-err').style.display = 'none';
-  document.getElementById('m-nova-planta').classList.add('on');
+  openM('m-nova-planta'); // usa o padrão do sistema (adiciona classe 'open')
   setTimeout(() => document.getElementById('np-nome').focus(), 100);
+}
+
+// Mostra/esconde o input "Outro" quando o usuário muda a seleção do cliente
+function onClienteChange(){
+  const sel = document.getElementById('np-cliente');
+  const inp = document.getElementById('np-cliente-outro');
+  if(sel.value === '__OUTRO__'){
+    inp.style.display = '';
+    setTimeout(() => inp.focus(), 50);
+  } else {
+    inp.style.display = 'none';
+    inp.value = '';
+  }
 }
 
 // Valida e salva a nova planta no Firebase
@@ -3541,6 +3568,11 @@ async function salvarNovaPlanta(){
   errEl.style.display = 'none';
   const nome = (document.getElementById('np-nome').value || '').trim().toUpperCase();
   const uf = document.getElementById('np-uf').value;
+  const clienteSel = document.getElementById('np-cliente').value;
+  let cliente = clienteSel;
+  if(clienteSel === '__OUTRO__'){
+    cliente = (document.getElementById('np-cliente-outro').value || '').trim().toUpperCase();
+  }
   
   // Validações
   if(!nome){
@@ -3555,6 +3587,16 @@ async function salvarNovaPlanta(){
   }
   if(!uf){
     errEl.textContent = 'Selecione a UF.';
+    errEl.style.display = '';
+    return;
+  }
+  if(!clienteSel){
+    errEl.textContent = 'Selecione o cliente.';
+    errEl.style.display = '';
+    return;
+  }
+  if(clienteSel === '__OUTRO__' && (!cliente || cliente.length < 2)){
+    errEl.textContent = 'Digite o nome do cliente (ao menos 2 caracteres).';
     errEl.style.display = '';
     return;
   }
@@ -3575,13 +3617,13 @@ async function salvarNovaPlanta(){
   const payload = {
     planta: nome,
     uf: uf,
-    cliente: '', // deixado vazio — usuário pode preencher manualmente no pedido
+    cliente: cliente,
     criadoEm: new Date().toISOString(),
     criadoPor: window._currentUser?.email || '—'
   };
   try {
     await window.db.ref('config/plantas_extras/' + key).set(payload);
-    if(typeof logAtividade === 'function') logAtividade('nova_planta', `${nome} (${uf})`);
+    if(typeof logAtividade === 'function') logAtividade('nova_planta', `${nome} (${uf}) — ${cliente}`);
     closeM('m-nova-planta');
     toast(`Planta "${nome}" cadastrada com sucesso!`, 'ok');
     // Pré-seleciona a nova planta no dropdown (após o listener atualizar a lista)
@@ -3601,6 +3643,7 @@ async function salvarNovaPlanta(){
 // Exporta para o escopo global (chamadas via onclick do HTML)
 window.abrirModalNovaPlanta = abrirModalNovaPlanta;
 window.salvarNovaPlanta = salvarNovaPlanta;
+window.onClienteChange = onClienteChange;
 
 function nav(pg){
   // Sempre salva a aba atual — mas nunca salva 'comissao' (área secreta)
