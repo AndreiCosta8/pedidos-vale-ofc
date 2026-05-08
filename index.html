@@ -1550,7 +1550,7 @@ let chOM=null,chPR=null,chVM=null,chST=null;
 // INIT
 // ══════════════════════════════════════════════
 
-async function logAtividade(acao, detalhes) { const entry = { acao, detalhes, usuario: window._currentUser?.email||'—', data: new Date().toISOString() }; if(window.db) await window.db.ref('config/log').push(entry); }
+async function logAtividade(acao, detalhes) { const entry = { acao, detalhes, usuario: window._currentUser?.email||'—', data: new Date().toISOString() }; if(db) await db.ref('config/log').push(entry); }
 function debounce(fn, ms=300) { let t; return (...a) => { clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 function saveFilter(id) { const el=document.getElementById(id); if(el) sessionStorage.setItem('filtro_'+id, el.value); }
 function restoreFilters() { ['d-ano','d-cli','d-uf','d-pl','d-classe','f-st','f-pl','f-cl','f-trat-st','f-trat-pl'].forEach(id=>{ const el=document.getElementById(id); const saved=sessionStorage.getItem('filtro_'+id); if(el && saved) el.value=saved; }); }
@@ -3496,8 +3496,8 @@ function plantaKeySafe(nome){
 
 // Escuta plantas extras no Firebase em tempo real
 function listenPlantasExtras(){
-  if(!window.db) return;
-  window.db.ref('config/plantas_extras').on('value', snap => {
+  if(!db) return;
+  db.ref('config/plantas_extras').on('value', snap => {
     const extras = snap.val() || {};
     // Reconstroi CLIENTES = padrão + extras (sem duplicatas, comparando por nome)
     const nomesPadrao = new Set(CLIENTES_PADRAO.map(c => c.planta.toUpperCase()));
@@ -3606,7 +3606,7 @@ async function salvarNovaPlanta(){
     errEl.style.display = '';
     return;
   }
-  if(!window.db){
+  if(!db){
     errEl.textContent = 'Sem conexão com o Firebase. Tente novamente.';
     errEl.style.display = '';
     return;
@@ -3622,7 +3622,7 @@ async function salvarNovaPlanta(){
     criadoPor: window._currentUser?.email || '—'
   };
   try {
-    await window.db.ref('config/plantas_extras/' + key).set(payload);
+    await db.ref('config/plantas_extras/' + key).set(payload);
     if(typeof logAtividade === 'function') logAtividade('nova_planta', `${nome} (${uf}) — ${cliente}`);
     closeM('m-nova-planta');
     toast(`Planta "${nome}" cadastrada com sucesso!`, 'ok');
@@ -4218,7 +4218,7 @@ async function salvarEdicao(){
       
       Object.assign(PEDS[editPk].linhas[lk], changes);
       
-      if(window.db) {
+      if(db) {
         pms.push(db.ref('pedidos_vale/'+editPk+'/linhas/'+lk).update(changes));
       }
     }
