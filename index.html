@@ -3889,13 +3889,75 @@ function rdash(){
   if(chPR)chPR.destroy();
   chPR=new Chart(document.getElementById('ch-pr'),{type:'bar',
     data:{labels:mLbls,datasets:[{label:'No Prazo',data:npV,backgroundColor:'#f5c418',borderRadius:3,stack:'s'},{label:'Fora',data:fpV,backgroundColor:'#e8503a',borderRadius:3,stack:'s'}]},
-    options:{...gO,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}}}});
+    options:{...gO,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}}},
+    plugins:[{
+      // Mostra total em cima da barra + % de fora do prazo dentro (ou ao lado) da parte vermelha
+      afterDatasetsDraw(chart){
+        const ctx = chart.ctx;
+        const npMeta = chart.getDatasetMeta(0); // No Prazo (amarelo)
+        const fpMeta = chart.getDatasetMeta(1); // Fora (vermelho, em cima do amarelo)
+        ctx.save();
+        ctx.font = '600 9px sans-serif';
+        ctx.textAlign = 'center';
+        npMeta.data.forEach((barNP, i) => {
+          const np = npV[i] || 0;
+          const fp = fpV[i] || 0;
+          const total = np + fp;
+          if(!total) return;
+          // 1) TOTAL em cima da barra empilhada (a barra fp fica em cima da np)
+          const barFP = fpMeta.data[i];
+          const topY = fp>0 ? barFP.y : barNP.y;
+          ctx.fillStyle = '#cdd6dc';
+          ctx.fillText(total, barNP.x, topY - 4);
+          // 2) % de fora do prazo (só se houver atrasos)
+          if(fp > 0){
+            const pct = Math.round((fp/total)*100) + '%';
+            // Altura da parte vermelha em pixels (barNP.y é o topo da amarela = base da vermelha)
+            const alturaFP = barNP.y - barFP.y;
+            if(alturaFP >= 14){
+              // cabe dentro da parte vermelha: desenha no centro vertical dela
+              ctx.fillStyle = '#fff';
+              ctx.fillText(pct, barNP.x, barFP.y + alturaFP/2 + 3);
+            } else {
+              // parte vermelha pequena demais: desenha à direita da barra
+              ctx.fillStyle = '#e8503a';
+              ctx.textAlign = 'left';
+              ctx.fillText(pct, barNP.x + 12, barFP.y + alturaFP/2 + 3);
+              ctx.textAlign = 'center';
+            }
+          }
+        });
+        ctx.restore();
+      }
+    }]
+  });
   if(chVM)chVM.destroy();
   chVM=new Chart(document.getElementById('ch-vm'),{type:'bar',
     data:{labels:mLbls,datasets:[{data:vlrV,backgroundColor:'#3b8fd4',borderRadius:4}]},
     options:{...gO,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},
       scales:{x:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
-              y:{ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':'R$'+Math.round(v/1e3)+'K'},grid:{color:'rgba(255,255,255,.03)'}}}}});
+              y:{ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':'R$'+Math.round(v/1e3)+'K'},grid:{color:'rgba(255,255,255,.03)'}}}},
+    plugins:[{
+      // Mostra valor formatado em cima de cada barra (R$XXK ou R$X.XM)
+      afterDatasetsDraw(chart){
+        const ctx = chart.ctx;
+        const meta = chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.font = '600 9px sans-serif';
+        ctx.fillStyle = '#cdd6dc';
+        ctx.textAlign = 'center';
+        meta.data.forEach((bar, i) => {
+          const v = vlrV[i] || 0;
+          if(!v) return;
+          const txt = v >= 1e6 ? 'R$' + (v/1e6).toFixed(1) + 'M'
+                    : v >= 1e3 ? 'R$' + Math.round(v/1e3) + 'K'
+                    : 'R$' + Math.round(v);
+          ctx.fillText(txt, bar.x, bar.y - 4);
+        });
+        ctx.restore();
+      }
+    }]
+  });
   if(chST)chST.destroy();
   chST=new Chart(document.getElementById('ch-st'),{type:'doughnut',
     data:{labels:['Entregue','Ag. Produção','Ag. Coleta'],
