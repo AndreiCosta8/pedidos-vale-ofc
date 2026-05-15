@@ -54,8 +54,8 @@ body{font-family:'Sora',sans-serif;background:var(--navy);color:var(--text);min-
 .gauge-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .gbox{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;text-align:center;flex:1;min-width:110px}
 .glbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
-.gring{position:relative;width:76px;height:76px;margin:0 auto}
-.gring svg{width:76px;height:76px;transform:rotate(-90deg)}
+.gring{position:relative;width:100px;height:100px;margin:0 auto}
+.gring svg{width:100px;height:100px;transform:rotate(-90deg)}
 .gtrack{fill:none;stroke:rgba(255,255,255,.06);stroke-width:8}
 .garc{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dasharray .6s}
 .gnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700}
@@ -771,9 +771,9 @@ body.logged-out .main{display:none !important}
       <button class="btn btn-sec" style="font-size:10px;padding:5px 10px" onclick="resetDashFilters()">↺ Limpar</button>
     </div>
     <div class="gauge-row">
-      <div class="gbox"><div class="glbl" title="ON TIME × IN FULL">OTIFF</div><div class="gring"><svg viewBox="0 0 76 76"><circle class="gtrack" cx="38" cy="38" r="30"/><circle class="garc" id="arc-ot" cx="38" cy="38" r="30" stroke="#f5c418"/></svg><div class="gnum" id="v-ot" style="color:var(--gold)">—</div></div></div>
-      <div class="gbox"><div class="glbl" title="Linhas entregues dentro de 30 dias">ON TIME</div><div class="gring"><svg viewBox="0 0 76 76"><circle class="gtrack" cx="38" cy="38" r="30"/><circle class="garc" id="arc-on" cx="38" cy="38" r="30" stroke="#3b8fd4"/></svg><div class="gnum" id="v-on" style="color:var(--blue)">—</div></div></div>
-      <div class="gbox"><div class="glbl" title="Entregas sem ocorrência ou devolução">IN FULL</div><div class="gring"><svg viewBox="0 0 76 76"><circle class="gtrack" cx="38" cy="38" r="30"/><circle class="garc" id="arc-if" cx="38" cy="38" r="30" stroke="#22c97a"/></svg><div class="gnum" id="v-if" style="color:var(--green)">—</div></div></div>
+      <div class="gbox"><div class="glbl" title="ON TIME × IN FULL">OTIFF</div><div class="gring"><svg viewBox="0 0 100 100"><circle class="gtrack" cx="50" cy="50" r="40"/><circle class="garc" id="arc-ot" cx="50" cy="50" r="40" stroke="#f5c418"/></svg><div class="gnum" id="v-ot" style="color:var(--gold)">—</div></div></div>
+      <div class="gbox"><div class="glbl" title="Linhas entregues dentro de 30 dias">ON TIME</div><div class="gring"><svg viewBox="0 0 100 100"><circle class="gtrack" cx="50" cy="50" r="40"/><circle class="garc" id="arc-on" cx="50" cy="50" r="40" stroke="#3b8fd4"/></svg><div class="gnum" id="v-on" style="color:var(--blue)">—</div></div></div>
+      <div class="gbox"><div class="glbl" title="Entregas sem ocorrência ou devolução">IN FULL</div><div class="gring"><svg viewBox="0 0 100 100"><circle class="gtrack" cx="50" cy="50" r="40"/><circle class="garc" id="arc-if" cx="50" cy="50" r="40" stroke="#22c97a"/></svg><div class="gnum" id="v-if" style="color:var(--green)">—</div></div></div>
       <div class="card card-accent" style="--accent:var(--gold);flex:3;padding:12px 14px">
         <div class="sec" style="font-size:9px">% OTIFF por Mês</div>
         <div class="cw sm"><canvas id="ch-om" role="img" aria-label="OTIFF por mês"></canvas></div>
@@ -1538,7 +1538,7 @@ const CLIENTES_PADRAO = [
 ];
 let CLIENTES = [...CLIENTES_PADRAO]; // pode ser estendida em runtime com plantas extras do Firebase
 const MES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const C2R = Math.PI*2*30;
+const C2R = Math.PI*2*40;
 
 // ══════════════════════════════════════════════
 // STATE
@@ -3885,44 +3885,65 @@ function rdash(){
     data:{labels:mLbls,datasets:[{data:omV,backgroundColor:omV.map(v=>bc(v)),borderRadius:4}]},
     options:{...gO,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}},
       scales:{x:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
-              y:{min:0,max:105,ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.03)'}}}}});
+              y:{min:0,max:105,ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.03)'}}}},
+    plugins:[{
+      afterDatasetsDraw(chart){
+        const ctx=chart.ctx, meta=chart.getDatasetMeta(0);
+        ctx.save();
+        ctx.font='600 9px sans-serif';
+        ctx.textAlign='center';
+        meta.data.forEach((bar,i)=>{
+          const v=omV[i];
+          if(v==null) return;
+          ctx.fillStyle='#cdd6dc';
+          ctx.fillText(v+'%', bar.x, bar.y-4);
+        });
+        ctx.restore();
+      }
+    }]});
   if(chPR)chPR.destroy();
   chPR=new Chart(document.getElementById('ch-pr'),{type:'bar',
     data:{labels:mLbls,datasets:[{label:'No Prazo',data:npV,backgroundColor:'#f5c418',borderRadius:3,stack:'s'},{label:'Fora',data:fpV,backgroundColor:'#e8503a',borderRadius:3,stack:'s'}]},
     options:{...gO,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}}},
     plugins:[{
-      // Mostra total em cima da barra + % de fora do prazo dentro (ou ao lado) da parte vermelha
+      // Mostra NP dentro da parte amarela e FP dentro da parte vermelha (ambos os valores)
       afterDatasetsDraw(chart){
         const ctx = chart.ctx;
-        const npMeta = chart.getDatasetMeta(0); // No Prazo (amarelo)
-        const fpMeta = chart.getDatasetMeta(1); // Fora (vermelho, em cima do amarelo)
+        const npMeta = chart.getDatasetMeta(0);
+        const fpMeta = chart.getDatasetMeta(1);
         ctx.save();
-        ctx.font = '600 9px sans-serif';
+        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         npMeta.data.forEach((barNP, i) => {
           const np = npV[i] || 0;
           const fp = fpV[i] || 0;
-          const total = np + fp;
-          if(!total) return;
-          // 1) TOTAL em cima da barra empilhada (a barra fp fica em cima da np)
+          if(!np && !fp) return;
           const barFP = fpMeta.data[i];
-          const topY = fp>0 ? barFP.y : barNP.y;
-          ctx.fillStyle = '#cdd6dc';
-          ctx.fillText(total, barNP.x, topY - 4);
-          // 2) % de fora do prazo (só se houver atrasos)
+          // Parte amarela (NP): altura e centro
+          const baseY    = barNP.base;
+          const alturaNP = baseY - barNP.y;
+          const centroNP = barNP.y + alturaNP/2;
+          if(alturaNP >= 16){
+            ctx.fillStyle = 'rgba(0,0,0,.6)';
+            ctx.fillText(np, barNP.x, centroNP);
+          } else if(alturaNP > 0){
+            ctx.fillStyle = '#cdd6dc';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(np, barNP.x, barNP.y - 2);
+            ctx.textBaseline = 'middle';
+          }
+          // Parte vermelha (FP): só se houver atrasos
           if(fp > 0){
-            const pct = Math.round((fp/total)*100) + '%';
-            // Altura da parte vermelha em pixels (barNP.y é o topo da amarela = base da vermelha)
             const alturaFP = barNP.y - barFP.y;
-            if(alturaFP >= 14){
-              // cabe dentro da parte vermelha: desenha no centro vertical dela
+            const centroFP = barFP.y + alturaFP/2;
+            if(alturaFP >= 16){
               ctx.fillStyle = '#fff';
-              ctx.fillText(pct, barNP.x, barFP.y + alturaFP/2 + 3);
+              ctx.fillText(fp, barNP.x, centroFP);
             } else {
-              // parte vermelha pequena demais: desenha à direita da barra
               ctx.fillStyle = '#e8503a';
               ctx.textAlign = 'left';
-              ctx.fillText(pct, barNP.x + 12, barFP.y + alturaFP/2 + 3);
+              ctx.fillText('FP:'+fp, barNP.x+12, centroFP);
               ctx.textAlign = 'center';
             }
           }
@@ -3963,8 +3984,18 @@ function rdash(){
     data:{labels:['Entregue','Ag. Produção','Ag. Coleta'],
           datasets:[{data:[ent.length,agP.length,ab.length-agP.length],backgroundColor:['#22c97a','#f0a020','#3b8fd4'],borderWidth:0,hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
-      plugins:{legend:{display:true,position:'bottom',labels:{color:'#4d7a9e',font:{size:9},boxWidth:8,padding:8}}}}});
-
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#4d7a9e',font:{size:9},boxWidth:8,padding:8,
+        generateLabels(chart){
+          const d=chart.data;
+          return d.labels.map((lbl,i)=>({
+            text: lbl+': '+d.datasets[0].data[i],
+            fillStyle: d.datasets[0].backgroundColor[i],
+            strokeStyle: d.datasets[0].backgroundColor[i],
+            lineWidth:0, hidden:false, index:i
+          }));
+        }
+      }}}}})
+;
   // Barras UF e Planta
   const bUF={},bPL={};
   lns.forEach(l=>{
