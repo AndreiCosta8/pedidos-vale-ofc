@@ -601,6 +601,40 @@ body.logged-out .main{display:none !important}
 
 
 .pag-btn{background:var(--card2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:11px;transition:0.2s} .pag-btn:disabled{opacity:0.5;cursor:not-allowed}
+
+/* ═══════════════════════════════════════════
+   IMPRESSÃO / EXPORTAR PDF (#5)
+   ═══════════════════════════════════════════ */
+@media print {
+  /* Esconde tudo que não é conteúdo */
+  .sidebar,.topbar,.bnav,.bnav-more,
+  .btn,.btn-p,.btn-sec,.btn-s,
+  .nb,.trend,.chip,
+  #print-btn-wrap,
+  [onclick]{pointer-events:none}
+  .sidebar,.topbar,.bnav,.bnav-more{display:none!important}
+  /* Layout */
+  body{background:#fff!important;color:#111!important;margin:0;padding:8px}
+  .main{margin:0!important;padding:0!important}
+  .pg{display:none!important}
+  #pg-dash{display:block!important;max-width:100%!important}
+  /* Cards */
+  .card,.kpi,.gbox,.card-accent{
+    background:#fff!important;border:1px solid #ddd!important;
+    box-shadow:none!important;color:#111!important;break-inside:avoid
+  }
+  .v,.gnum,.tb-title{color:#111!important}
+  .sec,.l,.kpi .l,.muted{color:#555!important}
+  /* Forçar cores legíveis */
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* Cabeçalho de impressão */
+  #print-header{display:block!important}
+}
+#print-header{
+  display:none;
+  font-size:11px;color:#555;margin-bottom:12px;
+  border-bottom:1px solid #ddd;padding-bottom:8px;
+}
 </style>
 </head>
 <body class="logged-out">
@@ -658,6 +692,8 @@ body.logged-out .main{display:none !important}
   <div class="ni" onclick="nav('plantas')" data-pg="plantas"><span class="ni-icon">🏭</span>Análise de Plantas <span class="nb red" id="nb-plantas">0</span></div>
   <div class="ni" onclick="nav('previsao')" data-pg="previsao"><span class="ni-icon">🔮</span>Previsão 30 dias</div>
   <div class="ni" onclick="nav('ranking')" data-pg="ranking"><span class="ni-icon">🏆</span>Ranking Clientes</div>
+  <div class="ni" onclick="nav('rank-prod')" data-pg="rank-prod"><span class="ni-icon">📦</span>Ranking de Produtos</div>
+  <div class="ni" onclick="nav('comparativo')" data-pg="comparativo"><span class="ni-icon">📊</span>Comparativo Mensal</div>
   <div class="ni" onclick="nav('distribuidora')" data-pg="distribuidora"><span class="ni-icon">🚚</span>Status Distribuidora</div>
   <div class="sb-sec">Cadastros</div>
   <div class="ni" onclick="nav('produtos')" data-pg="produtos"><span class="ni-icon">📦</span>Produtos e Preços</div>
@@ -709,6 +745,7 @@ body.logged-out .main{display:none !important}
       <span class="chip live" id="chip-fb">● Firebase</span>
       <span class="chip" id="chip-date"></span>
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px" onclick="importarDados()">⬆ Importar Planilha</button>
+      <button class="btn btn-s" id="print-btn-wrap" style="font-size:9px;padding:4px 9px;background:rgba(59,143,212,.15);border-color:#3b8fd4;color:#3b8fd4" onclick="exportarPDF()" title="Exportar Dashboard como PDF">📄 PDF</button>
     </div>
   </div>
 
@@ -769,6 +806,11 @@ body.logged-out .main{display:none !important}
 
   <!-- DASHBOARD -->
   <div class="pg on" id="pg-dash">
+    <!-- Cabeçalho visível apenas ao imprimir -->
+    <div id="print-header">
+      <strong>Vale · Pedidos — Dashboard de Desempenho</strong><br>
+      <span id="print-header-info"></span>
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
       <select class="fs" id="d-ano" onchange="saveFilter(this.id);rdash();atualizarContador()">
         <option value="all">Todos os Anos</option>
@@ -1028,6 +1070,28 @@ body.logged-out .main{display:none !important}
   </div>
 </div>
 
+<!-- MODAL HISTÓRICO OTIFF POR PLANTA -->
+<div class="modal-bg" id="m-otiff-hist">
+  <div class="modal" style="max-width:600px">
+    <div class="mh">
+      <h3 id="m-otiff-titulo">📈 Histórico OTIFF</h3>
+      <button class="mclose" onclick="closeM('m-otiff-hist')">✕</button>
+    </div>
+    <div class="mc" style="padding:16px 20px">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" id="m-otiff-kpis"></div>
+      <div style="position:relative;height:220px">
+        <canvas id="ch-otiff-hist" aria-label="Histórico OTIFF"></canvas>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:10px;text-align:center">
+        Últimos 12 meses — clique em outro estado/planta para comparar
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-otiff-hist')">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL VENCIMENTOS PRÓXIMOS -->
 <div class="modal-bg" id="m-vencimentos">
   <div class="modal" style="max-width:560px">
@@ -1206,6 +1270,16 @@ body.logged-out .main{display:none !important}
   <!-- Tabela detalhada -->
   <div class="card" style="padding:0;overflow:hidden">
     <table style="width:100%;border-collapse:collapse;font-size:11px" id="pv-table"></table>
+  </div>
+  <!-- MELHORIA #1: Potencial por Planta -->
+  <div style="margin-top:20px">
+    <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px">
+      💡 Potencial Não Realizado por Planta
+    </div>
+    <div style="background:rgba(34,201,122,.06);border:1px solid rgba(34,201,122,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted)">
+      <strong style="color:#22c97a">ℹ️</strong> Compara a <strong>média histórica mensal</strong> de cada planta (últimos 6 meses) com o que ela comprou <strong>neste mês</strong>. Plantas abaixo da média histórica = oportunidade de acompanhamento.
+    </div>
+    <div id="pv-potencial"></div>
   </div>
 </div>
 
@@ -1390,6 +1464,94 @@ body.logged-out .main{display:none !important}
   <div class="card" style="padding:0;overflow:hidden" id="rk-list"></div>
 </div>
 
+
+<!-- PÁGINA RANKING DE PRODUTOS -->
+<div class="pg" id="pg-rank-prod" style="max-width:1100px">
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="rp-ano" onchange="rRankProd()"></select>
+    <select class="fs" id="rp-pl" onchange="rRankProd()">
+      <option value="all">Todas as Plantas</option>
+    </select>
+    <select class="fs" id="rp-cli" onchange="rRankProd()">
+      <option value="all">Todos os Clientes</option>
+      <option value="FERROSOS">Ferrosos</option>
+      <option value="METAIS BÁSICOS">Metais Básicos</option>
+    </select>
+    <select class="fs" id="rp-ord" onchange="rRankProd()">
+      <option value="vlr">Ordenar por Valor R$</option>
+      <option value="qtd">Ordenar por Quantidade</option>
+      <option value="freq">Ordenar por Pedidos</option>
+    </select>
+    <button class="btn btn-sec" style="font-size:10px;padding:4px 10px" onclick="exportarRankProdCSV()">📥 CSV</button>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto" id="rp-sub"></span>
+  </div>
+  <!-- KPIs rápidos -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px" id="rp-kpis"></div>
+  <!-- Tabela -->
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table style="width:100%;min-width:800px;border-collapse:collapse">
+      <thead>
+        <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.08)">
+          <th style="padding:9px 10px;text-align:center;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;width:36px">#</th>
+          <th style="padding:9px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Produto</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Total R$</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Qtd</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Pedidos</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Ticket Médio</th>
+          <th style="padding:9px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Top Planta</th>
+          <th style="padding:9px 10px;text-align:center;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Tendência</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">% do Total</th>
+        </tr>
+      </thead>
+      <tbody id="rp-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Carregando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PÁGINA COMPARATIVO MENSAL -->
+<div class="pg" id="pg-comparativo" style="max-width:1100px">
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <select class="fs" id="cm-cli" onchange="rComparativo()">
+      <option value="all">Todos os Clientes</option>
+      <option value="FERROSOS">Ferrosos</option>
+      <option value="METAIS BÁSICOS">Metais Básicos</option>
+    </select>
+    <select class="fs" id="cm-pl" onchange="rComparativo()">
+      <option value="all">Todas as Plantas</option>
+    </select>
+    <select class="fs" id="cm-anos" onchange="rComparativo()" multiple style="min-width:140px;max-height:60px">
+    </select>
+    <button class="btn btn-sec" style="font-size:10px;padding:4px 10px" onclick="exportarComparativoCSV()">📥 CSV</button>
+    <span style="font-size:11px;color:var(--muted);margin-left:auto" id="cm-sub"></span>
+  </div>
+  <div style="background:rgba(245,196,24,.06);border:1px solid rgba(245,196,24,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted)">
+    <strong style="color:var(--gold)">ℹ️</strong> Cada linha é um mês. As setas mostram variação vs mês anterior: <span style="color:#22c97a">↑ cresceu</span> · <span style="color:#e8503a">↓ caiu</span>. Ctrl+clique no filtro de anos para comparar múltiplos anos.
+  </div>
+  <div class="card" style="padding:0;overflow-x:auto">
+    <table style="width:100%;min-width:900px;border-collapse:collapse">
+      <thead>
+        <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.08)">
+          <th style="padding:9px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;min-width:80px">Mês</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">OTIFF %</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">OnTime %</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">InFull %</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Pedidos</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Linhas</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Entregues</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">No Prazo</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Fora Prazo</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">R$ Pedidos</th>
+          <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Plantas Ativas</th>
+        </tr>
+      </thead>
+      <tbody id="cm-tbody">
+        <tr><td colspan="11" style="text-align:center;padding:30px;color:var(--muted)">Carregando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <!-- PÁGINA STATUS DISTRIBUIDORA -->
 <div class="pg" id="pg-distribuidora" style="max-width:900px">
@@ -1792,6 +1954,8 @@ const TITLES = {
   previsao:['Previsão de Faturamento','Projeção 30 dias por cliente, planta e produto'],
   config:['Configurações','Contatos de alerta · Notificações de prazo'],
   ranking:['Ranking de Clientes','OTIFF por cliente · Semáforo · Volume e performance'],
+  'rank-prod':['Ranking de Produtos','Top produtos por R$ e volume · Tendências · Por planta'],
+  comparativo:['Comparativo Mensal','Evolução mês a mês de todas as métricas · OTIFF · Volume · R$'],
   distribuidora:['Status Distribuidora','Pedidos com ASN · Rastreio por planta · Relatório de envio'],
 };
 
@@ -2201,6 +2365,8 @@ function rPrevisao() {
       <th style="text-align:right">%</th>
     </tr></thead><tbody>${rows}</tbody>`;
   }
+  // Feature #1: Potencial por Planta
+  renderPotencialPlantas();
 }
 
 
@@ -3929,6 +4095,508 @@ function colorirKpi(kpiId, atual, anterior){
   // igual: mantém a cor padrão do card
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #11 — RANKING DE PRODUTOS
+// Top produtos por R$, quantidade e pedidos. Tendência comparando
+// últimos 90d vs período anterior. Exportação CSV.
+// ══════════════════════════════════════════════════════════════════════
+function rRankProd(){
+  // Popular selects na primeira chamada
+  const anoSel = document.getElementById('rp-ano');
+  if(anoSel && !anoSel.innerHTML.trim()){
+    const anos = [...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
+    anoSel.innerHTML = '<option value="all">Todos os Anos</option>'+anos.map(a=>`<option value="${a}"${a===new Date().getFullYear().toString()?' selected':''}>${a}</option>`).join('');
+  }
+  const plSel = document.getElementById('rp-pl');
+  if(plSel && plSel.options.length <= 1){
+    CLIENTES.sort((a,b)=>a.planta.localeCompare(b.planta)).forEach(c=>{
+      plSel.innerHTML += `<option value="${c.planta}">${c.planta}</option>`;
+    });
+  }
+  const ano = document.getElementById('rp-ano')?.value || 'all';
+  const pl  = document.getElementById('rp-pl')?.value  || 'all';
+  const cli = document.getElementById('rp-cli')?.value || 'all';
+  const ord = document.getElementById('rp-ord')?.value || 'vlr';
+
+  // Acumula dados por produto
+  const prods = {};
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const corte90 = new Date(hoje - 90*86400000);
+  const corte180 = new Date(hoje - 180*86400000);
+
+  Object.values(PEDS).forEach(ped=>{
+    if(ano!=='all' && ped.ano!==ano) return;
+    if(pl!=='all' && ped.planta!==pl) return;
+    if(cli!=='all' && ped.cliente!==cli) return;
+    const dp = pdt(ped.dataPedido);
+    Object.values(ped.linhas||{}).forEach(ln=>{
+      const nome = (ln.nomeProduto||'').trim(); if(!nome) return;
+      if(!prods[nome]) prods[nome]={vlr:0,qtd:0,ped:new Set(),plantas:{},vlr90:0,vlr90ant:0};
+      const v = +ln.vlrTotal||0;
+      const q = +ln.qtd||0;
+      prods[nome].vlr += v;
+      prods[nome].qtd += q;
+      prods[nome].ped.add(ped.numPedido||'');
+      prods[nome].plantas[ped.planta||''] = (prods[nome].plantas[ped.planta||'']||0)+v;
+      if(dp){
+        if(dp >= corte90)  prods[nome].vlr90 += v;
+        else if(dp >= corte180) prods[nome].vlr90ant += v;
+      }
+    });
+  });
+
+  let lista = Object.entries(prods).map(([nome,d])=>{
+    const topPlanta = Object.entries(d.plantas).sort((a,b)=>b[1]-a[1])[0]?.[0]||'—';
+    let tend='➡️', tendLabel='Estável';
+    if(d.vlr90ant>0){
+      const ratio = d.vlr90/d.vlr90ant;
+      if(ratio>1.2){tend='📈';tendLabel='Crescendo';}
+      else if(ratio<0.7){tend='📉';tendLabel='Caindo';}
+    } else if(d.vlr90>0 && d.vlr90ant===0){tend='🆕';tendLabel='Novo';}
+    return {nome, vlr:d.vlr, qtd:d.qtd, nPed:d.ped.size, topPlanta, tend, tendLabel, vlr90:d.vlr90};
+  });
+
+  // Ordenação
+  if(ord==='vlr')  lista.sort((a,b)=>b.vlr-a.vlr);
+  if(ord==='qtd')  lista.sort((a,b)=>b.qtd-a.qtd);
+  if(ord==='freq') lista.sort((a,b)=>b.nPed-a.nPed);
+
+  const totalVlr = lista.reduce((s,p)=>s+p.vlr,0);
+  document.getElementById('rp-sub').textContent = `${lista.length} produtos · ${brl(totalVlr)} total`;
+
+  // KPIs
+  const top1 = lista[0];
+  document.getElementById('rp-kpis').innerHTML = `
+    <div class="card" style="border-left:3px solid var(--gold);padding:10px 12px">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Total de Produtos</div>
+      <div style="font-size:22px;font-weight:700;color:var(--gold)">${lista.length}</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green);padding:10px 12px">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Receita Total</div>
+      <div style="font-size:18px;font-weight:700;color:var(--green)">${mi(totalVlr)}</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--blue);padding:10px 12px">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase">🏅 Nº 1 por R$</div>
+      <div style="font-size:12px;font-weight:700;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${top1?.nome||'—'}</div>
+      <div style="font-size:10px;color:var(--muted)">${top1?brl(top1.vlr):''}</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--purple);padding:10px 12px">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Crescendo 📈</div>
+      <div style="font-size:22px;font-weight:700;color:var(--purple)">${lista.filter(p=>p.tend==='📈').length}</div>
+    </div>`;
+
+  // Tabela (top 50)
+  const tbody = document.getElementById('rp-tbody');
+  if(!lista.length){
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Nenhum produto encontrado.</td></tr>';
+    return;
+  }
+  const pct = v => totalVlr>0 ? (v/totalVlr*100).toFixed(1)+'%' : '—';
+  // Barra de porcentagem inline
+  const bar = v => {
+    const p = totalVlr>0 ? Math.min(v/totalVlr*100,100) : 0;
+    return `<div style="display:flex;align-items:center;gap:6px">
+      <div style="flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;min-width:60px">
+        <div style="width:${p}%;height:100%;background:var(--gold);border-radius:2px"></div>
+      </div>
+      <span style="font-size:10px;color:var(--muted);min-width:32px;text-align:right">${pct(v)}</span>
+    </div>`;
+  };
+  tbody.innerHTML = lista.slice(0,50).map((p,i)=>`
+    <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+      <td style="padding:7px 10px;text-align:center;font-size:11px;color:var(--muted)">${i+1}</td>
+      <td style="padding:7px 10px;font-size:11px;font-weight:600;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.nome}">${p.nome}</td>
+      <td style="padding:7px 10px;text-align:right;font-size:11px;color:var(--green)">${brl(p.vlr)}</td>
+      <td style="padding:7px 10px;text-align:right;font-size:11px">${p.qtd.toLocaleString('pt-BR')}</td>
+      <td style="padding:7px 10px;text-align:right;font-size:11px">${p.nPed}</td>
+      <td style="padding:7px 10px;text-align:right;font-size:11px;color:var(--muted)">${p.nPed>0?brl(p.vlr/p.nPed):'—'}</td>
+      <td style="padding:7px 10px;font-size:10px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.topPlanta}</td>
+      <td style="padding:7px 10px;text-align:center;font-size:13px" title="${p.tendLabel}">${p.tend}</td>
+      <td style="padding:7px 10px;min-width:130px">${bar(p.vlr)}</td>
+    </tr>`).join('');
+}
+
+function exportarRankProdCSV(){
+  const ano = document.getElementById('rp-ano')?.value||'all';
+  const pl  = document.getElementById('rp-pl')?.value||'all';
+  const cli = document.getElementById('rp-cli')?.value||'all';
+  const prods={};
+  Object.values(PEDS).forEach(ped=>{
+    if(ano!=='all'&&ped.ano!==ano)return;
+    if(pl!=='all'&&ped.planta!==pl)return;
+    if(cli!=='all'&&ped.cliente!==cli)return;
+    Object.values(ped.linhas||{}).forEach(ln=>{
+      const n=(ln.nomeProduto||'').trim(); if(!n)return;
+      if(!prods[n]){prods[n]={vlr:0,qtd:0,ped:new Set()};}
+      prods[n].vlr+=(+ln.vlrTotal||0); prods[n].qtd+=(+ln.qtd||0); prods[n].ped.add(ped.numPedido||'');
+    });
+  });
+  const rows=Object.entries(prods).sort((a,b)=>b[1].vlr-a[1].vlr).map(([n,d],i)=>`${i+1};${n};${d.vlr.toFixed(2).replace('.',',')};${d.qtd};${d.ped.size}`);
+  const csv='Ranking de Produtos\nGerado:;'+new Date().toLocaleDateString('pt-BR')+'\n\n#;Produto;Total R$;Qtd;Nº Pedidos\n'+rows.join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`rank_produtos_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  toast('CSV exportado!');
+}
+window.exportarRankProdCSV = exportarRankProdCSV;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #12 — COMPARATIVO MENSAL
+// Tabela com uma linha por mês e colunas: OTIFF, OnTime, InFull,
+// Pedidos, Linhas, Entregues, No Prazo, Fora Prazo, R$, Plantas Ativas.
+// Setas mostram variação vs mês anterior. Exportação CSV.
+// ══════════════════════════════════════════════════════════════════════
+function rComparativo(){
+  const plSel = document.getElementById('cm-pl');
+  if(plSel && plSel.options.length<=1){
+    CLIENTES.sort((a,b)=>a.planta.localeCompare(b.planta)).forEach(c=>{
+      plSel.innerHTML+=`<option value="${c.planta}">${c.planta}</option>`;
+    });
+  }
+  // Popular select de anos (multi)
+  const anosSel = document.getElementById('cm-anos');
+  if(anosSel && anosSel.options.length===0){
+    const anos=[...new Set(Object.values(PEDS).map(p=>p.ano).filter(Boolean))].sort((a,b)=>b-a);
+    anosSel.innerHTML=anos.map((a,i)=>`<option value="${a}"${i===0?' selected':''}>${a}</option>`).join('');
+  }
+  const cli = document.getElementById('cm-cli')?.value||'all';
+  const pl  = document.getElementById('cm-pl')?.value||'all';
+  const anosSelecionados = [...(document.getElementById('cm-anos')?.selectedOptions||[])].map(o=>o.value);
+  if(!anosSelecionados.length) return;
+
+  // Acumula por ano-mês
+  const porMes={};
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  Object.values(PEDS).forEach(ped=>{
+    if(cli!=='all'&&ped.cliente!==cli)return;
+    if(pl!=='all'&&ped.planta!==pl)return;
+    if(!anosSelecionados.includes(ped.ano))return;
+    const dp=pdt(ped.dataPedido); if(!dp)return;
+    const key=`${ped.ano}-${String(dp.getMonth()+1).padStart(2,'0')}`;
+    if(!porMes[key]) porMes[key]={ped:new Set(),linhas:0,ent:0,np:0,fp:0,vlr:0,plantas:new Set(),ot:0,inf:0,totMetric:0};
+    porMes[key].ped.add(ped.numPedido||dp.getTime().toString());
+    porMes[key].plantas.add(ped.planta||'');
+    const prazo=new Date(dp.getTime()+30*86400000);
+    Object.values(ped.linhas||{}).forEach(ln=>{
+      porMes[key].linhas++;
+      porMes[key].vlr+=(+ln.vlrTotal||0);
+      const entregue=ln.status==='ENTREGUE Á TRANSPORTADORA';
+      const venceu=hoje>prazo;
+      if(entregue) porMes[key].ent++;
+      if(!entregue&&!venceu)return;
+      porMes[key].totMetric++;
+      const de=pdt(ln.dataEntrega);
+      const onT=entregue&&de&&de<=prazo;
+      const inF=entregue&&!ln.ocorrencia&&!ln.devolucao;
+      if(onT){porMes[key].np++;porMes[key].ot++;}
+      else porMes[key].fp++;
+      if(inF) porMes[key].inf++;
+    });
+  });
+
+  const meses=Object.keys(porMes).sort();
+  document.getElementById('cm-sub').textContent=`${meses.length} meses · ${anosSelecionados.join(', ')}`;
+
+  const MN=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  // Função para célula com seta de variação
+  function cel(atual, anterior, fmt='num', menorMelhor=false){
+    if(atual==null||atual==='—') return `<td style="padding:7px 10px;text-align:right;font-size:11px;color:var(--muted)">—</td>`;
+    let txt, cor='var(--text)';
+    if(fmt==='pct') txt=atual+'%';
+    else if(fmt==='brl') txt=brl(atual);
+    else txt=atual.toLocaleString('pt-BR');
+    if(anterior!=null && anterior>0){
+      const subindo=atual>anterior;
+      const positivo=menorMelhor?!subindo:subindo;
+      const arrow=subindo?'↑':'↓';
+      const corSeta=positivo?'#22c97a':'#e8503a';
+      if(atual!==anterior) txt+=` <span style="font-size:9px;color:${corSeta}">${arrow}</span>`;
+      if(fmt==='pct') cor=atual>=90?'#22c97a':atual>=80?'#f5c418':'#e8503a';
+    }
+    return `<td style="padding:7px 10px;text-align:right;font-size:11px;color:${cor}">${txt}</td>`;
+  }
+
+  const tbody=document.getElementById('cm-tbody');
+  if(!meses.length){
+    tbody.innerHTML='<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--muted)">Nenhum dado encontrado.</td></tr>';
+    return;
+  }
+  tbody.innerHTML=meses.map((key,i)=>{
+    const d=porMes[key];
+    const prev=i>0?porMes[meses[i-1]]:null;
+    const [ano,mesN]=key.split('-');
+    const mesNome=MN[+mesN-1]+'/'+ano.slice(2);
+    const otiff=d.totMetric?Math.round(d.ot/d.totMetric*100):null;
+    const ontime=d.totMetric?Math.round(d.ot/d.totMetric*100):null;
+    const infull=d.totMetric?Math.round(d.inf/d.totMetric*100):null;
+    const potiff=prev?.totMetric?Math.round(prev.ot/prev.totMetric*100):null;
+    const pontime=prev?.totMetric?Math.round(prev.ot/prev.totMetric*100):null;
+    const pinfull=prev?.totMetric?Math.round(prev.inf/prev.totMetric*100):null;
+    // Linha destaque para mês atual
+    const isAtual=key===`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+    const bg=isAtual?'background:rgba(245,196,24,.05);':'';
+    return `<tr style="border-bottom:1px solid rgba(255,255,255,.05);${bg}">
+      <td style="padding:7px 10px;font-size:11px;font-weight:${isAtual?700:400};color:${isAtual?'var(--gold)':'var(--text)'}">${mesNome}${isAtual?' ◀':''}</td>
+      ${cel(otiff,potiff,'pct')}
+      ${cel(ontime,pontime,'pct')}
+      ${cel(infull,pinfull,'pct')}
+      ${cel(d.ped.size,prev?.ped.size)}
+      ${cel(d.linhas,prev?.linhas)}
+      ${cel(d.ent,prev?.ent)}
+      ${cel(d.np,prev?.np)}
+      ${cel(d.fp,prev?.fp,'num',true)}
+      ${cel(d.vlr,prev?.vlr,'brl')}
+      ${cel(d.plantas.size,prev?.plantas.size)}
+    </tr>`;
+  }).join('');
+}
+
+function exportarComparativoCSV(){
+  const tbody = document.getElementById('cm-tbody');
+  if(!tbody) return;
+  const rows = [...tbody.querySelectorAll('tr')].map(tr=>
+    [...tr.querySelectorAll('td')].map(td=>td.textContent.trim().replace(/[↑↓◀]/g,'').trim()).join(';')
+  );
+  const header='Mês;OTIFF%;OnTime%;InFull%;Pedidos;Linhas;Entregues;No Prazo;Fora Prazo;R$ Pedidos;Plantas';
+  const csv='Comparativo Mensal\nGerado:;'+new Date().toLocaleDateString('pt-BR')+'\n\n'+header+'\n'+rows.join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download=`comparativo_mensal_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  toast('CSV exportado!');
+}
+window.exportarComparativoCSV = exportarComparativoCSV;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #5 — EXPORTAR DASHBOARD COMO PDF
+// Usa window.print() com CSS @media print. Prepara o cabeçalho antes.
+// ══════════════════════════════════════════════════════════════════════
+function exportarPDF(){
+  const ano = document.getElementById('d-ano')?.value || new Date().getFullYear();
+  const gerado = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const headerInfo = document.getElementById('print-header-info');
+  if(headerInfo) headerInfo.textContent = `Ano: ${ano} · Gerado em: ${gerado} · Loja Parauapebas 2026`;
+  // Garante que pg-dash está visível antes de imprimir
+  const pgDash = document.getElementById('pg-dash');
+  if(pgDash && !pgDash.classList.contains('on')){
+    nav('dash');
+    setTimeout(()=>window.print(), 400);
+  } else {
+    window.print();
+  }
+  toast('Abrindo diálogo de impressão... Escolha "Salvar como PDF"');
+}
+window.exportarPDF = exportarPDF;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #3 — HISTÓRICO OTIFF POR PLANTA/ESTADO (MODAL)
+// Ao clicar em uma barra de OTIFF, mostra evolução mensal dos últimos 12m
+// ══════════════════════════════════════════════════════════════════════
+let _chOtiffHist = null;
+
+function calcHistOTIFF(nomePlanta, isUF=false){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const MN=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const meses = [];
+  // Últimos 12 meses (do mais antigo para o mais recente)
+  for(let i=11; i>=0; i--){
+    const d = new Date(hoje.getFullYear(), hoje.getMonth()-i, 1);
+    meses.push({
+      label: MN[d.getMonth()]+'/'+String(d.getFullYear()).slice(2),
+      ano: d.getFullYear(), mes: d.getMonth(),
+      ot:0, tot:0
+    });
+  }
+  Object.values(PEDS).forEach(ped=>{
+    const campo = isUF ? ped.uf : ped.planta;
+    if(campo !== nomePlanta) return;
+    const dp = pdt(ped.dataPedido); if(!dp) return;
+    const prazo = new Date(dp.getTime()+30*86400000);
+    Object.values(ped.linhas||{}).forEach(ln=>{
+      const entregue = ln.status==='ENTREGUE Á TRANSPORTADORA';
+      const venceu = hoje > prazo;
+      if(!entregue && !venceu) return;
+      const de = pdt(ln.dataEntrega);
+      const onT = entregue && de && de<=prazo;
+      // Classifica no mês do pedido
+      const slot = meses.find(m=>m.ano===dp.getFullYear()&&m.mes===dp.getMonth());
+      if(slot){ slot.tot++; if(onT) slot.ot++; }
+    });
+  });
+  return meses;
+}
+
+function abrirHistOTIFF(nome, isUF=false){
+  const meses = calcHistOTIFF(nome, isUF);
+  const vals = meses.map(m=>m.tot>0?Math.round(m.ot/m.tot*100):null);
+  const totais = meses.map(m=>m.tot);
+  const validos = vals.filter(v=>v!==null);
+  const media = validos.length ? Math.round(validos.reduce((a,b)=>a+b,0)/validos.length) : null;
+  const melhor = validos.length ? Math.max(...validos) : null;
+  const atual = vals[vals.length-1];
+
+  document.getElementById('m-otiff-titulo').textContent = `📈 Histórico OTIFF — ${nome}`;
+  document.getElementById('m-otiff-kpis').innerHTML = `
+    <div class="card" style="border-left:3px solid var(--gold);padding:8px 12px;text-align:center">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Mês Atual</div>
+      <div style="font-size:22px;font-weight:700;color:${atual>=90?'#22c97a':atual>=80?'#f5c418':'#e8503a'}">${atual!=null?atual+'%':'—'}</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--blue);padding:8px 12px;text-align:center">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Média 12m</div>
+      <div style="font-size:22px;font-weight:700;color:var(--blue)">${media!=null?media+'%':'—'}</div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--green);padding:8px 12px;text-align:center">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase">Melhor Mês</div>
+      <div style="font-size:22px;font-weight:700;color:var(--green)">${melhor!=null?melhor+'%':'—'}</div>
+    </div>`;
+
+  // Gráfico de linha
+  if(_chOtiffHist){ _chOtiffHist.destroy(); _chOtiffHist=null; }
+  const ctx = document.getElementById('ch-otiff-hist')?.getContext('2d');
+  if(ctx){
+    _chOtiffHist = new Chart(ctx,{
+      type:'line',
+      data:{
+        labels: meses.map(m=>m.label),
+        datasets:[{
+          label:'OTIFF %',
+          data: vals,
+          borderColor:'#f5c418',
+          backgroundColor:'rgba(245,196,24,.1)',
+          borderWidth:2,
+          pointRadius:4,
+          pointBackgroundColor: vals.map(v=>v==null?'transparent':v>=90?'#22c97a':v>=80?'#f5c418':'#e8503a'),
+          pointBorderColor:'transparent',
+          tension:.35,
+          spanGaps:true,
+          fill:true,
+        },{
+          label:'Meta (80%)',
+          data: meses.map(()=>80),
+          borderColor:'rgba(232,80,58,.4)',
+          borderWidth:1,
+          borderDash:[4,4],
+          pointRadius:0,
+          fill:false,
+        }]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false},
+          tooltip:{callbacks:{
+            label:c=>c.datasetIndex===0
+              ?`OTIFF: ${c.parsed.y??'—'}% (${totais[c.dataIndex]} linhas)`
+              :'Meta: 80%'
+          }}
+        },
+        scales:{
+          x:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
+          y:{min:0,max:105,ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.04)'}}
+        }
+      }
+    });
+  }
+  openM('m-otiff-hist');
+}
+window.abrirHistOTIFF = abrirHistOTIFF;
+
+// Atualiza hbarsTooltip para barras de PLANTA terem clique que abre histórico
+function hbarsPlanta(elId, entries){
+  const el = document.getElementById(elId); if(!el) return;
+  el.innerHTML = entries.sort((a,b)=>a[1]-b[1]).slice(0,10).map(([k,v,tip])=>{
+    const pct = Math.min(v/100*100,100);
+    const cor = v>=90?'#22c97a':v>=80?'#f5c418':'#e8503a';
+    const isUF = elId==='bars-uf';
+    return `<div class="hbar-row" title="${tip||k}" style="cursor:pointer" onclick="abrirHistOTIFF('${k.replace(/'/g,"\\'")}',${isUF})">
+      <div class="hbar-lbl">${k}</div>
+      <div class="hbar-tr" style="flex:1;display:flex;align-items:center;gap:6px">
+        <div style="height:14px;width:${pct}%;background:${cor};border-radius:2px;transition:width .4s"></div>
+        <span class="hbar-pct" style="color:${cor}">${v}%</span>
+        <span style="font-size:9px;color:var(--muted);margin-left:2px">↗</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #1 — PREVISÃO MELHORADA: POTENCIAL POR PLANTA
+// Compara média mensal histórica (6m) com realizado no mês atual
+// ══════════════════════════════════════════════════════════════════════
+function calcPotencialPlantas(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+  // Janela histórica: 6 meses completos anteriores ao mês atual
+  const corte6m = new Date(anoAtual, mesAtual-6, 1);
+  const iniciMesAtual = new Date(anoAtual, mesAtual, 1);
+
+  const porPlanta = {};
+  Object.values(PEDS).forEach(ped=>{
+    const dp = pdt(ped.dataPedido); if(!dp||!ped.planta) return;
+    const vlr = Object.values(ped.linhas||{}).reduce((s,l)=>s+(+l.vlrTotal||0),0);
+    if(!vlr) return;
+    if(!porPlanta[ped.planta]) porPlanta[ped.planta]={hist:{},atual:0};
+    if(dp >= iniciMesAtual){
+      porPlanta[ped.planta].atual += vlr;
+    } else if(dp >= corte6m){
+      const mk = dp.getFullYear()+'-'+dp.getMonth();
+      porPlanta[ped.planta].hist[mk] = (porPlanta[ped.planta].hist[mk]||0)+vlr;
+    }
+  });
+
+  return Object.entries(porPlanta).map(([planta,d])=>{
+    const mesesHist = Object.values(d.hist);
+    const mediaHist = mesesHist.length ? mesesHist.reduce((a,b)=>a+b,0)/mesesHist.length : 0;
+    const realizado = d.atual;
+    const potencial = Math.max(mediaHist, realizado);
+    const pct = potencial>0 ? Math.min(Math.round(realizado/potencial*100),100) : 100;
+    const diff = mediaHist>0 ? realizado-mediaHist : 0;
+    return {planta, mediaHist, realizado, pct, diff, mesesHist:mesesHist.length};
+  }).filter(d=>d.mediaHist>0||d.realizado>0)
+    .sort((a,b)=>{
+      // Prioriza quem tem mais potencial não realizado (em R$ absoluto)
+      const potA = Math.max(a.mediaHist-a.realizado,0);
+      const potB = Math.max(b.mediaHist-b.realizado,0);
+      return potB-potA;
+    });
+}
+
+function renderPotencialPlantas(){
+  const dados = calcPotencialPlantas();
+  const el = document.getElementById('pv-potencial'); if(!el) return;
+  if(!dados.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:11px;padding:16px">Dados insuficientes para análise de potencial.</div>';
+    return;
+  }
+  el.innerHTML=`<div class="card" style="padding:0;overflow-x:auto">
+    <table style="width:100%;min-width:700px;border-collapse:collapse">
+      <thead><tr style="background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.08)">
+        <th style="padding:8px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase">Planta</th>
+        <th style="padding:8px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase">Média Histórica/Mês</th>
+        <th style="padding:8px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase">Realizado (Mês Atual)</th>
+        <th style="padding:8px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase">Potencial</th>
+        <th style="padding:8px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase">Progresso</th>
+      </tr></thead>
+      <tbody>${dados.map(d=>{
+        const cor = d.pct>=90?'#22c97a':d.pct>=60?'#f5c418':'#e8503a';
+        const difTxt = d.diff>=0
+          ? `<span style="color:#22c97a;font-size:10px">+${brl(d.diff)}</span>`
+          : `<span style="color:#e8503a;font-size:10px">${brl(d.diff)}</span>`;
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+          <td style="padding:7px 10px;font-size:11px;font-weight:600">${d.planta}</td>
+          <td style="padding:7px 10px;text-align:right;font-size:11px;color:var(--muted)">${brl(d.mediaHist)}</td>
+          <td style="padding:7px 10px;text-align:right;font-size:11px">${brl(d.realizado)} ${difTxt}</td>
+          <td style="padding:7px 10px;text-align:right;font-size:12px;font-weight:700;color:${cor}">${d.pct}%</td>
+          <td style="padding:7px 10px;min-width:160px">
+            <div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+              <div style="width:${d.pct}%;height:100%;background:${cor};border-radius:4px;transition:width .6s"></div>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>`;
+}
+window.renderPotencialPlantas = renderPotencialPlantas;
+
 function nav(pg){
   // Sempre salva a aba atual — mas nunca salva 'comissao' (área secreta)
   if(pg !== 'comissao') sessionStorage.setItem('vp_last_tab', pg);
@@ -3951,6 +4619,8 @@ function nav(pg){
   if(pg==='previsao') rPrevisao();
   if(pg==='config') { renderContatosConfig(); listenConfigs(); atualizarBotaoNotif(); }
   if(pg==='ranking') rRanking();
+  if(pg==='rank-prod') rRankProd();
+  if(pg==='comparativo') rComparativo();
   if(pg==='distribuidora') rDistribuidora();
 }
 
@@ -4308,7 +4978,7 @@ function rdash(){
     if(pl){bPL[pl]=bPL[pl]||{ot:0,tot:0};bPL[pl].tot++;if(onT)bPL[pl].ot++;}
   });
   hbarsTooltip('bars-uf',Object.entries(bUF).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0,`${k}: ${v.ot} de ${v.tot} entregas no prazo`]));
-  hbarsTooltip('bars-pl',Object.entries(bPL).filter(([,v])=>v.tot>=3).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0,`${k}: ${v.ot} de ${v.tot} entregas no prazo`]));
+  hbarsPlanta('bars-pl',Object.entries(bPL).filter(([,v])=>v.tot>=3).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0,`${k}: ${v.ot} de ${v.tot} entregas no prazo`]));
   // Atualiza notificações automáticas (#13)
   setTimeout(atualizarNotificacoes, 200);
 
