@@ -38,6 +38,19 @@ body{font-family:'Sora',sans-serif;background:var(--navy);color:var(--text);min-
 .tb-sub{font-size:10px;color:var(--muted);margin-top:1px}
 .tb-right{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
 .chip{font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid var(--border);color:var(--muted)}
+/* Notificações */
+.notif-btn{position:relative;background:none;border:none;cursor:pointer;font-size:18px;padding:2px 6px;line-height:1;color:var(--text);transition:transform .15s}
+.notif-btn:hover{transform:rotate(-15deg) scale(1.1)}
+.notif-badge{position:absolute;top:-2px;right:-2px;background:#e8503a;color:#fff;font-size:8px;font-weight:700;min-width:14px;height:14px;border-radius:7px;display:flex;align-items:center;justify-content:center;padding:0 2px;line-height:1;pointer-events:none}
+.notif-drop{position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:200;overflow:hidden;animation:fadeIn .15s ease}
+.notif-hdr{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.notif-item{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;transition:background .12s;display:flex;gap:10px;align-items:flex-start}
+.notif-item:hover{background:rgba(255,255,255,.04)}
+.notif-item:last-child{border-bottom:none}
+.notif-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.notif-txt{font-size:11px;color:var(--text);line-height:1.4}
+.notif-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.notif-empty{padding:20px;text-align:center;color:var(--muted);font-size:11px}
 .chip.live{color:var(--green);border-color:rgba(34,201,122,.3);background:rgba(34,201,122,.06)}
 .chip.warn{color:var(--amber);border-color:rgba(240,160,32,.3);background:rgba(240,160,32,.06)}
 .pg{display:none;padding:18px 22px;flex:1;animation:fadeIn .15s ease}
@@ -200,6 +213,8 @@ body.light-mode .fs,.si{color-scheme:light}
 
 /* Animação de entrada para cards */
 @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);background-size:400px 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
 .pg.on .card,.pg.on .kpi,.pg.on .gbox{animation:slideUp .25s ease both}
 .pg.on .kpi:nth-child(1){animation-delay:.03s}
 .pg.on .kpi:nth-child(2){animation-delay:.06s}
@@ -680,6 +695,17 @@ body.logged-out .main{display:none !important}
       </div>
       <!-- Toggle Tema -->
       <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Alternar modo claro/escuro"></div>
+      <!-- Notificações -->
+      <div style="position:relative" id="notif-wrap">
+        <button class="notif-btn" onclick="toggleNotif()" title="Notificações" id="notif-btn">🔔<span class="notif-badge" id="notif-badge" style="display:none">0</span></button>
+        <div class="notif-drop" id="notif-drop" style="display:none">
+          <div class="notif-hdr">
+            <span style="font-size:11px;font-weight:600;color:var(--text)">Notificações</span>
+            <button style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer" onclick="marcarTodasLidas()">Marcar lidas</button>
+          </div>
+          <div id="notif-list"><div class="notif-empty">Sem alertas no momento ✓</div></div>
+        </div>
+      </div>
       <span class="chip live" id="chip-fb">● Firebase</span>
       <span class="chip" id="chip-date"></span>
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px" onclick="importarDados()">⬆ Importar Planilha</button>
@@ -769,6 +795,13 @@ body.logged-out .main{display:none !important}
         <option value="all">Todas as Classes</option>
       </select>
       <button class="btn btn-sec" style="font-size:10px;padding:5px 10px" onclick="resetDashFilters()">↺ Limpar</button>
+      <select class="fs" id="d-periodo" onchange="saveFilter(this.id);rdash()" style="margin-left:auto">
+        <option value="all">Todos os Períodos</option>
+        <option value="30">Últimos 30 dias</option>
+        <option value="90">Últimos 90 dias</option>
+        <option value="trimestre">Trimestre Atual</option>
+        <option value="mes">Mês Atual</option>
+      </select>
     </div>
     <div class="gauge-row">
       <div class="gbox"><div class="glbl" title="ON TIME × IN FULL">OTIFF</div><div class="gring"><svg viewBox="0 0 100 100"><circle class="gtrack" cx="50" cy="50" r="40"/><circle class="garc" id="arc-ot" cx="50" cy="50" r="40" stroke="#f5c418"/></svg><div class="gnum" id="v-ot" style="color:var(--gold)">—</div></div></div>
@@ -776,45 +809,45 @@ body.logged-out .main{display:none !important}
       <div class="gbox"><div class="glbl" title="Entregas sem ocorrência ou devolução">IN FULL</div><div class="gring"><svg viewBox="0 0 100 100"><circle class="gtrack" cx="50" cy="50" r="40"/><circle class="garc" id="arc-if" cx="50" cy="50" r="40" stroke="#22c97a"/></svg><div class="gnum" id="v-if" style="color:var(--green)">—</div></div></div>
       <div class="card card-accent" style="--accent:var(--gold);flex:3;padding:12px 14px">
         <div class="sec" style="font-size:9px">% OTIFF por Mês</div>
-        <div class="cw sm"><canvas id="ch-om" role="img" aria-label="OTIFF por mês"></canvas></div>
+        <div class="cw sm" style="position:relative"><div class="skeleton" id="sk-om" style="position:absolute;inset:0;z-index:1"></div><canvas id="ch-om" role="img" aria-label="OTIFF por mês"></canvas></div>
       </div>
     </div>
     <!-- KPIs: Volume de Pedidos -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px">
-      <div class="kpi" style="--acc:var(--gold)">
-        <div class="v" id="k-rec">—</div><span class="trend" id="tr-rec"></span><div class="l"># Recebidos</div>
+      <div class="kpi" style="--acc:var(--gold)" id="kpi-rec">
+        <div class="v" id="k-rec"><span class="skeleton" style="display:inline-block;width:40px;height:18px"></span></div><span class="trend" id="tr-rec"></span><div class="l"># Recebidos</div>
       </div>
-      <div class="kpi" style="--acc:var(--green)">
-        <div class="v" id="k-ent">—</div><span class="trend" id="tr-ent"></span><div class="l"># Entregues</div>
+      <div class="kpi" style="--acc:var(--green)" id="kpi-ent">
+        <div class="v" id="k-ent"><span class="skeleton" style="display:inline-block;width:40px;height:18px"></span></div><span class="trend" id="tr-ent"></span><div class="l"># Entregues</div>
       </div>
-      <div class="kpi" style="--acc:var(--amber)">
-        <div class="v" id="k-ab">—</div><span class="trend" id="tr-ab"></span><div class="l"># Em Aberto</div>
+      <div class="kpi" style="--acc:var(--amber)" id="kpi-ab">
+        <div class="v" id="k-ab"><span class="skeleton" style="display:inline-block;width:35px;height:18px"></span></div><span class="trend" id="tr-ab"></span><div class="l"># Em Aberto</div>
       </div>
-      <div class="kpi" style="--acc:var(--amber)">
-        <div class="v" id="k-ag">—</div><div class="l">Ag. Produção</div>
+      <div class="kpi" style="--acc:var(--amber)" id="kpi-ag">
+        <div class="v" id="k-ag"><span class="skeleton" style="display:inline-block;width:30px;height:18px"></span></div><div class="l">Ag. Produção</div>
       </div>
-      <div class="kpi" style="--acc:var(--red);position:relative">
-        <div class="v" id="k-venc">—</div>
+      <div class="kpi" style="--acc:var(--red);position:relative" id="kpi-venc">
+        <div class="v" id="k-venc"><span class="skeleton" style="display:inline-block;width:25px;height:18px"></span></div>
         <div class="l">⚠ Linhas Vencidas</div>
       </div>
     </div>
     <!-- KPIs: Financeiro -->
     <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px">
-      <div class="kpi" style="--acc:var(--gold)">
-        <div class="v" id="k-vp">—</div><span class="trend" id="tr-vp"></span><div class="l">$ Pedidos</div>
+      <div class="kpi" style="--acc:var(--gold)" id="kpi-vp">
+        <div class="v" id="k-vp"><span class="skeleton" style="display:inline-block;width:70px;height:18px"></span></div><span class="trend" id="tr-vp"></span><div class="l">$ Pedidos</div>
       </div>
-      <div class="kpi" style="--acc:var(--blue)">
-        <div class="v" id="k-vf">—</div><span class="trend" id="tr-vf"></span><div class="l">$ Faturado</div>
+      <div class="kpi" style="--acc:var(--blue)" id="kpi-vf">
+        <div class="v" id="k-vf"><span class="skeleton" style="display:inline-block;width:70px;height:18px"></span></div><span class="trend" id="tr-vf"></span><div class="l">$ Faturado</div>
       </div>
-      <div class="kpi" style="--acc:var(--red)">
-        <div class="v" id="k-vn">—</div><div class="l">$ Pendente</div>
+      <div class="kpi" style="--acc:var(--red)" id="kpi-vn">
+        <div class="v" id="k-vn"><span class="skeleton" style="display:inline-block;width:70px;height:18px"></span></div><div class="l">$ Pendente</div>
       </div>
-      <div class="kpi" style="--acc:var(--blue)">
-        <div class="v" id="k-df">—</div>
+      <div class="kpi" style="--acc:var(--blue)" id="kpi-df">
+        <div class="v" id="k-df"><span class="skeleton" style="display:inline-block;width:30px;height:18px"></span></div>
         <div class="l">Dias a Faturar <span style="opacity:.5">(med.)</span></div>
       </div>
-      <div class="kpi" style="--acc:var(--blue)">
-        <div class="v" id="k-dc">—</div>
+      <div class="kpi" style="--acc:var(--blue)" id="kpi-dc">
+        <div class="v" id="k-dc"><span class="skeleton" style="display:inline-block;width:30px;height:18px"></span></div>
         <div class="l">Dias a Coletar <span style="opacity:.5">(med.)</span></div>
       </div>
     </div>
@@ -991,6 +1024,22 @@ body.logged-out .main{display:none !important}
     <div class="mf">
       <button class="btn btn-sec" onclick="closeM('m-nova-planta')">Cancelar</button>
       <button class="btn btn-p" onclick="salvarNovaPlanta()">✓ Salvar Planta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VENCIMENTOS PRÓXIMOS -->
+<div class="modal-bg" id="m-vencimentos">
+  <div class="modal" style="max-width:560px">
+    <div class="mh">
+      <h3 id="m-venc-titulo">⏰ Linhas com Prazo Próximo</h3>
+      <button class="mclose" onclick="closeM('m-vencimentos')">✕</button>
+    </div>
+    <div class="mc" style="padding:0;max-height:420px;overflow-y:auto" id="m-venc-body">
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-vencimentos')">Fechar</button>
+      <button class="btn btn-p" onclick="closeM('m-vencimentos');nav('tratativa')">Ir para Tratativa →</button>
     </div>
   </div>
 </div>
@@ -1553,7 +1602,7 @@ let chOM=null,chPR=null,chVM=null,chST=null;
 async function logAtividade(acao, detalhes) { const entry = { acao, detalhes, usuario: window._currentUser?.email||'—', data: new Date().toISOString() }; if(db) await db.ref('config/log').push(entry); }
 function debounce(fn, ms=300) { let t; return (...a) => { clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 function saveFilter(id) { const el=document.getElementById(id); if(el) sessionStorage.setItem('filtro_'+id, el.value); }
-function restoreFilters() { ['d-ano','d-cli','d-uf','d-pl','d-classe','f-st','f-pl','f-cl','f-trat-st','f-trat-pl'].forEach(id=>{ const el=document.getElementById(id); const saved=sessionStorage.getItem('filtro_'+id); if(el && saved) el.value=saved; }); }
+function restoreFilters() { ['d-ano','d-cli','d-uf','d-pl','d-classe','d-periodo','f-st','f-pl','f-cl','f-trat-st','f-trat-pl'].forEach(id=>{ const el=document.getElementById(id); const saved=sessionStorage.getItem('filtro_'+id); if(el && saved) el.value=saved; }); }
 let pedPage = 0; const PED_PER_PAGE = 50; 
 function pedPrev(){ if(pedPage>0){pedPage--; rpedidos();} }
 function pedNext(){ pedPage++; rpedidos(); }
@@ -2514,7 +2563,7 @@ function calcMesOTIFF(ano, mesIdx) {
   };
 }
 
-function renderTrend(elId, atual, anterior, fmt='num', menor_melhor=false) {
+function renderTrend(elId, atual, anterior, fmt='num', menor_melhor=false, kpiCardId=null) {
   const el = document.getElementById(elId);
   if (!el || atual == null || anterior == null || anterior === 0) {
     if (el) el.innerHTML = '';
@@ -2533,6 +2582,11 @@ function renderTrend(elId, atual, anterior, fmt='num', menor_melhor=false) {
   el.className = `trend ${positivo ? 'up' : 'dn'}`;
   const arrow = subindo ? '↑' : '↓';
   el.innerHTML = `<span class="trend-arrow">${arrow}</span>${pct}%`;
+  // Feature #10: colorir borda do card KPI conforme tendência
+  if(kpiCardId){
+    const card = document.getElementById(kpiCardId);
+    if(card) card.style.setProperty('--acc', positivo ? '#22c97a' : '#e8503a');
+  }
 }
 
 function atualizarTendencias() {
@@ -2554,10 +2608,10 @@ function atualizarTendencias() {
     trOt.innerHTML = `${diff >= 0 ? '↑' : '↓'}${pct}%`;
   }
   // Linhas recebidas, entregues, em aberto, valor pedidos, faturado
-  renderTrend('tr-rec', atual.linhas,   anterior.linhas);
-  renderTrend('tr-ent', atual.entregues, anterior.entregues);
-  renderTrend('tr-vp',  atual.vlr,      anterior.vlr);
-  renderTrend('tr-vf',  atual.entregues, anterior.entregues); // proxy faturado
+  renderTrend('tr-rec', atual.linhas,    anterior.linhas,    'num', false, 'kpi-rec');
+  renderTrend('tr-ent', atual.entregues, anterior.entregues, 'num', false, 'kpi-ent');
+  renderTrend('tr-vp',  atual.vlr,       anterior.vlr,       'num', false, 'kpi-vp');
+  renderTrend('tr-vf',  atual.entregues, anterior.entregues, 'num', false, 'kpi-vf');
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -3645,6 +3699,236 @@ window.abrirModalNovaPlanta = abrirModalNovaPlanta;
 window.salvarNovaPlanta = salvarNovaPlanta;
 window.onClienteChange = onClienteChange;
 
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #6 — FILTRO DE PERÍODO NO DASHBOARD
+// Filtra pedidos por janela de tempo relativa à data atual
+// ══════════════════════════════════════════════════════════════════════
+function getPeriodoDatas(){
+  const periodo = document.getElementById('d-periodo')?.value || 'all';
+  if(periodo === 'all') return null;
+  const hoje = new Date(); hoje.setHours(23,59,59,999);
+  let inicio;
+  if(periodo === '30'){
+    inicio = new Date(); inicio.setDate(inicio.getDate()-30); inicio.setHours(0,0,0,0);
+  } else if(periodo === '90'){
+    inicio = new Date(); inicio.setDate(inicio.getDate()-90); inicio.setHours(0,0,0,0);
+  } else if(periodo === 'mes'){
+    inicio = new Date(); inicio.setDate(1); inicio.setHours(0,0,0,0);
+  } else if(periodo === 'trimestre'){
+    const m = new Date().getMonth();
+    const inicioQ = Math.floor(m/3)*3; // 0, 3, 6 ou 9
+    inicio = new Date(); inicio.setMonth(inicioQ,1); inicio.setHours(0,0,0,0);
+  }
+  return {inicio, fim: hoje};
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #2 — CARD DE VENCIMENTOS PRÓXIMOS (CLICÁVEL)
+// Mostra modal com lista detalhada de linhas vencendo em breve
+// ══════════════════════════════════════════════════════════════════════
+function abrirVencimentos(tipo){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const linhas = [];
+  Object.entries(PEDS||{}).forEach(([pk,ped])=>{
+    Object.entries(ped.linhas||{}).forEach(([lk,ln])=>{
+      if(ln.status==='ENTREGUE Á TRANSPORTADORA') return;
+      const dp = pdt(ped.dataPedido); if(!dp) return;
+      const prazo = new Date(dp.getTime()+30*86400000);
+      const dr = Math.round((prazo-hoje)/86400000);
+      if(tipo==='vencidas' && dr<0) linhas.push({...ln, _ped:ped, _dr:dr, _prazo:prazo});
+      if(tipo==='proximas' && dr>=0 && dr<=5) linhas.push({...ln, _ped:ped, _dr:dr, _prazo:prazo});
+    });
+  });
+  linhas.sort((a,b)=>a._dr-b._dr);
+  const titulo = tipo==='vencidas'
+    ? `🚨 ${linhas.length} Linha(s) com Prazo VENCIDO`
+    : `⏰ ${linhas.length} Linha(s) Vencendo em até 5 dias`;
+  document.getElementById('m-venc-titulo').textContent = titulo;
+  const body = document.getElementById('m-venc-body');
+  if(!linhas.length){
+    body.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted)">Nenhuma linha encontrada.</div>';
+  } else {
+    body.innerHTML = linhas.map(l=>{
+      const corDr = l._dr < 0 ? '#e8503a' : l._dr <= 2 ? '#f5c418' : '#cdd6dc';
+      const drTxt = l._dr < 0 ? `${Math.abs(l._dr)}d vencida` : l._dr===0 ? 'Vence HOJE' : `${l._dr}d restante${l._dr!==1?'s':''}`;
+      return `<div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
+        <div>
+          <div style="font-size:11px;font-weight:600">${l._ped?.planta||'—'} · <span style="color:var(--gold)">${l._ped?.numPedido||'—'}</span></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${l.nomeProduto||'—'} · Qtd: ${l.qtd||'—'}</div>
+          <div style="font-size:10px;color:var(--muted)">Prazo: ${fdt(l._prazo.toISOString().slice(0,10))}</div>
+        </div>
+        <div style="font-weight:700;font-size:12px;color:${corDr};text-align:right">${drTxt}</div>
+      </div>`;
+    }).join('');
+  }
+  openM('m-vencimentos');
+}
+window.abrirVencimentos = abrirVencimentos;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #13 — NOTIFICAÇÕES AUTOMÁTICAS (SININHO 🔔)
+// Gera alertas com base nos dados: vencimentos, plantas, OTIFF
+// ══════════════════════════════════════════════════════════════════════
+let _notifLidas = new Set(JSON.parse(sessionStorage.getItem('notif_lidas')||'[]'));
+
+function gerarNotificacoes(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const notifs = [];
+  // 1. Linhas vencidas
+  let nVenc=0, nProx=0;
+  Object.values(PEDS||{}).forEach(ped=>{
+    Object.values(ped.linhas||{}).forEach(ln=>{
+      if(ln.status==='ENTREGUE Á TRANSPORTADORA') return;
+      const dp=pdt(ped.dataPedido); if(!dp) return;
+      const prazo=new Date(dp.getTime()+30*86400000);
+      const dr=Math.round((prazo-hoje)/86400000);
+      if(dr<0) nVenc++;
+      else if(dr<=5) nProx++;
+    });
+  });
+  if(nVenc>0) notifs.push({id:'venc',icone:'🚨',texto:`${nVenc} linha(s) com prazo VENCIDO`,sub:'Ação imediata necessária',cor:'#e8503a',acao:()=>{closeNotif();abrirVencimentos('vencidas');}});
+  if(nProx>0) notifs.push({id:'prox',icone:'⏰',texto:`${nProx} linha(s) vencendo em até 5 dias`,sub:'Acompanhe a produção',cor:'#f5c418',acao:()=>{closeNotif();abrirVencimentos('proximas');}});
+  // 2. Plantas em alerta
+  try {
+    const alertas = calcularMetricasPlantas().filter(p=>p.status==='vermelho');
+    if(alertas.length>0) notifs.push({id:'plantas',icone:'🏭',texto:`${alertas.length} planta(s) em alerta de inatividade`,sub:alertas.slice(0,3).map(p=>p.nome).join(', ')+(alertas.length>3?'...':''),cor:'#e8503a',acao:()=>{closeNotif();nav('plantas');}});
+  } catch(e){}
+  // 3. OTIFF abaixo de 80% no mês atual
+  try {
+    const mesAtual = new Date().getMonth();
+    const ano = new Date().getFullYear().toString();
+    const r = calcMesOTIFF(ano, mesAtual);
+    if(r && r.otiff !== null && r.otiff < 80) notifs.push({id:'otiff',icone:'📉',texto:`OTIFF do mês atual: ${r.otiff}% (abaixo de 80%)`,sub:'Verifique entregas e produção',cor:'#e8503a',acao:()=>{closeNotif();nav('dash');}});
+  } catch(e){}
+  return notifs;
+}
+
+function atualizarNotificacoes(){
+  const notifs = gerarNotificacoes();
+  const novas = notifs.filter(n=>!_notifLidas.has(n.id));
+  const badge = document.getElementById('notif-badge');
+  const list = document.getElementById('notif-list');
+  if(badge){
+    badge.textContent = novas.length;
+    badge.style.display = novas.length>0 ? 'flex' : 'none';
+  }
+  if(list){
+    if(!notifs.length){
+      list.innerHTML = '<div class="notif-empty">Sem alertas no momento ✓</div>';
+    } else {
+      list.innerHTML = notifs.map(n=>{
+        const lida = _notifLidas.has(n.id);
+        return `<div class="notif-item" onclick="_notifAcao('${n.id}')" style="${lida?'opacity:.5':''}">
+          <div class="notif-icon">${n.icone}</div>
+          <div><div class="notif-txt" style="color:${lida?'var(--muted)':n.cor}">${n.texto}</div>
+          <div class="notif-sub">${n.sub}</div></div>
+        </div>`;
+      }).join('');
+    }
+  }
+}
+
+function _notifAcao(id){
+  const notifs = gerarNotificacoes();
+  const n = notifs.find(x=>x.id===id);
+  if(n && n.acao) n.acao();
+}
+window._notifAcao = _notifAcao;
+
+function toggleNotif(){
+  const drop = document.getElementById('notif-drop');
+  if(!drop) return;
+  const aberto = drop.style.display !== 'none';
+  if(aberto){ closeNotif(); } else {
+    atualizarNotificacoes();
+    drop.style.display = 'block';
+    setTimeout(()=>document.addEventListener('click', _fecharNotifFora, {once:true}), 50);
+  }
+}
+function closeNotif(){
+  const drop = document.getElementById('notif-drop');
+  if(drop) drop.style.display = 'none';
+}
+function _fecharNotifFora(e){
+  const wrap = document.getElementById('notif-wrap');
+  if(wrap && !wrap.contains(e.target)) closeNotif();
+}
+function marcarTodasLidas(){
+  gerarNotificacoes().forEach(n=>_notifLidas.add(n.id));
+  sessionStorage.setItem('notif_lidas', JSON.stringify([..._notifLidas]));
+  atualizarNotificacoes();
+}
+window.toggleNotif = toggleNotif;
+window.marcarTodasLidas = marcarTodasLidas;
+// Anima o número de 0 até o valor real em ~800ms usando easeOutCubic
+// ══════════════════════════════════════════════════════════════════════
+function animateCounter(id, target, duration, formatter){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const start = performance.now();
+  const isFloat = typeof target === 'number' && !Number.isInteger(target);
+  function step(now){
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // easeOutCubic: começa rápido, desacelera no final
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = isFloat ? target * ease : Math.round(target * ease);
+    el.textContent = formatter ? formatter(current) : current;
+    if(progress < 1) requestAnimationFrame(step);
+    else el.textContent = formatter ? formatter(target) : target;
+  }
+  requestAnimationFrame(step);
+}
+
+// Remove o skeleton de um KPI e anima o valor
+function setKpi(id, value, formatter, skId){
+  if(skId) { const sk=document.getElementById(skId); if(sk) sk.remove(); }
+  const el = document.getElementById(id);
+  if(!el) return;
+  // Se o valor for texto (ex: "5d", "R$3.354 Mi"), apenas seta sem animação
+  if(typeof value === 'string'){
+    el.textContent = value;
+    return;
+  }
+  animateCounter(id, value, 800, formatter);
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #9 — TOOLTIP MELHORADO NAS BARRAS OTIFF
+// hbars() agora aceita [label, pct, tooltip] como terceiro elemento
+// ══════════════════════════════════════════════════════════════════════
+function hbarsTooltip(elId, entries, max100=true){
+  const el = document.getElementById(elId); if(!el) return;
+  const max = max100 ? 100 : Math.max(...entries.map(([,v])=>v),1);
+  el.innerHTML = entries.sort((a,b)=>a[1]-b[1]).slice(0,10).map(([k,v,tip])=>{
+    const pct = Math.min(v/max*100,100);
+    const cor = v>=90?'#22c97a':v>=80?'#f5c418':'#e8503a';
+    const tipAttr = tip ? `title="${tip}"` : '';
+    return `<div class="hbar-row" ${tipAttr} style="cursor:${tip?'help':'default'}">
+      <div class="hbar-lbl">${k}</div>
+      <div class="hbar-tr" style="flex:1;display:flex;align-items:center;gap:6px">
+        <div style="height:14px;width:${pct}%;background:${cor};border-radius:2px;transition:width .4s"></div>
+        <span class="hbar-pct" style="color:${cor}">${v}%</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #10 — COR CONDICIONAL NOS CARDS KPI
+// Borda e ícone do card refletem se o indicador subiu ou caiu vs mês anterior
+// ══════════════════════════════════════════════════════════════════════
+function colorirKpi(kpiId, atual, anterior){
+  const card = document.getElementById(kpiId);
+  if(!card || anterior == null || atual == null) return;
+  if(atual > anterior){
+    card.style.setProperty('--acc', '#22c97a'); // verde
+  } else if(atual < anterior){
+    card.style.setProperty('--acc', '#e8503a'); // vermelho
+  }
+  // igual: mantém a cor padrão do card
+}
+
 function nav(pg){
   // Sempre salva a aba atual — mas nunca salva 'comissao' (área secreta)
   if(pg !== 'comissao') sessionStorage.setItem('vp_last_tab', pg);
@@ -3729,8 +4013,15 @@ function getPreco(prod, uf, cliente){
 // ══════════════════════════════════════════════
 function allLinhas(filtroAno='all',filtroCli='all',filtroUF='all',filtroPlanta='all',filtroClasse='all'){
   const out=[];
+  const periodo = getPeriodoDatas();
   Object.entries(PEDS).forEach(([pk,ped])=>{
-    if(filtroAno!=='all'&&ped.ano!==filtroAno)return;
+    // Se filtro de período ativo, ignora filtro de ano e usa datas
+    if(periodo){
+      const dp = pdt(ped.dataPedido);
+      if(!dp || dp < periodo.inicio || dp > periodo.fim) return;
+    } else {
+      if(filtroAno!=='all'&&ped.ano!==filtroAno)return;
+    }
     if(filtroCli!=='all'&&ped.cliente!==filtroCli)return;
     if(filtroUF!=='all'&&ped.uf!==filtroUF)return;
     if(filtroPlanta!=='all'&&ped.planta!==filtroPlanta)return;
@@ -3769,8 +4060,8 @@ function rdash(){
   const daDiv=document.getElementById("dash-alerts");
   if(daDiv){
     daDiv.innerHTML="";
-    if(vencidas>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(232,80,58,0.1);border:1px solid #e8503a;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="nav('tratativa')"><span style="font-size:20px">🚨</span><div><strong style="color:#e8503a">ATENÇÃO: ${vencidas} linha(s) com PRAZO VENCIDO!</strong><br><span style="font-size:12px;color:var(--text)">Ação imediata necessária. Clique para ir à tratativa.</span></div></div>`;
-    if(urgentes>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(245,196,24,0.1);border:1px solid #f5c418;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="nav('tratativa')"><span style="font-size:20px">⚠️</span><div><strong style="color:#f5c418">ALERTA: ${urgentes} linha(s) vencendo em até 5 dias!</strong><br><span style="font-size:12px;color:var(--text)">Acompanhe a produção de perto. Clique para ir à tratativa.</span></div></div>`;
+    if(vencidas>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(232,80,58,0.1);border:1px solid #e8503a;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="abrirVencimentos('vencidas')"><span style="font-size:20px">🚨</span><div><strong style="color:#e8503a">ATENÇÃO: ${vencidas} linha(s) com PRAZO VENCIDO!</strong><br><span style="font-size:12px;color:var(--text)">Ação imediata necessária. Clique para ver detalhes.</span></div></div>`;
+    if(urgentes>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(245,196,24,0.1);border:1px solid #f5c418;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="abrirVencimentos('proximas')"><span style="font-size:20px">⏰</span><div><strong style="color:#f5c418">ALERTA: ${urgentes} linha(s) vencendo em até 5 dias!</strong><br><span style="font-size:12px;color:var(--text)">Clique para ver a lista completa.</span></div></div>`;
   }
 
   const ent=lns.filter(l=>l.status==='ENTREGUE Á TRANSPORTADORA');
@@ -3829,10 +4120,13 @@ function rdash(){
   const ifColor=pIF===100?'var(--green)':pIF>=95?'var(--amber)':'var(--red)';
   ifEl.style.color=ifColor;
   document.getElementById('arc-if').style.stroke=ifColor;
-  document.getElementById('k-rec').textContent=lns.length.toLocaleString('pt-BR');
-  document.getElementById('k-ent').textContent=ent.length.toLocaleString('pt-BR');
-  document.getElementById('k-ab').textContent=ab.length.toLocaleString('pt-BR');
-  document.getElementById('k-ag').textContent=agP.length.toLocaleString('pt-BR');
+
+  // KPIs com animação de contador e remoção de skeleton (#4 + #8)
+  animateCounter('k-rec', lns.length, 800, v=>Math.round(v).toLocaleString('pt-BR'));
+  animateCounter('k-ent', ent.length, 800, v=>Math.round(v).toLocaleString('pt-BR'));
+  animateCounter('k-ab',  ab.length,  800, v=>Math.round(v).toLocaleString('pt-BR'));
+  animateCounter('k-ag',  agP.length, 800, v=>Math.round(v).toLocaleString('pt-BR'));
+
   // Linhas vencidas = não entregues com prazo passado
   const nVenc=lns.filter(l=>{
     if(l.status==='ENTREGUE Á TRANSPORTADORA') return false;
@@ -3840,12 +4134,18 @@ function rdash(){
     return hoje>new Date(dp2.getTime()+30*86400000);
   }).length;
   const kVEl=document.getElementById('k-venc');
-  if(kVEl){kVEl.textContent=nVenc.toLocaleString('pt-BR'); kVEl.style.color=nVenc>0?'var(--red)':'var(--green)';}
+  if(kVEl){
+    animateCounter('k-venc', nVenc, 800, v=>Math.round(v).toLocaleString('pt-BR'));
+    kVEl.style.color=nVenc>0?'var(--red)':'var(--green)';
+  }
+  // KPIs financeiros (valores em Mi — são strings, não anima)
   document.getElementById('k-vp').textContent=mi(vTot);
   document.getElementById('k-vf').textContent=mi(vFat);
   document.getElementById('k-vn').textContent=mi(vTot-vFat);
   document.getElementById('k-df').textContent=med(dfats)!=null?med(dfats)+'d':'—';
   document.getElementById('k-dc').textContent=med(dcols)!=null?med(dcols)+'d':'—';
+  // Remove skeletons dos gráficos (#8)
+  ['sk-om'].forEach(id=>{const el=document.getElementById(id);if(el)el.remove();});
 
   // OTIFF por mês — por LINHA, incluindo linhas vencidas sem entrega
   const bM={};
@@ -3906,46 +4206,41 @@ function rdash(){
     data:{labels:mLbls,datasets:[{label:'No Prazo',data:npV,backgroundColor:'#f5c418',borderRadius:3,stack:'s'},{label:'Fora',data:fpV,backgroundColor:'#e8503a',borderRadius:3,stack:'s'}]},
     options:{...gO,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}}},
     plugins:[{
-      // Mostra NP dentro da parte amarela e FP dentro da parte vermelha (ambos os valores)
+      // Mostra "NP: X" e "FP: Y" no topo de cada barra (FP só quando > 0)
       afterDatasetsDraw(chart){
         const ctx = chart.ctx;
         const npMeta = chart.getDatasetMeta(0);
         const fpMeta = chart.getDatasetMeta(1);
         ctx.save();
-        ctx.font = 'bold 9px sans-serif';
         ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        ctx.textBaseline = 'bottom';
         npMeta.data.forEach((barNP, i) => {
           const np = npV[i] || 0;
           const fp = fpV[i] || 0;
           if(!np && !fp) return;
           const barFP = fpMeta.data[i];
-          // Parte amarela (NP): altura e centro
-          const baseY    = barNP.base;
-          const alturaNP = baseY - barNP.y;
-          const centroNP = barNP.y + alturaNP/2;
-          if(alturaNP >= 16){
-            ctx.fillStyle = 'rgba(0,0,0,.6)';
-            ctx.fillText(np, barNP.x, centroNP);
-          } else if(alturaNP > 0){
-            ctx.fillStyle = '#cdd6dc';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText(np, barNP.x, barNP.y - 2);
-            ctx.textBaseline = 'middle';
-          }
-          // Parte vermelha (FP): só se houver atrasos
+          // Topo da barra empilhada: se há FP usa barFP.y, senão barNP.y
+          const topoY = fp > 0 ? barFP.y : barNP.y;
           if(fp > 0){
-            const alturaFP = barNP.y - barFP.y;
-            const centroFP = barFP.y + alturaFP/2;
-            if(alturaFP >= 16){
-              ctx.fillStyle = '#fff';
-              ctx.fillText(fp, barNP.x, centroFP);
-            } else {
-              ctx.fillStyle = '#e8503a';
-              ctx.textAlign = 'left';
-              ctx.fillText('FP:'+fp, barNP.x+12, centroFP);
-              ctx.textAlign = 'center';
-            }
+            // Dois valores: NP em dourado e FP em vermelho, lado a lado
+            const textoNP = 'NP:' + np;
+            const textoFP = ' FP:' + fp;
+            ctx.font = 'bold 8px sans-serif';
+            const wNP = ctx.measureText(textoNP).width;
+            const wFP = ctx.measureText(textoFP).width;
+            const totalW = wNP + wFP;
+            const startX = barNP.x - totalW / 2;
+            ctx.fillStyle = '#f5c418';
+            ctx.textAlign = 'left';
+            ctx.fillText(textoNP, startX, topoY - 3);
+            ctx.fillStyle = '#e8503a';
+            ctx.fillText(textoFP, startX + wNP, topoY - 3);
+            ctx.textAlign = 'center';
+          } else {
+            // Só NP (sem atrasos no mês)
+            ctx.font = 'bold 9px sans-serif';
+            ctx.fillStyle = '#cdd6dc';
+            ctx.fillText(np, barNP.x, topoY - 3);
           }
         });
         ctx.restore();
@@ -3991,6 +4286,7 @@ function rdash(){
             text: lbl+': '+d.datasets[0].data[i],
             fillStyle: d.datasets[0].backgroundColor[i],
             strokeStyle: d.datasets[0].backgroundColor[i],
+            fontColor: '#4d7a9e',
             lineWidth:0, hidden:false, index:i
           }));
         }
@@ -4011,8 +4307,10 @@ function rdash(){
     if(uf){bUF[uf]=bUF[uf]||{ot:0,tot:0};bUF[uf].tot++;if(onT)bUF[uf].ot++;}
     if(pl){bPL[pl]=bPL[pl]||{ot:0,tot:0};bPL[pl].tot++;if(onT)bPL[pl].ot++;}
   });
-  hbars('bars-uf',Object.entries(bUF).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0]));
-  hbars('bars-pl',Object.entries(bPL).filter(([,v])=>v.tot>=3).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0]));
+  hbarsTooltip('bars-uf',Object.entries(bUF).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0,`${k}: ${v.ot} de ${v.tot} entregas no prazo`]));
+  hbarsTooltip('bars-pl',Object.entries(bPL).filter(([,v])=>v.tot>=3).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0,`${k}: ${v.ot} de ${v.tot} entregas no prazo`]));
+  // Atualiza notificações automáticas (#13)
+  setTimeout(atualizarNotificacoes, 200);
 
   // Badge tratativa
   const todasLns=allLinhas();
@@ -4127,7 +4425,13 @@ function rpedidos(){
     if(da&&db) return db.localeCompare(da);
     return (b.ped.criadoEm||0)-(a.ped.criadoEm||0);
   });
-  document.getElementById('rc-ped').textContent=rows.length+' pedidos';
+  // #7 Mini-resumo: "X pedidos · R$XXX · Y plantas"
+  const totalRped = rows.reduce((s,r)=>s+r.vTot,0);
+  const plantasUnicas = new Set(rows.map(r=>r.ped.planta).filter(Boolean)).size;
+  const resumo = rows.length + ' pedido' + (rows.length!==1?'s':'')
+    + (totalRped>0 ? ' · ' + brl(totalRped) : '')
+    + (plantasUnicas>0 ? ' · ' + plantasUnicas + ' planta' + (plantasUnicas!==1?'s':'') : '');
+  document.getElementById('rc-ped').textContent = resumo;
   if(!rows.length){document.getElementById('tb-ped').innerHTML=`<tr><td colspan="11" class="empty">Nenhum pedido. <span onclick="nav('novo')" style="color:var(--gold);cursor:pointer">Criar novo</span></td></tr>`;return;}
   let h='';
   rows.forEach(({pk,ped,lns,vTot,qTot,dom})=>{
@@ -4841,7 +5145,7 @@ function popularClasses(){
 }
 
 function resetDashFilters(){
-  ['d-ano','d-cli','d-uf','d-pl','d-classe'].forEach(id=>{
+  ['d-ano','d-cli','d-uf','d-pl','d-classe','d-periodo'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){ el.value = id==='d-ano'? new Date().getFullYear().toString() :'all'; }
   });
