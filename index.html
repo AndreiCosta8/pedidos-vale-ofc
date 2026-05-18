@@ -215,6 +215,37 @@ body.light-mode .fs,.si{color-scheme:light}
 @keyframes slideUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
 .skeleton{background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,rgba(255,255,255,.09) 50%,rgba(255,255,255,.04) 75%);background-size:400px 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
+
+/* ── MODO APRESENTAÇÃO (#8) ── */
+body.modo-apres .sidebar,
+body.modo-apres .topbar,
+body.modo-apres .bnav,
+body.modo-apres .bnav-more,
+body.modo-apres .btn,
+body.modo-apres select,
+body.modo-apres input,
+body.modo-apres [data-pg],
+body.modo-apres #print-btn-wrap{display:none!important}
+body.modo-apres .main{margin-left:0!important;padding:16px!important}
+body.modo-apres .pg.on{animation:fadeIn .4s ease}
+.apres-btn{position:fixed;bottom:16px;right:16px;background:rgba(245,196,24,.15);border:1px solid rgba(245,196,24,.3);color:var(--gold);font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;z-index:999;backdrop-filter:blur(4px)}
+
+/* ── HEATMAP (#7) ── */
+.heatmap-wrap{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px}
+.heatmap-col{display:flex;flex-direction:column;gap:2px}
+.hm-cell{width:10px;height:10px;border-radius:2px;cursor:default;transition:opacity .1s}
+.hm-cell:hover{opacity:.75;outline:1px solid rgba(255,255,255,.4)}
+.hm-0{background:rgba(255,255,255,.05)}
+.hm-1{background:#1a4731}
+.hm-2{background:#1e6b47}
+.hm-3{background:#22c97a}
+.hm-4{background:#4ef5a0}
+
+/* ── ORDENAÇÃO DE COLUNAS (#11) ── */
+.th-sort{cursor:pointer;user-select:none;white-space:nowrap}
+.th-sort:hover{color:var(--gold)!important}
+.sort-icon{margin-left:3px;opacity:.4;font-size:9px}
+.th-sort.ativo .sort-icon{opacity:1;color:var(--gold)}
 .pg.on .card,.pg.on .kpi,.pg.on .gbox{animation:slideUp .25s ease both}
 .pg.on .kpi:nth-child(1){animation-delay:.03s}
 .pg.on .kpi:nth-child(2){animation-delay:.06s}
@@ -746,6 +777,7 @@ body.logged-out .main{display:none !important}
       <span class="chip" id="chip-date"></span>
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px" onclick="importarDados()">⬆ Importar Planilha</button>
       <button class="btn btn-s" id="print-btn-wrap" style="font-size:9px;padding:4px 9px;background:rgba(59,143,212,.15);border-color:#3b8fd4;color:#3b8fd4" onclick="exportarPDF()" title="Exportar Dashboard como PDF">📄 PDF</button>
+      <button class="btn btn-s" style="font-size:9px;padding:4px 9px;background:rgba(245,196,24,.12);border-color:rgba(245,196,24,.4);color:var(--gold)" onclick="toggleApres()" title="Modo Apresentação (Esc para sair)">🖥️</button>
     </div>
   </div>
 
@@ -893,6 +925,29 @@ body.logged-out .main{display:none !important}
         <div class="l">Dias a Coletar <span style="opacity:.5">(med.)</span></div>
       </div>
     </div>
+    <!-- Card Meta R$ Mensal -->
+    <div class="card card-accent" style="--accent:var(--gold);padding:12px 16px;margin-bottom:10px" id="card-meta-r">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">🎯 Meta R$ — <span id="meta-mes-nome" style="color:var(--gold)"></span></div>
+        <button onclick="editarMetaR()" style="background:none;border:1px solid rgba(245,196,24,.3);color:var(--gold);font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer">✏️ Editar</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="flex:1">
+          <div style="height:10px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden;margin-bottom:5px">
+            <div id="meta-barra" style="height:100%;border-radius:5px;transition:width .8s ease;width:0%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
+            <span id="meta-fat-label">—</span>
+            <span id="meta-total-label" style="color:var(--gold)">—</span>
+          </div>
+        </div>
+        <div style="text-align:right;min-width:52px">
+          <div style="font-size:22px;font-weight:700" id="meta-pct-label">—</div>
+          <div style="font-size:9px;color:var(--muted)">da meta</div>
+        </div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);margin-top:5px" id="meta-dias-label"></div>
+    </div>
     <div class="cgrid" style="margin-bottom:10px">
       <div class="card card-accent" style="--accent:var(--gold)">
         <div class="sec" style="font-size:9px">No Prazo vs Fora do Prazo por Mês</div>
@@ -936,6 +991,7 @@ body.logged-out .main{display:none !important}
             <span style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Filtrar coluna:</span>
             <input id="fh-nped" class="si" style="min-width:130px;max-width:150px;padding:4px 8px;font-size:10px" placeholder="Nº Pedido..." oninput="rpedidos()"/>
             <input id="fh-prod" class="si" style="min-width:160px;max-width:220px;padding:4px 8px;font-size:10px" placeholder="Produto / Descrição..." oninput="rpedidos()"/>
+            <input id="fh-nf" class="si" style="min-width:110px;max-width:140px;padding:4px 8px;font-size:10px" placeholder="Nº NF..." oninput="rpedidos()"/>
             <select id="fh-uf" class="fs" style="font-size:10px;padding:4px 8px" onchange="rpedidos()">
               <option value="">UF</option>
               <option value="PA">PA</option><option value="MG">MG</option>
@@ -946,7 +1002,17 @@ body.logged-out .main{display:none !important}
         </th>
       </tr>
       <tr>
-        <th style="width:20px"></th><th>Nº Pedido</th><th>Itens</th><th>Planta</th><th>UF</th><th>Cliente</th><th>Data Pedido</th><th>Qtd. Total</th><th>Vlr. Total</th><th>Status</th><th>Ações</th>
+        <th style="width:20px"></th>
+        <th class="th-sort" onclick="setSortPed('num')" id="sth-num">Nº Pedido<span class="sort-icon">↕</span></th>
+        <th>Itens</th>
+        <th class="th-sort" onclick="setSortPed('planta')" id="sth-planta">Planta<span class="sort-icon">↕</span></th>
+        <th class="th-sort" onclick="setSortPed('uf')" id="sth-uf">UF<span class="sort-icon">↕</span></th>
+        <th class="th-sort" onclick="setSortPed('cli')" id="sth-cli">Cliente<span class="sort-icon">↕</span></th>
+        <th class="th-sort" onclick="setSortPed('data')" id="sth-data">Data Pedido<span class="sort-icon">↕</span></th>
+        <th class="th-sort" onclick="setSortPed('qtd')" id="sth-qtd">Qtd. Total<span class="sort-icon">↕</span></th>
+        <th class="th-sort" onclick="setSortPed('vlr')" id="sth-vlr">Vlr. Total<span class="sort-icon">↕</span></th>
+        <th class="th-sort" onclick="setSortPed('status')" id="sth-status">Status<span class="sort-icon">↕</span></th>
+        <th>Ações</th>
       </tr>
     </thead><tbody id="tb-ped"><tr><td colspan="11" class="empty">Carregando...</td></tr></tbody></table></div>
   </div>
@@ -1493,6 +1559,7 @@ body.logged-out .main{display:none !important}
       <thead>
         <tr style="background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.08)">
           <th style="padding:9px 10px;text-align:center;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;width:36px">#</th>
+          <th style="padding:9px 10px;text-align:center;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;width:40px">ABC</th>
           <th style="padding:9px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Produto</th>
           <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Total R$</th>
           <th style="padding:9px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Qtd</th>
@@ -1504,7 +1571,7 @@ body.logged-out .main{display:none !important}
         </tr>
       </thead>
       <tbody id="rp-tbody">
-        <tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Carregando...</td></tr>
+        <tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">Carregando...</td></tr>
       </tbody>
     </table>
   </div>
@@ -3566,10 +3633,11 @@ function renderDetalhePlanta(key){
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
       <div style="font-size:14px;font-weight:700;color:var(--gold)">🏭 ${d.nome}</div>
       <button class="btn btn-p btn-sm" onclick="copiarResumoPlanta('${key}')">📋 Copiar resumo para envio</button>
+      <button class="btn btn-sec btn-sm" onclick="pdfPlanta('${key}')" title="Gerar PDF desta planta">📄 PDF</button>
     </div>
     
     <!-- Painel de tendência (destaque) -->
-    <div style="background:rgba(255,255,255,.02);border-left:3px solid ${corTend};padding:10px 14px;margin-bottom:14px;border-radius:6px">
+    <div style="background:rgba(255,255,255,.02);border-left:3px solid ${corTend};padding:10px 14px;margin-bottom:10px;border-radius:6px">
       <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">📊 Tendência (90 dias vs histórico)</div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="font-size:24px">${d.tendIcone}</span>
@@ -3577,6 +3645,8 @@ function renderDetalhePlanta(key){
         ${variacaoTxt?`<span style="font-size:12px;color:var(--muted)">(${variacaoTxt} no volume R$)</span>`:''}
       </div>
     </div>
+    <!-- Card Score de Risco -->
+    <div id="score-card-${key}" style="margin-bottom:14px"></div>
     
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
       <!-- Coluna esquerda: histórico -->
@@ -3613,7 +3683,19 @@ function renderDetalhePlanta(key){
         ${grafico || '<div style="color:var(--muted);font-size:11px;margin:auto">Sem dados mensais</div>'}
       </div>
     </div>
+    <!-- Heatmap de atividade (#7) -->
+    <div style="margin-top:16px">
+      <div style="font-size:11px;color:var(--gold);font-weight:600;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">🗓️ Calendário de Atividade (últimos 12 meses)</div>
+      <div id="heatmap-${key}" style="background:rgba(255,255,255,.02);padding:10px;border-radius:6px"></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:5px;font-size:9px;color:var(--muted)">
+        Menos <div class="hm-cell hm-0"></div><div class="hm-cell hm-1"></div><div class="hm-cell hm-2"></div><div class="hm-cell hm-3"></div><div class="hm-cell hm-4"></div> Mais pedidos
+      </div>
+    </div>
   `;
+  setTimeout(()=>{
+    renderScoreRisco(key, d);
+    renderHeatmap(key, d);
+  }, 50);
 }
 
 // Gera um resumo formatado e copia para o clipboard
@@ -4185,14 +4267,24 @@ function rRankProd(){
       <div style="font-size:22px;font-weight:700;color:var(--purple)">${lista.filter(p=>p.tend==='📈').length}</div>
     </div>`;
 
-  // Tabela (top 50)
+  // Tabela (top 50) com Análise ABC
   const tbody = document.getElementById('rp-tbody');
   if(!lista.length){
-    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">Nenhum produto encontrado.</td></tr>';
+    tbody.innerHTML='<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">Nenhum produto encontrado.</td></tr>';
     return;
   }
+  // Calcular ABC (Pareto)
+  const listaABC = calcABC(lista.slice(0,50), totalVlr);
+  const nA = listaABC.filter(p=>p.abc==='A').length;
+  const nB = listaABC.filter(p=>p.abc==='B').length;
+  const nC = listaABC.filter(p=>p.abc==='C').length;
+  const vlrA = listaABC.filter(p=>p.abc==='A').reduce((s,p)=>s+p.vlr,0);
+  // Mostrar resumo ABC logo abaixo dos KPIs
+  const subEl = document.getElementById('rp-sub');
+  if(subEl) subEl.innerHTML = `${lista.length} produtos · ${brl(totalVlr)} total &nbsp;|&nbsp; `+
+    `<span style="color:#e8503a;font-weight:600">🔴 A: ${nA} prod. (${(vlrA/totalVlr*100).toFixed(0)}% da receita)</span> · `+
+    `<span style="color:#f5c418">🟡 B: ${nB}</span> · <span style="color:#22c97a">🟢 C: ${nC}</span>`;
   const pct = v => totalVlr>0 ? (v/totalVlr*100).toFixed(1)+'%' : '—';
-  // Barra de porcentagem inline
   const bar = v => {
     const p = totalVlr>0 ? Math.min(v/totalVlr*100,100) : 0;
     return `<div style="display:flex;align-items:center;gap:6px">
@@ -4202,9 +4294,10 @@ function rRankProd(){
       <span style="font-size:10px;color:var(--muted);min-width:32px;text-align:right">${pct(v)}</span>
     </div>`;
   };
-  tbody.innerHTML = lista.slice(0,50).map((p,i)=>`
+  tbody.innerHTML = listaABC.map((p,i)=>`
     <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
       <td style="padding:7px 10px;text-align:center;font-size:11px;color:var(--muted)">${i+1}</td>
+      <td style="padding:7px 10px;text-align:center">${badgeABC(p.abc)}</td>
       <td style="padding:7px 10px;font-size:11px;font-weight:600;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.nome}">${p.nome}</td>
       <td style="padding:7px 10px;text-align:right;font-size:11px;color:var(--green)">${brl(p.vlr)}</td>
       <td style="padding:7px 10px;text-align:right;font-size:11px">${p.qtd.toLocaleString('pt-BR')}</td>
@@ -4363,6 +4456,604 @@ function exportarComparativoCSV(){
   toast('CSV exportado!');
 }
 window.exportarComparativoCSV = exportarComparativoCSV;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #7 — HEATMAP DE ATIVIDADE POR PLANTA
+// Calendário dos últimos 365 dias com células coloridas por nº de pedidos
+// ══════════════════════════════════════════════════════════════════════
+function renderHeatmap(key, d){
+  const el = document.getElementById(`heatmap-${key}`);
+  if(!el) return;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const inicio = new Date(hoje); inicio.setDate(inicio.getDate() - 364);
+  // Ajusta para começar no domingo anterior
+  const diaSemana = inicio.getDay(); // 0=dom
+  inicio.setDate(inicio.getDate() - diaSemana);
+
+  // Mapa de pedidos por dia (YYYY-MM-DD → count)
+  const ppp = {};
+  d.peds.forEach(({ped})=>{
+    const dt = ped.dataPedido?.slice(0,10);
+    if(dt) ppp[dt] = (ppp[dt]||0) + 1;
+  });
+
+  // Meses labels
+  const MN = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const meses = [];
+  let mesAtual = -1;
+  let totalSemanas = 0;
+
+  // Gera colunas (semanas)
+  const semanas = [];
+  let d_ = new Date(inicio);
+  while(d_ <= hoje){
+    const semana = [];
+    for(let dia=0; dia<7; dia++){
+      const iso = d_.toISOString().slice(0,10);
+      const cnt = ppp[iso] || 0;
+      const futuro = d_ > hoje;
+      const fora = d_ < new Date(hoje.getTime() - 364*86400000);
+      if(d_.getDate() === 1 || (meses.length===0 && !fora)){
+        if(d_.getMonth() !== mesAtual){
+          mesAtual = d_.getMonth();
+          meses.push({mes: MN[mesAtual], col: semanas.length});
+        }
+      }
+      semana.push({iso, cnt, futuro, fora});
+      d_.setDate(d_.getDate()+1);
+    }
+    semanas.push(semana);
+    totalSemanas++;
+  }
+
+  // Dias da semana
+  const dLabels = ['D','S','T','Q','Q','S','S'];
+  let html = `<div style="display:flex;gap:0">`;
+  // Labels dos dias
+  html += `<div style="display:flex;flex-direction:column;gap:2px;margin-right:4px">`;
+  dLabels.forEach((l,i)=>{
+    html += `<div style="height:10px;font-size:7px;color:var(--muted);line-height:10px;width:10px;text-align:center">${i%2===1?l:''}</div>`;
+  });
+  html += `</div>`;
+
+  // Colunas de semanas
+  html += `<div style="position:relative">`;
+  // Labels de meses
+  html += `<div style="display:flex;position:relative;height:14px;margin-bottom:2px">`;
+  meses.forEach(m=>{
+    html += `<div style="position:absolute;left:${m.col*12}px;font-size:8px;color:var(--muted);white-space:nowrap">${m.mes}</div>`;
+  });
+  html += `</div>`;
+  // Grade
+  html += `<div class="heatmap-wrap">`;
+  semanas.forEach(semana=>{
+    html += `<div class="heatmap-col">`;
+    semana.forEach(({iso, cnt, futuro, fora})=>{
+      const cls = futuro||fora ? 'hm-0' : cnt===0 ? 'hm-0' : cnt===1 ? 'hm-1' : cnt<=3 ? 'hm-2' : cnt<=5 ? 'hm-3' : 'hm-4';
+      const tip = fora||futuro ? '' : `title="${iso}: ${cnt} pedido(s)"`;
+      const op = fora ? 'opacity:.3;' : '';
+      html += `<div class="hm-cell ${cls}" ${tip} style="${op}"></div>`;
+    });
+    html += `</div>`;
+  });
+  html += `</div></div></div>`;
+  el.innerHTML = html;
+}
+window.renderHeatmap = renderHeatmap;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #8 — MODO APRESENTAÇÃO
+// Esconde sidebar/topbar/controles — dashboard em tela cheia para reuniões
+// ══════════════════════════════════════════════════════════════════════
+let _apresAtivo = false;
+function toggleApres(){
+  _apresAtivo = !_apresAtivo;
+  document.body.classList.toggle('modo-apres', _apresAtivo);
+  // Botão flutuante para sair
+  let btn = document.getElementById('apres-exit-btn');
+  if(_apresAtivo){
+    if(!btn){
+      btn = document.createElement('button');
+      btn.id = 'apres-exit-btn';
+      btn.className = 'apres-btn';
+      btn.textContent = '✕ Sair da Apresentação (Esc)';
+      btn.onclick = toggleApres;
+      document.body.appendChild(btn);
+    }
+    btn.style.display = 'block';
+    toast('Modo Apresentação ativado · Esc para sair');
+  } else {
+    if(btn) btn.style.display = 'none';
+  }
+}
+window.toggleApres = toggleApres;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #10 — ATALHOS DE TECLADO
+// Ctrl+D=Dashboard, Ctrl+P=Pedidos, Ctrl+N=Novo Pedido,
+// Ctrl+A=Análise, Ctrl+F=Busca global, Esc=Fechar modal/sair apres.
+// ══════════════════════════════════════════════════════════════════════
+document.addEventListener('keydown', e=>{
+  // Esc — fecha modal aberto OU sai do modo apresentação
+  if(e.key === 'Escape'){
+    if(_apresAtivo){ toggleApres(); return; }
+    // Fecha qualquer modal aberto
+    const aberto = document.querySelector('.modal-bg.open');
+    if(aberto){ aberto.classList.remove('open'); return; }
+  }
+  // Ctrl + tecla — navegação (não interceptar se usuário está digitando)
+  if(!e.ctrlKey && !e.metaKey) return;
+  const tag = document.activeElement?.tagName;
+  if(tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT') return;
+  const mapa = {
+    'd':'dash', 'p':'pedidos', 'n':'novo',
+    'a':'plantas', 'r':'rank-prod'
+  };
+  if(mapa[e.key.toLowerCase()]){
+    e.preventDefault();
+    nav(mapa[e.key.toLowerCase()]);
+    return;
+  }
+  if(e.key.toLowerCase()==='f'){
+    e.preventDefault();
+    const busca = document.getElementById('g-busca') || document.getElementById('s-ped');
+    busca?.focus();
+    busca?.select();
+  }
+});
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #11 — ORDENAÇÃO DE COLUNAS (TABELA TODOS OS PEDIDOS)
+// Clique no cabeçalho → ordena. Segundo clique → inverte ordem.
+// ══════════════════════════════════════════════════════════════════════
+let _sortPedCol = 'data';  // coluna padrão
+let _sortPedDir = -1;      // -1 = descendente, 1 = ascendente
+
+function setSortPed(col){
+  if(_sortPedCol === col){
+    _sortPedDir *= -1;  // inverte se clicar na mesma coluna
+  } else {
+    _sortPedCol = col;
+    _sortPedDir = col==='data' ? -1 : 1;  // datas: mais recente primeiro
+  }
+  // Atualiza visual dos cabeçalhos
+  ['num','planta','uf','cli','data','qtd','vlr','status'].forEach(c=>{
+    const th = document.getElementById(`sth-${c}`);
+    if(!th) return;
+    th.classList.toggle('ativo', c===_sortPedCol);
+    const icon = th.querySelector('.sort-icon');
+    if(icon) icon.textContent = c===_sortPedCol ? (_sortPedDir===1?'↑':'↓') : '↕';
+  });
+  rpedidos();
+}
+window.setSortPed = setSortPed;
+
+// Aplica a ordenação nos rows antes de renderizar
+function sortRows(rows){
+  const col = _sortPedCol;
+  const dir = _sortPedDir;
+  return [...rows].sort((a,b)=>{
+    let va, vb;
+    if(col==='num')    { va=a.ped.numPedido||''; vb=b.ped.numPedido||''; }
+    else if(col==='planta') { va=a.ped.planta||''; vb=b.ped.planta||''; }
+    else if(col==='uf')    { va=a.ped.uf||''; vb=b.ped.uf||''; }
+    else if(col==='cli')   { va=a.ped.cliente||''; vb=b.ped.cliente||''; }
+    else if(col==='data')  { va=a.ped.dataPedido||''; vb=b.ped.dataPedido||''; }
+    else if(col==='qtd')   { va=a.vTotQtd||0; vb=b.vTotQtd||0; return dir*(va-vb); }
+    else if(col==='vlr')   { va=a.vTot||0; vb=b.vTot||0; return dir*(va-vb); }
+    else if(col==='status'){ va=a.statusGeral||''; vb=b.statusGeral||''; }
+    else return 0;
+    return dir * va.localeCompare(vb, 'pt-BR');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #6 — SCORE DE RISCO POR PLANTA (0–100)
+// Combina 4 dimensões: inatividade relativa, tendência, OTIFF e vencidos
+// ══════════════════════════════════════════════════════════════════════
+function calcScoreRisco(d){
+  let score = 0;
+  const fatores = [];
+
+  // 1. INATIVIDADE (peso 40) — quanto a planta está acima do próprio ritmo
+  const relativo = d.freqMedia > 0 ? d.diasSemComprar / d.freqMedia : 0;
+  const ptInativ = Math.min(Math.round(relativo * 15), 40);
+  score += ptInativ;
+  if(ptInativ > 25) fatores.push({label:'Inatividade alta', cor:'#e8503a', pts:ptInativ});
+  else if(ptInativ > 10) fatores.push({label:'Inatividade moderada', cor:'#f5c418', pts:ptInativ});
+
+  // 2. TENDÊNCIA (peso 30)
+  const ptTend = {subindo:0, estavel:8, novo:12, descendo:28}[d.tendencia] ?? 15;
+  score += ptTend;
+  if(ptTend >= 20) fatores.push({label:'Tendência de queda', cor:'#e8503a', pts:ptTend});
+  else if(ptTend >= 8) fatores.push({label:'Tendência estável', cor:'#f5c418', pts:ptTend});
+
+  // 3. OTIFF da planta (peso 20) — calcula com dados locais
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  let otTot = 0, otOk = 0;
+  d.peds.forEach(({ped}) => {
+    const dp = pdt(ped.dataPedido); if(!dp) return;
+    const prazo = new Date(dp.getTime() + 30*86400000);
+    Object.values(ped.linhas||{}).forEach(ln => {
+      const ent = ln.status === 'ENTREGUE Á TRANSPORTADORA';
+      if(!ent && hoje <= prazo) return;
+      otTot++;
+      const de = pdt(ln.dataEntrega);
+      if(ent && de && de <= prazo) otOk++;
+    });
+  });
+  const otiff = otTot > 0 ? Math.round(otOk/otTot*100) : null;
+  const ptOtiff = otiff === null ? 5 : otiff >= 90 ? 0 : otiff >= 80 ? 8 : otiff >= 70 ? 15 : 20;
+  score += ptOtiff;
+  if(otiff !== null && otiff < 80) fatores.push({label:`OTIFF baixo (${otiff}%)`, cor:'#e8503a', pts:ptOtiff});
+
+  // 4. LINHAS VENCIDAS (peso 10)
+  let nVenc = 0;
+  d.peds.forEach(({ped}) => {
+    const dp = pdt(ped.dataPedido); if(!dp) return;
+    const prazo = new Date(dp.getTime() + 30*86400000);
+    Object.values(ped.linhas||{}).forEach(ln => {
+      if(ln.status !== 'ENTREGUE Á TRANSPORTADORA' && hoje > prazo) nVenc++;
+    });
+  });
+  const ptVenc = Math.min(nVenc * 2, 10);
+  score += ptVenc;
+  if(ptVenc > 0) fatores.push({label:`${nVenc} linha(s) vencida(s)`, cor:'#e8503a', pts:ptVenc});
+
+  score = Math.min(score, 100);
+  const nivel = score >= 70 ? {label:'Alto Risco', cor:'#e8503a'} :
+                score >= 40 ? {label:'Risco Moderado', cor:'#f5c418'} :
+                              {label:'Baixo Risco', cor:'#22c97a'};
+  return {score, nivel, fatores, otiff};
+}
+
+function renderScoreRisco(key, d){
+  const el = document.getElementById(`score-card-${key}`);
+  if(!el) return;
+  const {score, nivel, fatores, otiff} = calcScoreRisco(d);
+  const segmentos = [
+    {de:0,   ate:40,  cor:'#22c97a'},
+    {de:40,  ate:70,  cor:'#f5c418'},
+    {de:70,  ate:100, cor:'#e8503a'},
+  ];
+  // Barra de gauge segmentada
+  const barra = segmentos.map(s => {
+    const pct = s.ate - s.de;
+    const ativo = score > s.de;
+    return `<div style="flex:${pct};height:100%;background:${ativo?s.cor:s.cor+'33'};border-radius:2px"></div>`;
+  }).join('');
+  const fatoresHtml = fatores.length
+    ? fatores.map(f=>`<span style="font-size:9px;padding:2px 7px;border-radius:4px;background:${f.cor}22;color:${f.cor};border:1px solid ${f.cor}44">${f.label} (+${f.pts})</span>`).join(' ')
+    : `<span style="font-size:9px;color:var(--muted)">Nenhum fator de risco relevante identificado</span>`;
+  el.innerHTML = `
+    <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 14px">
+      <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">🎯 Score de Risco</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px">
+        <div style="font-size:32px;font-weight:700;color:${nivel.cor};min-width:48px">${score}</div>
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:600;color:${nivel.cor};margin-bottom:4px">${nivel.label}</div>
+          <div style="display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden">${barra}</div>
+          <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:2px"><span>0</span><span>40</span><span>70</span><span>100</span></div>
+        </div>
+        ${otiff!==null?`<div style="text-align:center;min-width:48px"><div style="font-size:16px;font-weight:700;color:${otiff>=90?'#22c97a':otiff>=80?'#f5c418':'#e8503a'}">${otiff}%</div><div style="font-size:8px;color:var(--muted)">OTIFF</div></div>`:''}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${fatoresHtml}</div>
+    </div>`;
+}
+window.renderScoreRisco = renderScoreRisco;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #3 — PREVISÃO COM REGRESSÃO LINEAR
+// Substitui a média histórica por uma regressão linear simples (y=mx+b)
+// para capturar tendências crescentes ou decrescentes
+// ══════════════════════════════════════════════════════════════════════
+function regressaoLinear(pontos){
+  // pontos = [{x: número do mês (0,1,2...), y: valor R$}]
+  const n = pontos.length;
+  if(n < 2) return null;
+  const sumX  = pontos.reduce((s,p)=>s+p.x, 0);
+  const sumY  = pontos.reduce((s,p)=>s+p.y, 0);
+  const sumXY = pontos.reduce((s,p)=>s+p.x*p.y, 0);
+  const sumX2 = pontos.reduce((s,p)=>s+p.x*p.x, 0);
+  const denom = n*sumX2 - sumX*sumX;
+  if(!denom) return null;
+  const m = (n*sumXY - sumX*sumY) / denom;
+  const b = (sumY - m*sumX) / n;
+  return {m, b, prever: x => Math.max(0, m*x + b)};
+}
+
+function calcPotencialPlantas(){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const mesAtual = hoje.getMonth();
+  const anoAtual = hoje.getFullYear();
+  const iniciMesAtual = new Date(anoAtual, mesAtual, 1);
+
+  const porPlanta = {};
+  Object.values(PEDS).forEach(ped=>{
+    const dp = pdt(ped.dataPedido); if(!dp||!ped.planta) return;
+    const vlr = Object.values(ped.linhas||{}).reduce((s,l)=>s+(+l.vlrTotal||0),0);
+    if(!vlr) return;
+    const mk = dp.getFullYear()+'-'+String(dp.getMonth()).padStart(2,'0');
+    if(!porPlanta[ped.planta]) porPlanta[ped.planta]={mensal:{},atual:0};
+    if(dp >= iniciMesAtual){
+      porPlanta[ped.planta].atual += vlr;
+    } else {
+      porPlanta[ped.planta].mensal[mk] = (porPlanta[ped.planta].mensal[mk]||0)+vlr;
+    }
+  });
+
+  return Object.entries(porPlanta).map(([planta,d])=>{
+    const meses = Object.keys(d.mensal).sort();
+    const realizado = d.atual;
+    // Regressão linear nos últimos 6 meses históricos
+    const ultimos6 = meses.slice(-6);
+    const pontos = ultimos6.map((m,i)=>({x:i, y:d.mensal[m]}));
+    const reg = regressaoLinear(pontos);
+    // Previsão = projeção da regressão para o próximo ponto (x = ultimos6.length)
+    const previsaoLinear = reg ? reg.prever(ultimos6.length) : 0;
+    // Média histórica (fallback)
+    const mediaHist = meses.length ? Object.values(d.mensal).slice(-6).reduce((a,b)=>a+b,0)/Math.min(meses.length,6) : 0;
+    // Usa o maior entre os dois como referência (mais conservador)
+    const potencial = Math.max(previsaoLinear, mediaHist, realizado);
+    const pct = potencial>0 ? Math.min(Math.round(realizado/potencial*100),100) : 100;
+    const diff = (previsaoLinear||mediaHist) > 0 ? realizado - (previsaoLinear||mediaHist) : 0;
+    const tendReg = reg && reg.m > 50 ? '📈' : reg && reg.m < -50 ? '📉' : '➡️';
+    return {planta, mediaHist, previsaoLinear, realizado, pct, diff, tendReg, meses:meses.length};
+  }).filter(d=>d.mediaHist>0||d.realizado>0)
+    .sort((a,b)=>{
+      const potA = Math.max(a.previsaoLinear||a.mediaHist-a.realizado,0);
+      const potB = Math.max(b.previsaoLinear||b.mediaHist-b.realizado,0);
+      return potB-potA;
+    });
+}
+
+function renderPotencialPlantas(){
+  const dados = calcPotencialPlantas();
+  const el = document.getElementById('pv-potencial'); if(!el) return;
+  if(!dados.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:11px;padding:16px">Dados insuficientes para análise de potencial.</div>';
+    return;
+  }
+  el.innerHTML=`<div class="card" style="padding:0;overflow-x:auto">
+    <table style="width:100%;min-width:780px;border-collapse:collapse">
+      <thead><tr style="background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.08)">
+        <th style="padding:8px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase">Planta</th>
+        <th style="padding:8px 10px;text-align:center;font-size:9px;color:var(--muted);text-transform:uppercase">Tendência</th>
+        <th style="padding:8px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase">Previsão Linear</th>
+        <th style="padding:8px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase">Realizado (Mês)</th>
+        <th style="padding:8px 10px;text-align:right;font-size:9px;color:var(--muted);text-transform:uppercase">Vs Previsão</th>
+        <th style="padding:8px 10px;text-align:left;font-size:9px;color:var(--muted);text-transform:uppercase">Progresso</th>
+      </tr></thead>
+      <tbody>${dados.map(d=>{
+        const cor = d.pct>=90?'#22c97a':d.pct>=60?'#f5c418':'#e8503a';
+        const difTxt = d.diff>=0
+          ? `<span style="color:#22c97a;font-size:10px">+${brl(d.diff)}</span>`
+          : `<span style="color:#e8503a;font-size:10px">${brl(d.diff)}</span>`;
+        const prev = d.previsaoLinear || d.mediaHist;
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,.05)">
+          <td style="padding:7px 10px;font-size:11px;font-weight:600">${d.planta}</td>
+          <td style="padding:7px 10px;text-align:center;font-size:14px" title="Tendência histórica (regressão linear)">${d.tendReg}</td>
+          <td style="padding:7px 10px;text-align:right;font-size:11px;color:var(--muted)">${prev>0?brl(prev):'—'}</td>
+          <td style="padding:7px 10px;text-align:right;font-size:11px">${brl(d.realizado)}</td>
+          <td style="padding:7px 10px;text-align:right;font-size:11px">${prev>0?difTxt:'—'}</td>
+          <td style="padding:7px 10px;min-width:160px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+                <div style="width:${d.pct}%;height:100%;background:${cor};border-radius:4px;transition:width .6s"></div>
+              </div>
+              <span style="font-size:10px;font-weight:700;color:${cor};min-width:32px">${d.pct}%</span>
+            </div>
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>`;
+}
+window.renderPotencialPlantas = renderPotencialPlantas;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #9 — RELATÓRIO PDF INDIVIDUAL POR PLANTA
+// Abre uma janela nova com o relatório formatado e dispara impressão
+// ══════════════════════════════════════════════════════════════════════
+function pdfPlanta(key){
+  const dados = calcularMetricasPlantas();
+  const d = dados.find(x => plantaKey(x.nome)===key);
+  if(!d){ toast('Dados da planta não encontrados.','err'); return; }
+  const {score, nivel, fatores, otiff} = calcScoreRisco(d);
+  const stEmoji = d.status==='vermelho'?'🔴 ALERTA':d.status==='amarelo'?'🟡 ATENÇÃO':d.status==='verde'?'🟢 NO RITMO':'⚫ INATIVA';
+  const variacaoTxt = d.mediaAnterior90 ? `${Math.round(((d.vlrRecente-d.mediaAnterior90)/d.mediaAnterior90)*100)}%` : '—';
+  const gerado = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+  const ultimasCompras = d.peds.slice(0,10).map(({ped})=>{
+    const vlr = Object.values(ped.linhas||{}).reduce((s,l)=>s+(+l.vlrTotal||0),0);
+    return `<tr><td>${fdt(ped.dataPedido)}</td><td>${ped.numPedido}</td><td style="text-align:right">${brl(vlr)}</td></tr>`;
+  }).join('');
+  const topProds = d.topProdutos.slice(0,5).map(([nome,v])=>
+    `<tr><td>${nome}</td><td style="text-align:right">${brl(v.vlr)}</td><td style="text-align:right">${v.qtd}</td></tr>`
+  ).join('');
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+  <title>Relatório — ${d.nome}</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;font-size:11px;color:#1a2d45;padding:24px;max-width:800px;margin:0 auto}
+    h1{font-size:20px;color:#0d1b2e;margin-bottom:4px}
+    h2{font-size:13px;color:#0d1b2e;margin:18px 0 8px;border-bottom:2px solid #f5c418;padding-bottom:4px}
+    .sub{font-size:10px;color:#666;margin-bottom:16px}
+    .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+    .card{background:#f0f4f8;border-radius:6px;padding:10px 12px;border-left:3px solid #3b8fd4}
+    .card.gold{border-color:#f5c418}.card.red{border-color:#e8503a}.card.green{border-color:#22c97a}
+    .card-label{font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+    .card-value{font-size:18px;font-weight:700;color:#1a2d45}
+    table{width:100%;border-collapse:collapse;margin-bottom:12px}
+    th{background:#0d1b2e;color:#fff;padding:6px 8px;text-align:left;font-size:10px}
+    td{padding:5px 8px;border-bottom:1px solid #ddd;font-size:10px}
+    tr:nth-child(even) td{background:#f9fafc}
+    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-weight:700;font-size:11px}
+    .score-bar{height:12px;border-radius:6px;background:#e0e0e0;margin:6px 0}
+    .score-fill{height:100%;border-radius:6px}
+    .footer{margin-top:24px;font-size:9px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:8px}
+    @media print{body{padding:0}button{display:none}}
+  </style>
+  </head><body>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+    <div>
+      <h1>🏭 ${d.nome}</h1>
+      <div class="sub">${d.peds[0]?.ped?.uf||'—'} · ${d.peds[0]?.ped?.cliente||'—'} · Loja Parauapebas 2026</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:9px;color:#666">Gerado em: ${gerado}</div>
+      <div style="font-size:9px;color:#666">Vale · Pedidos — Relatório Individual</div>
+      <button onclick="window.print()" style="margin-top:8px;padding:4px 12px;background:#f5c418;border:none;border-radius:4px;cursor:pointer;font-weight:600">🖨 Imprimir / Salvar PDF</button>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card gold">
+      <div class="card-label">Status do Alerta</div>
+      <div class="card-value" style="font-size:14px">${stEmoji}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Dias sem comprar</div>
+      <div class="card-value">${d.diasSemComprar}d</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Freq. média histórica</div>
+      <div class="card-value">${d.freqMedia||'—'}d</div>
+    </div>
+    <div class="card green">
+      <div class="card-label">Total faturado (histórico)</div>
+      <div class="card-value" style="font-size:14px">${brl(d.totalValor)}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Total de pedidos</div>
+      <div class="card-value">${d.totalPedidos}</div>
+    </div>
+    <div class="card ${otiff!=null&&otiff<80?'red':'green'}">
+      <div class="card-label">OTIFF da planta</div>
+      <div class="card-value">${otiff!=null?otiff+'%':'—'}</div>
+    </div>
+  </div>
+  <h2>🎯 Score de Risco: ${score}/100 — ${nivel.label}</h2>
+  <div class="score-bar"><div class="score-fill" style="width:${score}%;background:${nivel.cor}"></div></div>
+  ${fatores.length ? '<p style="font-size:10px;color:#666;margin-bottom:8px">Fatores: '+fatores.map(f=>f.label+' (+'+f.pts+')').join(' · ')+'</p>' : '<p style="font-size:10px;color:#22c97a">Nenhum fator de risco relevante</p>'}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div>
+      <h2>📋 Últimas 10 Compras</h2>
+      <table><thead><tr><th>Data</th><th>Nº Pedido</th><th>Valor R$</th></tr></thead>
+      <tbody>${ultimasCompras||'<tr><td colspan="3">Sem dados</td></tr>'}</tbody></table>
+    </div>
+    <div>
+      <h2>📦 Top 5 Produtos</h2>
+      <table><thead><tr><th>Produto</th><th>R$</th><th>Qtd</th></tr></thead>
+      <tbody>${topProds||'<tr><td colspan="3">Sem dados</td></tr>'}</tbody></table>
+      <h2>📊 Tendência de Compras</h2>
+      <table><thead><tr><th>Indicador</th><th>Valor</th></tr></thead><tbody>
+        <tr><td>Ícone</td><td>${d.tendIcone} ${d.tendLabel}</td></tr>
+        <tr><td>R$ últimos 90 dias</td><td>${brl(d.vlrRecente)}</td></tr>
+        <tr><td>Variação vs histórico</td><td>${variacaoTxt}</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+  <div class="footer">Relatório gerado pelo Sistema Vale Pedidos · Loja Parauapebas PA · ${gerado}</div>
+  <script>setTimeout(()=>window.print(),800)<\/script>
+  </body></html>`;
+  const w = window.open('','_blank','width=850,height=700');
+  if(w){ w.document.write(html); w.document.close(); }
+  else toast('Permita pop-ups para gerar o PDF.','err');
+}
+window.pdfPlanta = pdfPlanta;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #4 — META R$ MENSAL
+// Card no dashboard mostrando progresso vs meta definida pelo usuário.
+// Meta salva em Firebase config/alertas.metaRMensal
+// ══════════════════════════════════════════════════════════════════════
+let _metaR = 0; // cache da meta atual
+
+function renderMetaR(vFatMesAtual){
+  const hoje = new Date();
+  const MN = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mesNome = MN[hoje.getMonth()];
+  const el = id => document.getElementById(id);
+  if(el('meta-mes-nome')) el('meta-mes-nome').textContent = mesNome + '/' + hoje.getFullYear();
+
+  // Carregar meta do Firebase (ou cache)
+  const aplicar = (meta) => {
+    _metaR = meta || 0;
+    const pct = meta>0 ? Math.min(Math.round(vFatMesAtual/meta*100),999) : 0;
+    const cor = pct>=100?'#22c97a':pct>=70?'#f5c418':'#e8503a';
+    if(el('meta-barra')) {
+      el('meta-barra').style.width = Math.min(pct,100)+'%';
+      el('meta-barra').style.background = cor;
+    }
+    if(el('meta-pct-label')){
+      el('meta-pct-label').textContent = meta>0 ? pct+'%' : '—';
+      el('meta-pct-label').style.color = meta>0 ? cor : 'var(--muted)';
+    }
+    if(el('meta-fat-label')) el('meta-fat-label').textContent = brl(vFatMesAtual);
+    if(el('meta-total-label')) el('meta-total-label').textContent = meta>0 ? 'Meta: '+brl(meta) : 'Clique em Editar para definir';
+    // Dias úteis restantes no mês (estimativa simples)
+    const ultimo = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0).getDate();
+    const restantes = ultimo - hoje.getDate();
+    if(el('meta-dias-label')){
+      if(meta>0 && pct<100){
+        const falta = meta - vFatMesAtual;
+        el('meta-dias-label').textContent = `Faltam ${restantes} dias · precisa mais ${brl(falta)} para bater a meta`;
+      } else if(pct>=100){
+        el('meta-dias-label').textContent = `✅ Meta do mês atingida! Superou em ${brl(vFatMesAtual - meta)}`;
+      } else {
+        el('meta-dias-label').textContent = `${restantes} dias restantes no mês`;
+      }
+    }
+  };
+  if(_metaR > 0) { aplicar(_metaR); return; }
+  db.ref('config/alertas').once('value', snap => {
+    const cfg = snap.val() || {};
+    aplicar(cfg.metaRMensal || 0);
+  }).catch(()=>aplicar(0));
+}
+
+function editarMetaR(){
+  const atual = _metaR > 0 ? _metaR : '';
+  const inp = prompt(`Digite a meta de faturamento para o mês atual (R$):\nAtual: ${atual ? brl(atual) : 'Não definida'}`, atual || '');
+  if(inp === null) return; // cancelou
+  const val = parseFloat(inp.replace(/[^\d,]/g,'').replace(',','.'));
+  if(isNaN(val) || val <= 0){ toast('Valor inválido.','err'); return; }
+  db.ref('config/alertas').once('value', snap => {
+    const cfg = snap.val() || {};
+    cfg.metaRMensal = val;
+    db.ref('config/alertas').set(cfg).then(()=>{
+      _metaR = val;
+      toast(`Meta definida: ${brl(val)}`);
+      rdash();
+    });
+  });
+}
+window.editarMetaR = editarMetaR;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #5 — ANÁLISE ABC (CURVA DE PARETO)
+// Classifica produtos com base na participação acumulada na receita:
+// A = primeiros 80% | B = próximos 15% | C = últimos 5%
+// ══════════════════════════════════════════════════════════════════════
+function calcABC(lista, totalVlr){
+  // lista já deve estar ordenada por vlr (maior primeiro)
+  let acum = 0;
+  return lista.map(p => {
+    acum += p.vlr;
+    const pctAcum = totalVlr > 0 ? acum/totalVlr : 0;
+    if(pctAcum <= 0.80) return {...p, abc:'A'};
+    if(pctAcum <= 0.95) return {...p, abc:'B'};
+    return {...p, abc:'C'};
+  });
+}
+
+function badgeABC(abc){
+  const cfg = {
+    A: {cor:'#e8503a', bg:'rgba(232,80,58,.15)', label:'A'},
+    B: {cor:'#f5c418', bg:'rgba(245,196,24,.15)', label:'B'},
+    C: {cor:'#22c97a', bg:'rgba(34,201,122,.15)', label:'C'},
+  }[abc] || {cor:'#4d7a9e', bg:'rgba(77,122,158,.12)', label:'?'};
+  return `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;color:${cfg.cor};background:${cfg.bg}">${cfg.label}</span>`;
+}
 
 // ══════════════════════════════════════════════════════════════════════
 // FEATURE #5 — EXPORTAR DASHBOARD COMO PDF
@@ -4981,6 +5672,15 @@ function rdash(){
   hbarsPlanta('bars-pl',Object.entries(bPL).filter(([,v])=>v.tot>=3).map(([k,v])=>[k,v.tot?Math.round(v.ot/v.tot*100):0,`${k}: ${v.ot} de ${v.tot} entregas no prazo`]));
   // Atualiza notificações automáticas (#13)
   setTimeout(atualizarNotificacoes, 200);
+  // Meta R$ mensal (#4) — calcula faturado no mês atual
+  const mesAtualDash = new Date().getMonth();
+  const anoAtualDash = new Date().getFullYear().toString();
+  const vFatMesAtual = lns.filter(l=>{
+    const dp = pdt(l._ped?.dataPedido);
+    return dp && dp.getMonth()===mesAtualDash && dp.getFullYear().toString()===anoAtualDash
+      && (l.status==='ENTREGUE Á TRANSPORTADORA'||(l.statusEP&&l.statusEP.toString().trim()!==''));
+  }).reduce((s,l)=>s+(+l.vlrFaturado||+l.vlrTotal||0),0);
+  renderMetaR(vFatMesAtual);
 
   // Badge tratativa
   const todasLns=allLinhas();
@@ -5011,6 +5711,7 @@ function exportarPedidosCSV(){
   const fCl=document.getElementById("f-cl")?.value||"";
   const fhNped=(document.getElementById("fh-nped")?.value||"").toLowerCase();
   const fhProd=(document.getElementById("fh-prod")?.value||"").toLowerCase();
+  const fhNf=(document.getElementById("fh-nf")?.value||"").toLowerCase();
   const fhUF=document.getElementById("fh-uf")?.value||"";
   let csv="Nº Pedido;Planta;Cliente;UF;Data Pedido;Produto;Qtd;Vlr Unitário;Vlr Total;Status;Data Fat;NF;Data Entrega\n";
   Object.values(PEDS).forEach(ped=>{
@@ -5025,6 +5726,7 @@ function exportarPedidosCSV(){
     if(srch&&!ped.numPedido?.includes(srch)&&!ped.planta?.toLowerCase().includes(srch)&&!lns.some(([,l])=>l.nomeProduto?.toLowerCase().includes(srch)))return;
     if(fhNped&&!ped.numPedido?.toLowerCase().includes(fhNped))return;
     if(fhProd&&!lns.some(([,l])=>l.nomeProduto?.toLowerCase().includes(fhProd)))return;
+    if(fhNf&&!lns.some(([,l])=>(l.statusEP||'').toString().toLowerCase().includes(fhNf)))return;
     if(fhUF&&ped.uf!==fhUF)return;
     lns.forEach(([,l])=>{
       csv+=`${csvEscape(ped.numPedido)};${csvEscape(ped.planta)};${csvEscape(ped.cliente)};${csvEscape(ped.uf)};${csvEscape(ped.dataPedido)};${csvEscape(l.nomeProduto)};${l.qtd||0};${l.vlrUnitario||0};${l.vlrTotal||0};${csvEscape(l.status)};${csvEscape(l.dataFat)};${csvEscape(l.statusEP)};${csvEscape(l.dataEntrega)}\n`;
@@ -5070,6 +5772,7 @@ function rpedidos(){
   const fCl=document.getElementById('f-cl')?.value||'';
   const fhNped=(document.getElementById('fh-nped')?.value||'').toLowerCase();
   const fhProd=(document.getElementById('fh-prod')?.value||'').toLowerCase();
+  const fhNf=(document.getElementById('fh-nf')?.value||'').toLowerCase();
   const fhUF=document.getElementById('fh-uf')?.value||'';
   const rows=[];
   Object.entries(PEDS).forEach(([pk,ped])=>{
@@ -5085,6 +5788,7 @@ function rpedidos(){
        &&!lns.some(([,l])=>l.nomeProduto?.toLowerCase().includes(srch)))return;
       if(fhNped&&!ped.numPedido?.toLowerCase().includes(fhNped))return;
       if(fhProd&&!lns.some(([,l])=>l.nomeProduto?.toLowerCase().includes(fhProd)))return;
+      if(fhNf&&!lns.some(([,l])=>(l.statusEP||'').toString().toLowerCase().includes(fhNf)))return;
       if(fhUF&&ped.uf!==fhUF)return;
     const dom=sts.has('AGUARDANDO PRODUÇÃO')?'AGUARDANDO PRODUÇÃO':sts.has('AGUARDANDO COLETA')?'AGUARDANDO COLETA':'ENTREGUE Á TRANSPORTADORA';
     rows.push({pk,ped,lns,vTot:lns.reduce((s,[,l])=>s+(+l.vlrTotal||0),0),qTot:lns.reduce((s,[,l])=>s+(+l.qtd||0),0),dom});
@@ -5103,8 +5807,15 @@ function rpedidos(){
     + (plantasUnicas>0 ? ' · ' + plantasUnicas + ' planta' + (plantasUnicas!==1?'s':'') : '');
   document.getElementById('rc-ped').textContent = resumo;
   if(!rows.length){document.getElementById('tb-ped').innerHTML=`<tr><td colspan="11" class="empty">Nenhum pedido. <span onclick="nav('novo')" style="color:var(--gold);cursor:pointer">Criar novo</span></td></tr>`;return;}
+  // Aplica ordenação (#11) — enriquece cada row com campos para sort
+  const rowsParaSort = rows.map(r=>({
+    ...r,
+    vTotQtd: r.qTot||0,
+    statusGeral: r.dom||''
+  }));
+  const rowsOrdenados = sortRows(rowsParaSort);
   let h='';
-  rows.forEach(({pk,ped,lns,vTot,qTot,dom})=>{
+  rowsOrdenados.forEach(({pk,ped,lns,vTot,qTot,dom})=>{
     h+=`<tr class="ph" onclick="toggleLns('${pk}')">
       <td><span class="exp" id="exp-${pk}">▶</span></td>
       <td><span style="font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:11px">${ped.numPedido||'—'}</span></td>
@@ -5795,7 +6506,7 @@ async function desfazerDevolucao(pk, lk){
 }
 
 function limparFiltrosCabecalho(){
-  ['fh-nped','fh-prod','fh-uf'].forEach(id=>{
+  ['fh-nped','fh-prod','fh-nf','fh-uf'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value='';
   });
