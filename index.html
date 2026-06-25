@@ -776,7 +776,7 @@ body.logged-out .main{display:none !important}
       <span class="chip live" id="chip-fb">● Firebase</span>
       <span class="chip" id="chip-date"></span>
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px" onclick="importarDados()">⬆ Importar Planilha</button>
-      <button class="btn btn-s" id="print-btn-wrap" style="font-size:9px;padding:4px 9px;background:rgba(59,143,212,.15);border-color:#3b8fd4;color:#3b8fd4" onclick="exportarPDF()" title="Exportar Dashboard como PDF">📄 PDF</button>
+      <button class="btn btn-s" id="print-btn-wrap" style="font-size:9px;padding:4px 9px;background:rgba(59,143,212,.15);border-color:#3b8fd4;color:#3b8fd4" onclick="pdfDashboard()" title="Exportar Dashboard como PDF executivo (1 página, tema claro)">📄 PDF</button>
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px;background:rgba(245,196,24,.12);border-color:rgba(245,196,24,.4);color:var(--gold)" onclick="toggleApres()" title="Modo Apresentação (Esc para sair)">🖥️</button>
     </div>
   </div>
@@ -983,6 +983,7 @@ body.logged-out .main{display:none !important}
           <button class="btn btn-sm btn-out" onclick="exportarPedidosCSV()" style="padding:4px 8px;font-size:10px">📥 CSV</button>
       <button class="btn btn-p btn-sm" onclick="nav('novo')">+ Novo Pedido</button>
       <button class="btn btn-sec btn-sm" onclick="exportarPedidos()" title="Exportar tabela atual para CSV">📋 Exportar CSV</button>
+      <button class="btn btn-sec btn-sm" onclick="abrirStatusComprador()" title="Gerar status dos pedidos de uma planta para enviar ao comprador (PDF ou WhatsApp)" style="border-color:#3b8fd4;color:#3b8fd4">📤 Status p/ Comprador</button>
     </div>
     <div class="tw"><table><thead>
       <tr style="background:rgba(0,0,0,.2)">
@@ -1317,6 +1318,7 @@ body.logged-out .main{display:none !important}
       <option value="planta">Por Planta</option>
       <option value="produto">Por Produto</option>
     </select>
+    <button class="btn btn-sec btn-sm" onclick="pdfEvolucaoPlantas()" title="Gerar PDF executivo da evolução de faturamento por planta (para enviar à liderança)" style="border-color:#3b8fd4;color:#3b8fd4;background:rgba(59,143,212,.12)">📄 PDF Executivo</button>
     <span style="font-size:11px;color:var(--muted);margin-left:auto" id="pv-sub"></span>
   </div>
   <!-- KPIs de previsão -->
@@ -1346,6 +1348,25 @@ body.logged-out .main{display:none !important}
       <strong style="color:#22c97a">ℹ️</strong> Compara a <strong>média histórica mensal</strong> de cada planta (últimos 6 meses) com o que ela comprou <strong>neste mês</strong>. Plantas abaixo da média histórica = oportunidade de acompanhamento.
     </div>
     <div id="pv-potencial"></div>
+  </div>
+</div>
+
+<!-- MODAL STATUS DO COMPRADOR -->
+<div class="modal-bg" id="m-status-comprador">
+  <div class="modal" style="max-width:440px">
+    <div class="mh"><h3>📤 Status do Comprador</h3><button class="mclose" onclick="closeM('m-status-comprador')">✕</button></div>
+    <div class="mc" style="padding:16px 20px">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6">Gere um resumo rápido do status dos pedidos de uma planta — para enviar ao comprador por PDF ou WhatsApp.</div>
+      <div class="fg"><label>Planta</label><select id="sc-planta"></select></div>
+      <div class="fg"><label>Mês</label><select id="sc-mes"></select></div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);margin:8px 0;text-transform:uppercase;letter-spacing:1px">— ou —</div>
+      <div class="fg"><label>Nº do Pedido</label><input id="sc-num" type="text" placeholder="ex: 4512959499 (ignora planta e mês)" oninput="scNumToggle()" autocomplete="off"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-status-comprador')">Cancelar</button>
+      <button class="btn btn-sec" onclick="whatsappStatusComprador()" title="Copiar texto para colar no WhatsApp" style="border-color:#22c97a;color:#22c97a">📋 WhatsApp</button>
+      <button class="btn" onclick="pdfStatusComprador()">📄 PDF</button>
+    </div>
   </div>
 </div>
 
@@ -4960,6 +4981,496 @@ function pdfPlanta(key){
   else toast('Permita pop-ups para gerar o PDF.','err');
 }
 window.pdfPlanta = pdfPlanta;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #10 (v24) — PDF EXECUTIVO: EVOLUÇÃO DE FATURAMENTO POR PLANTA
+// Relatório para liderança. Janela nova + tema claro + SVG puro (sem Chart.js
+// no popup, para impressão 100% confiável). Reaproveita PEDS/brl/pdt/MES.
+// ══════════════════════════════════════════════════════════════════════
+
+// Tendência por regressão linear simples sobre a série mensal (só meses com valor)
+function _evTendCalc(serie){
+  const pts = serie.map((y,x)=>({x,y})).filter(p=>p.y>0);
+  const n = pts.length;
+  if(n < 2) return 0;
+  const sx=pts.reduce((s,p)=>s+p.x,0), sy=pts.reduce((s,p)=>s+p.y,0);
+  const sxy=pts.reduce((s,p)=>s+p.x*p.y,0), sx2=pts.reduce((s,p)=>s+p.x*p.x,0);
+  const den = n*sx2 - sx*sx; if(!den) return 0;
+  const m = (n*sxy - sx*sy)/den;
+  const ref = sy/n;             // média da própria planta — limiar relativo
+  const lim = ref*0.05;         // ±5% da média por mês = ruído (estável)
+  return m > lim ? 1 : m < -lim ? -1 : 0;
+}
+
+// Formatação compacta para rótulos de gráfico (484k / 1,2mi)
+function _evK(v){
+  if(v >= 1e6) return (v/1e6).toFixed(1).replace('.',',')+'mi';
+  if(v >= 1e3) return Math.round(v/1e3)+'k';
+  return Math.round(v)+'';
+}
+
+// Mini gráfico de barras (sparkline) — último mês destacado em navy
+function _evSpark(serie){
+  const max = Math.max(1, ...serie);
+  const w=11, gap=3, H=26, n=serie.length;
+  const bars = serie.map((v,i)=>{
+    if(v <= 0) return '';
+    const h = Math.max(2, Math.round(v/max*(H-2)));
+    const x = i*(w+gap), y = H-h;
+    const fill = (i===n-1) ? '#0d1b2e' : '#9db4cf';
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="1.5" fill="'+fill+'"/>';
+  }).join('');
+  const W = n*(w+gap)-gap;
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'">'+bars+'</svg>';
+}
+
+// Gráfico de barras consolidado (faturamento total por mês)
+function _evCons(cons){
+  const max = Math.max(1, ...cons.map(c=>c.valor));
+  const n = cons.length;
+  const plotL=46, plotR=590, baseY=100, topY=20, plotH=baseY-topY, plotW=plotR-plotL;
+  const slot = plotW/n, bw = Math.min(54, slot*0.62);
+  let bars = '';
+  cons.forEach((c,i)=>{
+    const h = c.valor>0 ? Math.max(2, Math.round(c.valor/max*plotH)) : 0;
+    const x = plotL + slot*i + (slot-bw)/2;
+    const y = baseY - h;
+    const last = (i===n-1);
+    bars += '<rect x="'+x.toFixed(1)+'" y="'+y+'" width="'+bw.toFixed(1)+'" height="'+h+'" rx="3" fill="'+(last?'#0d1b2e':'#3b8fd4')+'"/>';
+    bars += '<text x="'+(x+bw/2).toFixed(1)+'" y="'+(y-5)+'" text-anchor="middle" font-family="Arial" font-size="8.5" fill="#1a2d45" font-weight="700">'+_evK(c.valor)+'</text>';
+    bars += '<text x="'+(x+bw/2).toFixed(1)+'" y="114" text-anchor="middle" font-family="Arial" font-size="9" fill="#6b7a90">'+c.rotulo+'</text>';
+  });
+  const tick = (val,y)=>'<text x="40" y="'+(y+3)+'" text-anchor="end" font-family="Arial" font-size="9" fill="#6b7a90">'+_evK(val)+'</text>';
+  return '<svg viewBox="0 0 600 130" style="width:100%;height:auto" role="img" aria-label="Faturamento consolidado por mês">'
+    + '<line x1="'+plotL+'" y1="'+baseY+'" x2="'+plotR+'" y2="'+baseY+'" stroke="#dfe6ee" stroke-width="1"/>'
+    + tick(0,baseY) + tick(max/2,(topY+baseY)/2) + tick(max,topY)
+    + bars + '</svg>';
+}
+
+// Etiqueta de tendência (setas sóbrias)
+function _evTendTxt(t){
+  if(t > 0) return '<span style="color:#22c97a;font-weight:700">&#8593; subindo</span>';
+  if(t < 0) return '<span style="color:#e8503a;font-weight:700">&#8595; caindo</span>';
+  return '<span style="color:#6b7a90;font-weight:700">&#8594; est&aacute;vel</span>';
+}
+
+// Núcleo: monta a evolução de faturamento por planta na janela de N meses
+function calcEvolucaoFaturamento(nMeses){
+  nMeses = nMeses || 6;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const anoAtual = hoje.getFullYear(), mesAtual = hoje.getMonth();
+  const em30 = new Date(anoAtual, mesAtual, hoje.getDate()+30);
+
+  // Chaves YYYY-MM dos últimos N meses (incluindo o atual) e seus rótulos
+  const chaves = [], rotulos = [];
+  for(let i=nMeses-1; i>=0; i--){
+    const d = new Date(anoAtual, mesAtual - i, 1);
+    chaves.push(d.getFullYear()+'-'+String(d.getMonth()).padStart(2,'0'));
+    rotulos.push(MES[d.getMonth()]);
+  }
+  const mkAtual = anoAtual+'-'+String(mesAtual).padStart(2,'0');
+
+  const porPlanta = {};
+  Object.values(PEDS||{}).forEach(ped=>{
+    const dp = pdt(ped.dataPedido); if(!dp || !ped.planta) return;
+    const planta = ped.planta;
+    if(!porPlanta[planta]) porPlanta[planta] = {mensal:{}, prev30:0, uf:ped.uf||'', cliente:ped.cliente||''};
+    const mk = dp.getFullYear()+'-'+String(dp.getMonth()).padStart(2,'0');
+    const vlrPed = Object.values(ped.linhas||{}).reduce((s,l)=>s+(+l.vlrTotal||0),0);
+    porPlanta[planta].mensal[mk] = (porPlanta[planta].mensal[mk]||0) + vlrPed;
+
+    // Previsão 30 dias: mesma regra da aba (linhas em aberto, prazo/prevEntrega próx. 30d)
+    const prazo = new Date(dp.getFullYear(), dp.getMonth(), dp.getDate()+30);
+    Object.values(ped.linhas||{}).forEach(ln=>{
+      if(ln.status === 'ENTREGUE Á TRANSPORTADORA') return;
+      const prevEntrega = pdt(ln.prevEntrega);
+      const dentro = (hoje <= prazo) || (prevEntrega && prevEntrega >= hoje && prevEntrega <= em30);
+      if(dentro) porPlanta[planta].prev30 += (+ln.vlrTotal||0);
+    });
+  });
+
+  const linhas = Object.entries(porPlanta).map(([planta,d])=>{
+    const serie = chaves.map(mk => d.mensal[mk]||0);
+    const atual = d.mensal[mkAtual]||0;
+    const fechados = serie.slice(0,-1).filter(v=>v>0);  // meses fechados com dado
+    const media = fechados.length ? fechados.reduce((a,b)=>a+b,0)/fechados.length : 0;
+    const totalPeriodo = serie.reduce((a,b)=>a+b,0);
+    return {planta, uf:d.uf, cliente:d.cliente, serie, atual, media,
+            prev30:d.prev30, tend:_evTendCalc(serie), totalPeriodo};
+  }).filter(r => r.totalPeriodo>0 || r.prev30>0)
+    .sort((a,b)=> b.totalPeriodo - a.totalPeriodo);
+
+  return {
+    linhas, rotulos, chaves, nMeses,
+    totalGeral: linhas.reduce((s,r)=>s+r.totalPeriodo,0),
+    prevGeral:  linhas.reduce((s,r)=>s+r.prev30,0),
+    consolidado: chaves.map((mk,i)=>({rotulo:rotulos[i], valor: linhas.reduce((s,r)=>s+r.serie[i],0)}))
+  };
+}
+
+function pdfEvolucaoPlantas(){
+  if(!PEDS){ toast('Dados ainda não carregados. Aguarde a sincronização.','err'); return; }
+  const ev = calcEvolucaoFaturamento(6);
+  if(!ev.linhas.length){ toast('Sem faturamento no período para gerar o relatório.','err'); return; }
+
+  const nUp   = ev.linhas.filter(r=>r.tend>0).length;
+  const nFlat = ev.linhas.filter(r=>r.tend===0).length;
+  const nDown = ev.linhas.filter(r=>r.tend<0).length;
+
+  const ini = ev.chaves[0].split('-'), fim = ev.chaves[ev.chaves.length-1].split('-');
+  const periodo = ev.rotulos[0]+'/'+ini[0].slice(2)+' – '+ev.rotulos[ev.rotulos.length-1]+'/'+fim[0].slice(2);
+  const gerado = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const rows = ev.linhas.map((r,i)=>{
+    const bg = i%2 ? '#f7fafc' : '#fff';
+    return '<tr style="background:'+bg+';border-bottom:1px solid #eef2f7">'
+      + '<td style="padding:6px 8px;font-weight:700">'+r.planta
+        + (r.uf?'<div style="font-size:8px;color:#9aa7b8;font-weight:400">'+r.uf+'</div>':'')+'</td>'
+      + '<td style="padding:6px 8px;text-align:center">'+_evSpark(r.serie)+'</td>'
+      + '<td style="padding:6px 8px;text-align:right;color:#6b7a90">'+(r.media>0?brl(r.media):'—')+'</td>'
+      + '<td style="padding:6px 8px;text-align:right;font-weight:700">'+(r.atual>0?brl(r.atual):'—')+'</td>'
+      + '<td style="padding:6px 8px;text-align:center;font-size:9px">'+_evTendTxt(r.tend)+'</td>'
+      + '<td style="padding:6px 8px;text-align:right;font-weight:700;color:#3b8fd4">'+(r.prev30>0?brl(r.prev30):'—')+'</td>'
+      + '</tr>';
+  }).join('');
+
+  const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
+  + '<title>Evolução de Faturamento por Planta — '+periodo+'</title><style>'
+  + '*{box-sizing:border-box;margin:0;padding:0}'
+  + 'body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a2d45;background:#fff;padding:0;max-width:820px;margin:0 auto}'
+  + '.hd{background:#0d1b2e;color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:flex-start}'
+  + '.hd h1{font-size:19px;font-weight:700}'
+  + '.hd .sub{font-size:10px;color:#9db4cf;margin-top:3px}'
+  + '.hd .meta{text-align:right;font-size:9px;color:#9db4cf;line-height:1.7}'
+  + '.gold{height:3px;background:#f5c418}'
+  + '.body{padding:18px 24px}'
+  + '.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}'
+  + '.kpi{background:#f0f4f8;border-radius:6px;padding:10px 12px}'
+  + '.kpi.b{border-left:3px solid #3b8fd4}.kpi.g{border-left:3px solid #f5c418}'
+  + '.kpi.v{border-left:3px solid #22c97a}.kpi.r{border-left:3px solid #e8503a}'
+  + '.kpi .lbl{font-size:8px;color:#6b7a90;text-transform:uppercase;letter-spacing:.5px}'
+  + '.kpi .val{font-size:17px;font-weight:700;margin-top:3px}'
+  + 'h2{font-size:12px;color:#0d1b2e;border-bottom:2px solid #f5c418;padding-bottom:4px;margin:0 0 10px}'
+  + 'table{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:6px}'
+  + 'thead tr{background:#0d1b2e;color:#fff}'
+  + 'th{text-align:right;padding:6px 8px;font-size:8.5px;font-weight:600}'
+  + 'th.l{text-align:left}th.c{text-align:center}'
+  + '.cap{font-size:8.5px;color:#9aa7b8;line-height:1.6;margin-bottom:18px}'
+  + '.ft{margin-top:20px;border-top:1px solid #e3e9f0;padding-top:8px;font-size:8.5px;color:#9aa7b8;text-align:center}'
+  + 'button{margin-top:8px;padding:5px 14px;background:#f5c418;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:11px}'
+  + '@media print{body{padding:0}button{display:none}.hd{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+  + '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+  + '</style></head><body>'
+  + '<div class="hd"><div><h1>Evolução de Faturamento por Planta</h1>'
+  + '<div class="sub">Pedidos Vale · Loja Parauapebas · Visão para a liderança</div></div>'
+  + '<div class="meta"><div>Período: <b style="color:#f5c418">'+periodo+'</b></div>'
+  + '<div>Gerado em: '+gerado+'</div>'
+  + '<button onclick="window.print()">&#128424; Imprimir / Salvar PDF</button></div></div>'
+  + '<div class="gold"></div>'
+  + '<div class="body">'
+  + '<div class="kpis">'
+  + '<div class="kpi b"><div class="lbl">Faturado no período</div><div class="val">'+brl(ev.totalGeral)+'</div></div>'
+  + '<div class="kpi g"><div class="lbl">A faturar (30 dias)</div><div class="val">'+brl(ev.prevGeral)+'</div></div>'
+  + '<div class="kpi v"><div class="lbl">Plantas ativas</div><div class="val">'+ev.linhas.length+'</div></div>'
+  + '<div class="kpi r"><div class="lbl">Tendência geral</div><div class="val" style="font-size:13px;margin-top:5px">'
+  + '<span style="color:#22c97a">'+nUp+' &#8593;</span> · <span style="color:#6b7a90">'+nFlat+' &#8594;</span> · <span style="color:#e8503a">'+nDown+' &#8595;</span></div></div>'
+  + '</div>'
+  + '<h2>Faturamento consolidado por mês</h2>'
+  + _evCons(ev.consolidado)
+  + '<div style="height:14px"></div>'
+  + '<h2>Detalhe por planta — '+ev.nMeses+' meses + projeção</h2>'
+  + '<table><thead><tr>'
+  + '<th class="l">PLANTA</th><th class="c">EVOLUÇÃO ('+ev.rotulos[0]+'–'+ev.rotulos[ev.rotulos.length-1]+')</th>'
+  + '<th>MÉDIA/MÊS</th><th>MÊS ATUAL</th><th class="c">TEND.</th><th>PREV. 30D</th>'
+  + '</tr></thead><tbody>'+rows+'</tbody></table>'
+  + '<div class="cap">Média/mês = média dos meses fechados na janela (o mês atual é parcial e fica fora). '
+  + 'Mês atual = faturamento parcial do mês corrente. '
+  + 'Prev. 30d = valor a faturar dos pedidos em aberto com prazo nos próximos 30 dias. '
+  + 'A barra mais escura de cada mini-gráfico é o mês atual.</div>'
+  + '<div class="ft">Relatório gerado pelo Sistema Vale Pedidos · Loja Parauapebas PA · '+gerado+'</div>'
+  + '</div>'
+  + '<script>setTimeout(function(){window.print()},500)<\/script>'
+  + '</body></html>';
+
+  const w = window.open('','_blank','width=900,height=760');
+  if(w){ w.document.write(html); w.document.close(); }
+  else toast('Permita pop-ups para gerar o PDF.','err');
+}
+window.calcEvolucaoFaturamento = calcEvolucaoFaturamento;
+window.pdfEvolucaoPlantas = pdfEvolucaoPlantas;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #11 (v25) — STATUS DO COMPRADOR (PDF + WhatsApp)
+// Consulta rápida do status dos pedidos de uma planta, por mês ou nº.
+// Para o comprador. Reaproveita PEDS/pdt/fdt/brl/MES/toast/openM/closeM.
+// ══════════════════════════════════════════════════════════════════════
+
+// Status do ponto de vista do comprador (com regra de atraso)
+function _scStatus(ln, hoje){
+  if(ln.status === 'ENTREGUE Á TRANSPORTADORA')
+    return {key:'entregue', label:'Entregue à transportadora', cor:'#1c7a4d', emoji:'🟢'};
+  const prev = pdt(ln.prevEntrega);
+  const atrasado = prev && prev < hoje;
+  if(ln.status === 'AGUARDANDO COLETA')
+    return atrasado
+      ? {key:'atraso', label:'Atrasado (aguardando coleta)', cor:'#a83524', emoji:'🔴'}
+      : {key:'coleta', label:'Pronto, aguardando coleta', cor:'#1f5a8c', emoji:'🔵'};
+  return atrasado
+    ? {key:'atraso', label:'Atrasado (em produção)', cor:'#a83524', emoji:'🔴'}
+    : {key:'producao', label:'Em produção', cor:'#9a7a1a', emoji:'🟡'};
+}
+
+function calcStatusComprador(planta, filtro){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const num = (filtro.num||'').trim();
+  const mes = filtro.mes;
+  const peds = [];
+  Object.values(PEDS||{}).forEach(ped=>{
+    if(num){ if(String(ped.numPedido) !== num) return; }
+    else {
+      if(planta && ped.planta !== planta) return;
+      if(mes!=='' && mes!=='all' && mes!=null){
+        const dp = pdt(ped.dataPedido); if(!dp || dp.getMonth() !== Number(mes)) return;
+      }
+    }
+    const linhas = Object.values(ped.linhas||{}).map(ln=>({
+      nome: ln.nomeProduto || ln.produto || '—',
+      qtd: +ln.qtd || +ln.quantidade || 0,
+      prev: ln.prevEntrega, entrega: ln.dataEntrega, sap: ln.statusEP || '',
+      vlr: +ln.vlrTotal || 0, st: _scStatus(ln, hoje)
+    }));
+    if(linhas.length) peds.push({num:ped.numPedido, data:ped.dataPedido, planta:ped.planta, cliente:ped.cliente||'', uf:ped.uf||'', linhas});
+  });
+  peds.sort((a,b)=> (pdt(b.data)||0) - (pdt(a.data)||0));
+  const sum = {producao:0, coleta:0, entregue:0, atraso:0, itens:0};
+  peds.forEach(p=>p.linhas.forEach(l=>{ sum[l.st.key]=(sum[l.st.key]||0)+1; sum.itens += l.qtd; }));
+  return {peds, sum};
+}
+
+// Lê os campos do modal e monta o contexto do relatório
+function _scContexto(){
+  const num = document.getElementById('sc-num').value.trim();
+  const plantaSel = document.getElementById('sc-planta').value;
+  const mesV = document.getElementById('sc-mes').value;
+  const data = calcStatusComprador(num ? '' : plantaSel, {mes:mesV, num});
+  if(!data.peds.length){ toast(num ? 'Pedido não encontrado.' : 'Nenhum pedido para esse filtro.','err'); return null; }
+  const planta = num ? data.peds[0].planta : plantaSel;
+  const ano = (pdt(data.peds[0].data) || new Date()).getFullYear();
+  const periodo = num ? ('Pedido ' + num) : (mesV==='all' ? 'Todos os meses' : (MES[Number(mesV)] + '/' + ano));
+  return {data, planta, periodo, cliente:data.peds[0].cliente, uf:data.peds[0].uf};
+}
+
+function abrirStatusComprador(){
+  const selP = document.getElementById('sc-planta');
+  const plantas = [...new Set(Object.values(PEDS||{}).map(p=>p.planta).filter(Boolean))].sort();
+  selP.innerHTML = plantas.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+  const selM = document.getElementById('sc-mes');
+  const mesAtual = new Date().getMonth();
+  selM.innerHTML = '<option value="all">Todos os meses</option>' +
+    MES.map((m,i)=>'<option value="'+i+'"'+(i===mesAtual?' selected':'')+'>'+m+'</option>').join('');
+  document.getElementById('sc-num').value='';
+  scNumToggle();
+  openM('m-status-comprador');
+}
+
+function scNumToggle(){
+  const has = document.getElementById('sc-num').value.trim().length>0;
+  document.getElementById('sc-planta').disabled = has;
+  document.getElementById('sc-mes').disabled = has;
+}
+
+function _scClipboard(txt){
+  const ok = ()=>toast('Status copiado! Cole no WhatsApp.');
+  const fb = ()=>{
+    const ta=document.createElement('textarea'); ta.value=txt;
+    ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); ok(); }catch(e){ toast('Não consegui copiar automaticamente.','err'); }
+    document.body.removeChild(ta);
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(txt).then(ok, fb);
+  else fb();
+}
+
+function whatsappStatusComprador(){
+  const ctx = _scContexto(); if(!ctx) return;
+  const emo = {producao:'🟡', coleta:'🔵', entregue:'🟢', atraso:'🔴'};
+  let txt = '📦 Status de Pedidos — ' + ctx.planta + ' · ' + ctx.periodo +
+            '\nAtualizado em ' + new Date().toLocaleDateString('pt-BR') + '\n';
+  ctx.data.peds.forEach(p=>{
+    txt += '\n';
+    p.linhas.forEach(l=>{
+      let linha = (emo[l.st.key]||'•') + ' ' + p.num + ' (' + fdt(p.data) + ') — ' + l.nome + ' ×' + l.qtd + '\n    ' + l.st.label;
+      if(l.st.key==='entregue' && l.entrega) linha += ' em ' + fdt(l.entrega);
+      else if(l.prev) linha += ' · previsão ' + fdt(l.prev);
+      txt += linha + '\n';
+    });
+  });
+  const s = ctx.data.sum;
+  txt += '\nResumo: ' + (s.producao||0) + ' em produção · ' + (s.coleta||0) + ' aguardando coleta · ' + (s.entregue||0) + ' entregue(s)';
+  if(s.atraso) txt += ' · ' + s.atraso + ' ATRASADO(S)';
+  _scClipboard(txt);
+}
+
+function pdfStatusComprador(){
+  const ctx = _scContexto(); if(!ctx) return;
+  const s = ctx.data.sum;
+  const gerado = new Date().toLocaleDateString('pt-BR');
+
+  let rows = '';
+  ctx.data.peds.forEach((p,pi)=>{
+    p.linhas.forEach((l,li)=>{
+      const bg = pi%2 ? '#f7fafc' : '#fff';
+      const ped = li===0 ? '<b>'+p.num+'</b><div style="font-size:8px;color:#9aa7b8;font-weight:400">'+fdt(p.data)+'</div>' : '';
+      rows += '<tr style="background:'+bg+';border-bottom:1px solid #eef2f7">'
+        + '<td style="padding:6px 7px;border-left:3px solid '+(li===0?'#0d1b2e':'transparent')+'">'+ped+'</td>'
+        + '<td style="padding:6px 7px">'+l.nome+'</td>'
+        + '<td style="padding:6px 7px;text-align:right">'+l.qtd+'</td>'
+        + '<td style="padding:6px 7px"><span style="color:'+l.st.cor+';font-weight:700">&#9679; '+l.st.label+'</span>'
+          + (l.sap ? '<div style="font-size:8px;color:#9aa7b8">SAP '+l.sap+'</div>' : '') + '</td>'
+        + '<td style="padding:6px 7px;text-align:center;color:#6b7a90">'+(l.prev?fdt(l.prev):'—')+'</td>'
+        + '<td style="padding:6px 7px;text-align:center">'+(l.entrega?'<b style="color:#1c7a4d">'+fdt(l.entrega)+'</b>':'<span style="color:#cbd3dd">—</span>')+'</td>'
+        + '</tr>';
+    });
+  });
+
+  const pill = (n,emoji,txt,bg,bd,fg)=>'<div style="flex:1;min-width:108px;background:'+bg+';border:1px solid '+bd+';border-radius:8px;padding:8px 11px">'
+    + '<div style="font-size:18px;font-weight:700;color:'+fg+'">'+(n||0)+'</div><div style="font-size:9px;color:'+fg+'">'+emoji+' '+txt+'</div></div>';
+
+  const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
+  + '<title>Status de Pedidos — '+ctx.planta+'</title><style>'
+  + '*{box-sizing:border-box;margin:0;padding:0}'
+  + 'body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a2d45;background:#fff;max-width:780px;margin:0 auto}'
+  + '.hd{background:#0d1b2e;color:#fff;padding:16px 22px;display:flex;justify-content:space-between;align-items:flex-start}'
+  + '.hd h1{font-size:17px;font-weight:700}.hd .sub{font-size:10px;color:#9db4cf;margin-top:3px}'
+  + '.hd .meta{text-align:right;font-size:9px;color:#9db4cf;line-height:1.6}'
+  + '.gold{height:3px;background:#f5c418}.body{padding:16px 22px}'
+  + 'table{width:100%;border-collapse:collapse;font-size:10px}'
+  + 'thead tr{background:#0d1b2e;color:#fff}th{padding:6px 7px;font-size:8.5px;font-weight:600;text-align:left}'
+  + 'th.r{text-align:right}th.c{text-align:center}'
+  + '.ft{margin-top:18px;border-top:1px solid #e3e9f0;padding-top:8px;font-size:8.5px;color:#9aa7b8;text-align:center}'
+  + 'button{margin-top:8px;padding:5px 14px;background:#f5c418;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:11px}'
+  + '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{button{display:none}}'
+  + '</style></head><body>'
+  + '<div class="hd"><div><h1>Status de Pedidos — '+ctx.planta+'</h1>'
+  + '<div class="sub">'+(ctx.cliente||'')+(ctx.uf?' · '+ctx.uf:'')+' · Período: '+ctx.periodo+'</div></div>'
+  + '<div class="meta"><div>Atualizado em</div><div style="color:#f5c418;font-weight:700">'+gerado+'</div>'
+  + '<button onclick="window.print()">&#128424; Imprimir / Salvar PDF</button></div></div>'
+  + '<div class="gold"></div><div class="body">'
+  + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'
+  + pill(s.producao,'🟡','Em produção','#fff8e6','#f3d98a','#9a7a1a')
+  + pill(s.coleta,'🔵','Aguard. coleta','#eaf2fb','#b9d6f2','#1f5a8c')
+  + pill(s.entregue,'🟢','Entregues','#e9f7ef','#a9e0c2','#1c7a4d')
+  + pill(s.atraso,'🔴','Atrasados','#fdecea','#f3b6ad','#a83524')
+  + '</div>'
+  + '<table><thead><tr><th>PEDIDO</th><th>ITEM</th><th class="r">QTD</th><th>STATUS</th><th class="c">PREVISÃO</th><th class="c">ENTREGA</th></tr></thead>'
+  + '<tbody>'+rows+'</tbody></table>'
+  + '<div style="margin-top:14px;background:#f0f4f8;border-radius:6px;padding:9px 12px;font-size:10px;color:#42526b">'
+  + '<b>Resumo:</b> '+ctx.data.peds.length+' pedido(s) · '+s.itens+' itens · '
+  + (s.producao||0)+' em produção, '+(s.coleta||0)+' aguardando coleta, '+(s.entregue||0)+' entregue(s)'
+  + (s.atraso?', <b style="color:#a83524">'+s.atraso+' atrasado(s)</b>':'. Nenhum pedido atrasado')+'.</div>'
+  + '<div class="ft">Sistema Vale Pedidos · Loja Parauapebas PA · Consulta de status para o comprador da planta · '+gerado+'</div>'
+  + '</div></body></html>';
+
+  const w = window.open('','_blank','width=860,height=720');
+  if(w){ w.document.write(html); w.document.close(); setTimeout(function(){try{w.print()}catch(e){}},500); }
+  else toast('Permita pop-ups para gerar o PDF.','err');
+}
+window.calcStatusComprador = calcStatusComprador;
+window.abrirStatusComprador = abrirStatusComprador;
+window.scNumToggle = scNumToggle;
+window.whatsappStatusComprador = whatsappStatusComprador;
+window.pdfStatusComprador = pdfStatusComprador;
+
+// ══════════════════════════════════════════════════════════════════════
+// FEATURE #12 (v25) — DASHBOARD PDF LIMPO (1 página, tema claro)
+// Lê os valores reais já calculados no DOM (sem recálculo) e monta um
+// relatório executivo limpo. Substitui o window.print() da tela.
+// ══════════════════════════════════════════════════════════════════════
+function _dashRing(valTxt, cor){
+  const pct = Math.min(parseFloat(String(valTxt).replace('%',''))||0, 100);
+  const r=34, c=2*Math.PI*r, off=c*(1-pct/100);
+  return '<svg viewBox="0 0 90 90" width="86" height="86">'
+    + '<circle cx="45" cy="45" r="'+r+'" fill="none" stroke="#e8eef4" stroke-width="9"/>'
+    + '<circle cx="45" cy="45" r="'+r+'" fill="none" stroke="'+cor+'" stroke-width="9" stroke-linecap="round" '
+    + 'stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 45 45)"/>'
+    + '<text x="45" y="51" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#1a2d45">'+valTxt+'</text>'
+    + '</svg>';
+}
+
+function pdfDashboard(){
+  if(typeof rdash === 'function'){ try{ rdash(); }catch(e){} }
+  const gv = id => ((document.getElementById(id)||{}).textContent||'—').trim();
+  const stxt = id => { const s=document.getElementById(id); if(!s) return ''; const o=s.options[s.selectedIndex]; return o?o.text.trim():''; };
+  const gerado = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+
+  const ano = stxt('d-ano') || gv('d-ano');
+  const extra = ['d-cli','d-uf','d-pl','d-classe','d-periodo'].map(stxt).filter(t=>t && !/^Tod[oa]s/i.test(t)).join(' · ');
+
+  const kpi = (val,lbl,cor,trend)=>'<div style="background:#f0f4f8;border-radius:6px;padding:9px 11px;border-left:3px solid '+cor+'">'
+    + '<div style="font-size:8px;color:#6b7a90;text-transform:uppercase;letter-spacing:.4px">'+lbl+'</div>'
+    + '<div style="font-size:15px;font-weight:700;margin-top:2px">'+val+(trend&&trend!=='—'?' <span style="font-size:9px;color:#6b7a90;font-weight:400">'+trend+'</span>':'')+'</div></div>';
+
+  const metaBarW = (document.getElementById('meta-barra')||{}).style ? (document.getElementById('meta-barra').style.width||'0%') : '0%';
+
+  const html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'
+  + '<title>Dashboard de Desempenho — '+ano+'</title><style>'
+  + '*{box-sizing:border-box;margin:0;padding:0}'
+  + 'body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#1a2d45;background:#fff;max-width:820px;margin:0 auto}'
+  + '.hd{background:#0d1b2e;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:flex-start}'
+  + '.hd h1{font-size:18px;font-weight:700}.hd .sub{font-size:10px;color:#9db4cf;margin-top:3px}'
+  + '.hd .meta{text-align:right;font-size:9px;color:#9db4cf;line-height:1.7}'
+  + '.gold{height:3px;background:#f5c418}.body{padding:18px 24px}'
+  + 'h2{font-size:11px;color:#0d1b2e;border-bottom:2px solid #f5c418;padding-bottom:4px;margin:0 0 12px}'
+  + '.gauges{display:flex;justify-content:space-around;text-align:center;margin-bottom:20px}'
+  + '.glbl{font-size:9px;color:#6b7a90;text-transform:uppercase;letter-spacing:.6px;margin-top:4px}'
+  + '.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}'
+  + '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{button{display:none}}'
+  + 'button{margin-top:8px;padding:5px 14px;background:#f5c418;border:none;border-radius:4px;cursor:pointer;font-weight:700;font-size:11px}'
+  + '</style></head><body>'
+  + '<div class="hd"><div><h1>Dashboard de Desempenho</h1>'
+  + '<div class="sub">Pedidos Vale · Loja Parauapebas · Ano '+ano+(extra?' · '+extra:'')+'</div></div>'
+  + '<div class="meta"><div>Gerado em: '+gerado+'</div>'
+  + '<button onclick="window.print()">&#128424; Imprimir / Salvar PDF</button></div></div>'
+  + '<div class="gold"></div><div class="body">'
+  + '<h2>Indicadores de Entrega</h2>'
+  + '<div class="gauges">'
+  + '<div>'+_dashRing(gv('v-ot'),'#f5c418')+'<div class="glbl">OTIFF</div></div>'
+  + '<div>'+_dashRing(gv('v-on'),'#3b8fd4')+'<div class="glbl">On Time</div></div>'
+  + '<div>'+_dashRing(gv('v-if'),'#22c97a')+'<div class="glbl">In Full</div></div>'
+  + '</div>'
+  + '<h2>Volume de Pedidos</h2><div class="grid">'
+  + kpi(gv('k-rec'),'# Recebidos','#f5c418',gv('tr-rec'))
+  + kpi(gv('k-ent'),'# Entregues','#22c97a',gv('tr-ent'))
+  + kpi(gv('k-ab'),'# Em Aberto','#f5a623',gv('tr-ab'))
+  + kpi(gv('k-ag'),'Ag. Produção','#f5a623','')
+  + kpi(gv('k-venc'),'⚠ Vencidas','#e8503a','')
+  + '</div>'
+  + '<h2>Financeiro</h2><div class="grid">'
+  + kpi(gv('k-vp'),'$ Pedidos','#f5c418',gv('tr-vp'))
+  + kpi(gv('k-vf'),'$ Faturado','#3b8fd4',gv('tr-vf'))
+  + kpi(gv('k-vn'),'$ Pendente','#e8503a','')
+  + kpi(gv('k-df'),'Dias a Faturar','#3b8fd4','')
+  + kpi(gv('k-dc'),'Dias a Coletar','#3b8fd4','')
+  + '</div>'
+  + '<h2>Meta de Faturamento — '+gv('meta-mes-nome')+'</h2>'
+  + '<div style="display:flex;align-items:center;gap:16px;background:#fff8e6;border:1px solid #f3d98a;border-radius:8px;padding:12px 16px">'
+  + '<div style="flex:1"><div style="height:12px;background:#eee3c2;border-radius:6px;overflow:hidden;margin-bottom:6px">'
+  + '<div style="height:100%;background:#f5c418;border-radius:6px;width:'+metaBarW+'"></div></div>'
+  + '<div style="display:flex;justify-content:space-between;font-size:10px;color:#8a7320">'
+  + '<span>'+gv('meta-fat-label')+'</span><span style="font-weight:700">'+gv('meta-total-label')+'</span></div></div>'
+  + '<div style="text-align:right;min-width:60px"><div style="font-size:24px;font-weight:700;color:#9a7a1a">'+gv('meta-pct-label')+'</div>'
+  + '<div style="font-size:8px;color:#8a7320">da meta</div></div></div>'
+  + '<div style="margin-top:8px;font-size:9px;color:#9aa7b8">'+gv('meta-dias-label')+'</div>'
+  + '<div style="margin-top:20px;border-top:1px solid #e3e9f0;padding-top:8px;font-size:8.5px;color:#9aa7b8;text-align:center">'
+  + 'Relatório gerado pelo Sistema Vale Pedidos · Loja Parauapebas PA · '+gerado+'</div>'
+  + '</div></body></html>';
+
+  const w = window.open('','_blank','width=900,height=760');
+  if(w){ w.document.write(html); w.document.close(); setTimeout(function(){try{w.print()}catch(e){}},500); }
+  else toast('Permita pop-ups para gerar o PDF.','err');
+}
+window.pdfDashboard = pdfDashboard;
 
 // ══════════════════════════════════════════════════════════════════════
 // FEATURE #4 — META R$ MENSAL
