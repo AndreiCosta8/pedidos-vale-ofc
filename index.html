@@ -1993,7 +1993,13 @@ function listenPeds(){
     if(val && Object.keys(val).length > 0){
       // Firebase tem dados reais — usar esses
       PEDS = val;
-      rdash(); rpedidos(); rtrat();
+      // v26: só renderiza a página que está realmente visível — evita travar
+      // o salvamento (ou qualquer escrita) quando o usuário está em outra tela,
+      // como "Novo Pedido". Antes, rdash/rpedidos/rtrat rodavam sempre, para
+      // TODA gravação no banco, mesmo com a tela de destino invisível.
+      if(document.getElementById('pg-dash')?.classList.contains('on')) rdash();
+      if(document.getElementById('pg-pedidos')?.classList.contains('on')) rpedidos();
+      if(document.getElementById('pg-tratativa')?.classList.contains('on')) rtrat();
       atualizarBadgePlantas(); // mantém o badge vermelho do menu sempre atualizado
       if(document.getElementById('pg-plantas')?.classList.contains('on')) rPlantas();
       const total = Object.keys(PEDS).length;
@@ -5815,6 +5821,12 @@ function nav(pg){
   document.getElementById('pg-title').textContent=t;
   document.getElementById('pg-sub').textContent=s;
   if(pg==='novo') resetForm();
+  // v26: dash/pedidos/tratativa agora só recalculam automaticamente quando a
+  // própria página está visível (evita travar o save de outra tela). Por isso,
+  // ao navegar até elas, força uma renderização com os dados já em memória (PEDS).
+  if(pg==='dash' && PEDS) rdash();
+  if(pg==='pedidos' && PEDS) rpedidos();
+  if(pg==='tratativa' && PEDS) rtrat();
   if(pg==='evolucao') rEvolucao();
   if(pg==='metas') rMetas();
   if(pg==='plantas') rPlantas();
