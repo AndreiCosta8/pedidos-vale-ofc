@@ -1843,9 +1843,7 @@ const FB_CFG = {
 // SENHAS DO SISTEMA
 // ══════════════════════════════════════════════
 // Senha para acessar a área de comissões (clique 3× no indicador Firebase)
-const COM_SENHA = "vale2026";
 // Senha para excluir linhas de pedido
-const DEL_SENHA = "excluir123";
 
 // ══════════════════════════════════════════════
 // DADOS DA PLANILHA — 2026
@@ -1882,7 +1880,7 @@ let chOM=null,chPR=null,chVM=null,chST=null;
 // INIT
 // ══════════════════════════════════════════════
 
-async function logAtividade(acao, detalhes) { const entry = { acao, detalhes, usuario: window._currentUser?.email||'—', data: new Date().toISOString() }; if(db) await db.ref('config/log').push(entry); }
+async function logAtividade(acao,detalhes){ try{ if(!db) return; await db.ref('config/log').push({acao,detalhes:String(detalhes||''),usuario:window._currentUser?.email||'—',data:new Date().toISOString()}); }catch(e){} }
 function debounce(fn, ms=300) { let t; return (...a) => { clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 function saveFilter(id) { const el=document.getElementById(id); if(el) sessionStorage.setItem('filtro_'+id, el.value); }
 function restoreFilters() { ['d-ano','d-cli','d-uf','d-pl','d-classe','d-periodo','f-st','f-pl','f-cl','f-trat-st','f-trat-pl'].forEach(id=>{ const el=document.getElementById(id); const saved=sessionStorage.getItem('filtro_'+id); if(el && saved) el.value=saved; }); }
@@ -1942,7 +1940,7 @@ function init(){
   }
 
   addLi();
-  document.getElementById('n-dp').value = new Date().toISOString().split('T')[0];
+  document.getElementById('n-dp').value = hojeISO();
 
   // Restaurar tema salvo
   initTheme();
@@ -2108,7 +2106,7 @@ function verificarNotificacoesPrazo() {
   if (!PEDS || Notification.permission !== 'granted') return;
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const alertadas = JSON.parse(localStorage.getItem('vp_notif_alertadas') || '{}');
-  const hoje_key = hoje.toISOString().slice(0,10);
+  const hoje_key = isoLocal(hoje);
 
   let count3 = 0, count1 = 0;
   const pedidos3 = [], pedidos1 = [];
@@ -4063,7 +4061,7 @@ function abrirVencimentos(tipo){
         <div>
           <div style="font-size:11px;font-weight:600">${l._ped?.planta||'—'} · <span style="color:var(--gold)">${l._ped?.numPedido||'—'}</span></div>
           <div style="font-size:10px;color:var(--muted);margin-top:2px">${l.nomeProduto||'—'} · Qtd: ${l.qtd||'—'}</div>
-          <div style="font-size:10px;color:var(--muted)">Prazo: ${fdt(l._prazo.toISOString().slice(0,10))}</div>
+          <div style="font-size:10px;color:var(--muted)">Prazo: ${fdt(isoLocal(l._prazo))}</div>
         </div>
         <div style="font-weight:700;font-size:12px;color:${corDr};text-align:right">${drTxt}</div>
       </div>`;
@@ -4549,7 +4547,7 @@ function renderHeatmap(key, d){
   while(d_ <= hoje){
     const semana = [];
     for(let dia=0; dia<7; dia++){
-      const iso = d_.toISOString().slice(0,10);
+      const iso = isoLocal(d_);
       const cnt = ppp[iso] || 0;
       const futuro = d_ > hoje;
       const fora = d_ < new Date(hoje.getTime() - 364*86400000);
@@ -5874,6 +5872,8 @@ function nav(pg){
 // ══════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════
+const isoLocal=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const hojeISO=()=>isoLocal(new Date());
 const brl = v=>isNaN(v)||v==null?'—':'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
 const mi  = v=>isNaN(v)||!v?'—':'R$ '+(v/1e6).toFixed(3)+' Mi';
 const fdt = d=>{ if(!d) return '—'; try{ return new Date(d+'T12:00:00').toLocaleDateString('pt-BR'); }catch{ return d; }};
@@ -6558,6 +6558,7 @@ async function salvarEdicao(){
     }
     
     if(pms.length) await Promise.all(pms);
+    logAtividade('pedido editado', editPk);
     
     toast('Pedido editado com sucesso!','ok');
     closeM('m-edit');
@@ -6582,7 +6583,7 @@ function resetForm(){
   document.getElementById('n-cl').value='';
   document.getElementById('n-uf').value='';
   document.getElementById('n-st').value='AGUARDANDO PRODUÇÃO';
-  document.getElementById('n-dp').value=new Date().toISOString().split('T')[0];
+  document.getElementById('n-dp').value=hojeISO();
   document.getElementById('li-cont').innerHTML='';
   liIdx=0; addLi();
 }
@@ -6706,6 +6707,7 @@ async function salvarPed(){
   const uf=document.getElementById('n-uf').value;
   const st=document.getElementById('n-st').value;
   if(!np||!pl){toast('Preencha Nº Pedido e Planta','err');return;}
+  if(/[.#$\[\]\/\s]/.test(np)){toast('O nº do pedido não pode ter espaços nem os caracteres . # $ [ ] /','err');return;}
   // Verificar duplicidade
   if(PEDS[np]){
     const confirm_dup = confirm(`⚠️ O pedido ${np} já existe no sistema!\nPlanta: ${PEDS[np].planta} | Data: ${fdt(PEDS[np].dataPedido)}\n\nDeseja continuar mesmo assim e adicionar novos itens ao pedido existente?`);
@@ -6735,8 +6737,14 @@ async function salvarPed(){
   const btnSave = document.querySelector('button[onclick="salvarPed()"]');
   if(btnSave){ btnSave.disabled=true; btnSave.textContent='💾 Salvando...'; }
   try{
-    if(db) await db.ref('pedidos_vale/'+np).set(ped);
+    const jaExiste=!!PEDS[np];
+    if(jaExiste){
+      // pedido já existe: acrescenta só os itens novos, sem tocar nos itens e no rastreio existentes
+      if(db){ const upd={}; Object.entries(linhas).forEach(([k,v])=>{upd['linhas/'+k]=v;}); await db.ref('pedidos_vale/'+np).update(upd); }
+      else Object.assign(PEDS[np].linhas||(PEDS[np].linhas={}),linhas);
+    } else if(db) await db.ref('pedidos_vale/'+np).set(ped);
     else PEDS[np]=ped;
+    logAtividade(jaExiste?'itens adicionados ao pedido':'pedido criado',np+' · '+Object.keys(linhas).length+' item(ns)');
     toast('Pedido '+np+' salvo!');
     clearDraft();
     nav('pedidos');
@@ -6881,6 +6889,7 @@ async function salvarFat(){
   try{
     if(db) await db.ref(`pedidos_vale/${pk}/linhas/${lk}`).update(upd);
     else if(PEDS[pk]?.linhas?.[lk]) Object.assign(PEDS[pk].linhas[lk],upd);
+    logAtividade('faturamento', pk+' / '+lk);
     toast('Faturamento atualizado!');
     closeM('m-fat');
   }catch(e){toast('Erro: '+e.message,'err');}
@@ -6963,6 +6972,7 @@ async function salvarProd(){
   if(!prod.cod||!prod.nome){toast('Preencha Código e Nome','err');return;}
   if(idx>=0) PRODUTOS[idx]=prod; else PRODUTOS.push(prod);
   if(db) await db.ref('produtos_vale/'+prod.cod).set(prod).catch(()=>{});
+  logAtividade('produto salvo', prod.cod);
   toast('Produto salvo!');
   closeM('m-prod');
   rprod();
@@ -6976,6 +6986,7 @@ async function deletarProd(){
   PRODUTOS.splice(idx,1);
   if(db && cod){
     await db.ref('produtos_vale/'+cod).remove().catch(()=>{});
+    logAtividade('produto excluído', cod);
   }
   toast('Produto excluído');
   closeM('m-prod'); rprod();
@@ -7001,7 +7012,7 @@ function abrirDevolucao(pk, lk){
     'Pedido: '+ped.numPedido+' · Planta: '+ped.planta+' · Qtd: '+ln.qtd+' · '+brl(ln.vlrTotal);
   document.getElementById('md-tipo').value='';
   document.getElementById('md-motivo').value='';
-  document.getElementById('md-data').value=new Date().toISOString().split('T')[0];
+  document.getElementById('md-data').value=hojeISO();
 
   // Histórico de devoluções anteriores
   const hist=ln.devolucoes||[];
@@ -7043,6 +7054,7 @@ async function salvarDevolucao(){
   try{
     if(db) await db.ref('pedidos_vale/'+pk+'/linhas/'+lk).update(upd);
     else if(PEDS[pk]?.linhas?.[lk]) Object.assign(PEDS[pk].linhas[lk], upd);
+    logAtividade('devolução / in full', pk+' / '+lk);
     toast('Devolução registrada — IN FULL impactado ⚠️','info');
     closeM('m-dev');
     rpedidos(); rdash();
@@ -7056,6 +7068,7 @@ async function desfazerDevolucao(pk, lk){
   try{
     if(db) await db.ref('pedidos_vale/'+pk+'/linhas/'+lk).update(upd);
     else if(PEDS[pk]?.linhas?.[lk]) Object.assign(PEDS[pk].linhas[lk], upd);
+    logAtividade('devolução / in full', pk+' / '+lk);
     toast('Ocorrência removida — IN FULL restaurado ✅');
     rpedidos(); rdash();
   }catch(e){ toast('Erro: '+e.message,'err'); }
@@ -7094,11 +7107,15 @@ function resetDashFilters(){
 // ══════════════════════════════════════════════
 // CONTROLE DE ACESSO
 // ══════════════════════════════════════════════
-function isAdmin(){
-  // Retorna true para qualquer usuário logado
-  // Para controle granular, verificar email: window._currentUser?.email
-  return !!window._currentUser;
+// Senhas de comissão e exclusão: guardadas só como hash (PBKDF2-SHA256); o texto da senha não existe no código.
+const SEG={com:{s:'e3a5e8652de01377cfb44196',h:'9e668d4d721d8e5b495bd53f988d95359770e9f4e1be1bc1f57dc47e57ff626b'},del:{s:'d2ef10df1428c7779a44a636',h:'d28927f21dad9c2b309ca3626e3fbb8287b92271b9e99e562535ea77bf567698'}};
+async function segredoOk(pwd,k){
+  if(!pwd||!window.crypto?.subtle) return false;
+  const enc=new TextEncoder(), km=await crypto.subtle.importKey('raw',enc.encode(pwd),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(SEG[k].s),iterations:150000,hash:'SHA-256'},km,256);
+  return [...new Uint8Array(bits)].map(b=>b.toString(16).padStart(2,'0')).join('')===SEG[k].h;
 }
+function isAdmin(){ return !!window._currentUser; }
 
 // ══════════════════════════════════════════════
 // FIREBASE INIT + AUTH
@@ -7183,27 +7200,19 @@ function abrirDelLinha(linhaKey, numPedido, produto, pedidoKey) {
   setTimeout(() => document.getElementById('del-linha-pwd').focus(), 150);
 }
 
-function confirmarDelLinha() {
-  const pwd = document.getElementById('del-linha-pwd').value;
-  if (pwd !== DEL_SENHA) {
-    document.getElementById('del-linha-err').style.display = 'block';
-    document.getElementById('del-linha-pwd').value = '';
-    return;
-  }
-  if (!_delLinhaKey) return;
-  // Path correto: pedidos_vale/{pedidoKey}/linhas/{linhaKey}
-  const delPath = _delPedidoKey
-    ? 'pedidos_vale/' + _delPedidoKey + '/linhas/' + _delLinhaKey
-    : 'pedidos_vale/' + _delLinhaKey.replace(/^l\d+.*/, ''); // fallback
-  db.ref('pedidos_vale/' + _delPedidoKey + '/linhas/' + _delLinhaKey).remove()
+async function confirmarDelLinha() {
+  const errEl=document.getElementById('del-linha-err'), inp=document.getElementById('del-linha-pwd');
+  if(!(await segredoOk(inp.value,'del'))){ errEl.style.display='block'; inp.value=''; return; }
+  if(!_delLinhaKey||!_delPedidoKey) return;
+  const pk=_delPedidoKey, lk=_delLinhaKey, ln=PEDS?.[pk]?.linhas?.[lk]||{};
+  db.ref('pedidos_vale/'+pk+'/linhas/'+lk).remove()
     .then(() => {
-      closeM('m-dellinha');
-      toast('Linha excluída com sucesso', 'ok');
-      _delLinhaKey = null;
-      _delPedidoKey = null;
-      rpedidos(); rdash(); rtrat(); // recarrega a lista
+      logAtividade('linha excluída', pk+' · '+(ln.nomeProduto||lk)+' · qtd '+(ln.qtd??'—')+' · '+brl(ln.vlrTotal));
+      closeM('m-dellinha'); toast('Linha excluída com sucesso','ok');
+      _delLinhaKey=null; _delPedidoKey=null;
+      rpedidos(); rdash(); rtrat();
     })
-    .catch(e => toast('Erro ao excluir: ' + e.message, 'err'));
+    .catch(e => toast('Erro ao excluir: '+e.message,'err'));
 }
 
 // ══════════════════════════════════════════════
@@ -7216,19 +7225,12 @@ function comissaoClick(){
   if(_comClicks>=3){_comClicks=0;openM('m-comissao');
     setTimeout(()=>document.getElementById('com-pwd-inp').focus(),150);}
 }
-function verificarComSenha(){
-  const pwd=document.getElementById('com-pwd-inp').value;
-  const errEl=document.getElementById('com-err');
-  if(pwd===COM_SENHA){
-    closeM('m-comissao');
-    document.getElementById('com-pwd-inp').value='';
-    errEl.style.display='none';
-    nav('comissao');renderComissao();
-  } else {
-    errEl.style.display='block';
-    document.getElementById('com-pwd-inp').value='';
-    document.getElementById('com-pwd-inp').focus();
-  }
+async function verificarComSenha(){
+  const inp=document.getElementById('com-pwd-inp'), errEl=document.getElementById('com-err');
+  if(!(await segredoOk(inp.value,'com'))){ errEl.style.display='block'; inp.value=''; inp.focus(); return; }
+  inp.value=''; errEl.style.display='none'; closeM('m-comissao');
+  logAtividade('acesso à área de comissões','');
+  nav('comissao'); renderComissao();
 }
 function renderComissao(){
   const ano=document.getElementById('d-ano')?.value|| new Date().getFullYear().toString();
