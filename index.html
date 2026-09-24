@@ -741,6 +741,8 @@ tbody td{padding:11px 12px}
 .mf{padding:14px 24px}
 .mclose:hover{color:var(--text)}
 .toast{border-radius:12px}
+
+.kpi .v,.gnum,#meta-pct-label{font-variant-numeric:lining-nums tabular-nums}
 </style>
 </head>
 <body class="logged-out">
@@ -1462,7 +1464,25 @@ tbody td{padding:11px 12px}
 
 
 <!-- PÁGINA CONFIGURAÇÕES -->
-<div class="pg" id="pg-config" style="max-width:700px">
+<div class="pg" id="pg-config" style="max-width:900px">
+  <div class="card" style="margin-bottom:20px">
+    <div class="sec">Backup dos dados</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Baixa uma cópia de pedidos, produtos e configurações. Restaurar só recria o que estiver faltando; nada existente é sobrescrito.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-p" onclick="baixarBackup()">Baixar backup (JSON)</button>
+      <button class="btn btn-s" onclick="document.getElementById('bk-file').click()">Restaurar itens faltantes</button>
+      <input type="file" id="bk-file" accept=".json" style="display:none" onchange="restaurarBackup(this.files[0]);this.value=''">
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="sec">Histórico de atividades</div>
+    <input class="si" id="hist-busca" placeholder="Filtrar por pedido, usuário ou ação" style="width:100%;margin-bottom:10px" oninput="renderHistorico()">
+    <div class="tw" style="max-height:340px;overflow-y:auto"><table><thead><tr><th>Quando</th><th>Quem</th><th>O quê</th><th>Detalhe</th></tr></thead><tbody id="hist-body"></tbody></table></div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="sec">Linhas excluídas (lixeira)</div>
+    <div id="lix-lista"></div>
+  </div>
 
   <!-- Contatos de Alerta -->
   <div class="card card-accent" style="--accent:var(--green);margin-bottom:20px">
@@ -2586,7 +2606,7 @@ function renderContatosConfig() {
     return `<div class="contato-card ${inativo?'contato-inactive':''}" style="margin-bottom:8px">
       <div class="contato-avatar" style="background:${inativo?'var(--border)':'var(--green)'}">${initials}</div>
       <div class="contato-info">
-        <div class="contato-nome">${ct.nome}${inativo?' <span style="font-size:9px;color:var(--muted)">(inativo)</span>':''}</div>
+        <div class="contato-nome">${esc(ct.nome)}${inativo?' <span style="font-size:9px;color:var(--muted)">(inativo)</span>':''}</div>
         <div class="contato-cargo">${ct.cargo||'—'}</div>
         <div class="contato-wa">+${ct.whatsapp}</div>
       </div>
@@ -2744,7 +2764,7 @@ function mostrarPainelAlerta(pedidos3, pedidos1) {
           text-decoration:none;padding:8px 12px;border-radius:9px;font-size:11px;font-weight:700;transition:opacity .15s"
         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-        Notificar ${ct.nome.split(' ')[0]}
+        Notificar ${esc(ct.nome.split(' ')[0])}
       </a>`;
     }).join('');
   }
@@ -3057,7 +3077,7 @@ function rRanking() {
     return `<div class="rank-row">
       <div class="rank-pos ${posClass}">${pos}</div>
       <div class="rank-cliente">
-        <div class="rank-nome" title="${d.nome}">${d.nome} ${badge}</div>
+        <div class="rank-nome" title="${esc(d.nome)}">${esc(d.nome)} ${badge}</div>
         <div class="rank-detalhe">${d.linhas} linha(s) · ${brl(d.vlr)}</div>
       </div>
       <div class="rank-bar-wrap">
@@ -3327,7 +3347,7 @@ function rDistribuidora() {
           <td>${l._ped?.planta||'—'}</td>
           <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${l.produto||'—'}">${l.produto||'—'}</td>
           <td style="font-family:'JetBrains Mono',monospace;color:var(--blue)">${l.asn||'—'}</td>
-          <td style="color:var(--text)">${l.statusEP||'—'}</td>
+          <td style="color:var(--text)">${esc(l.statusEP||'—')}</td>
           <td style="color:${corSt};font-size:10px">${l.status==='ENTREGUE Á TRANSPORTADORA'?'✅ Entregue':'⏳ Em trânsito'}</td>
           <td>${fdt(l.dataEntrega)||'—'}</td>
           <td style="text-align:right;color:var(--blue)">${brl(+l.vlrTotal)}</td>
@@ -3646,7 +3666,7 @@ function renderTabelaPlantas(lista){
     html += `
       <tr class="ph" onclick="togglePlantaDetalhe('${plantaKey(d.nome)}')" style="border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer">
         <td style="padding:7px 6px"><span class="exp" id="exp-pl-${plantaKey(d.nome)}">▶</span></td>
-        <td style="padding:7px 6px;font-weight:600;font-size:12px">${d.nome}</td>
+        <td style="padding:7px 6px;font-weight:600;font-size:12px">${esc(d.nome)}</td>
         <td style="padding:7px 6px;font-size:11px">${fdt(d.ultimaCompra)}</td>
         <td style="padding:7px 6px;text-align:right;font-weight:700;font-size:12px;color:${corDias}">${d.diasSemComprar}d</td>
         <td style="padding:7px 6px;text-align:right;font-size:11px">${freqTxt}</td>
@@ -3731,7 +3751,7 @@ function renderDetalhePlanta(key){
   cont.innerHTML = `
     <!-- Cabeçalho com nome + botão copiar resumo -->
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-      <div style="font-size:14px;font-weight:700;color:var(--gold)">🏭 ${d.nome}</div>
+      <div style="font-size:14px;font-weight:700;color:var(--gold)">🏭 ${esc(d.nome)}</div>
       <button class="btn btn-p btn-sm" onclick="copiarResumoPlanta('${key}')">📋 Copiar resumo para envio</button>
       <button class="btn btn-sec btn-sm" onclick="pdfPlanta('${key}')" title="Gerar PDF desta planta">📄 PDF</button>
     </div>
@@ -3811,7 +3831,7 @@ function copiarResumoPlanta(key){
     : '';
   
   const texto = 
-`${stEmoji} — Planta ${d.nome}
+`${stEmoji} — Planta ${esc(d.nome)}
 📅 Última compra: ${fdt(d.ultimaCompra)} (${d.diasSemComprar} dias atrás)
 📊 Frequência média: a cada ${d.freqMedia||'—'} dias
 💰 Total comprado: ${brl(d.totalValor)} em ${d.totalPedidos} pedido${d.totalPedidos!==1?'s':''}
@@ -4102,7 +4122,7 @@ function abrirVencimentos(tipo){
       return `<div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center">
         <div>
           <div style="font-size:11px;font-weight:600">${l._ped?.planta||'—'} · <span style="color:var(--gold)">${l._ped?.numPedido||'—'}</span></div>
-          <div style="font-size:10px;color:var(--muted);margin-top:2px">${l.nomeProduto||'—'} · Qtd: ${l.qtd||'—'}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">${esc(l.nomeProduto||'—')} · Qtd: ${l.qtd||'—'}</div>
           <div style="font-size:10px;color:var(--muted)">Prazo: ${fdt(isoLocal(l._prazo))}</div>
         </div>
         <div style="font-weight:700;font-size:12px;color:${corDr};text-align:right">${drTxt}</div>
@@ -4359,7 +4379,7 @@ function rRankProd(){
     </div>
     <div class="card" style="border-left:3px solid var(--blue);padding:10px 12px">
       <div style="font-size:9px;color:var(--muted);text-transform:uppercase">🏅 Nº 1 por R$</div>
-      <div style="font-size:12px;font-weight:700;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${top1?.nome||'—'}</div>
+      <div style="font-size:12px;font-weight:700;color:var(--blue);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(top1?.nome||'—')}</div>
       <div style="font-size:10px;color:var(--muted)">${top1?brl(top1.vlr):''}</div>
     </div>
     <div class="card" style="border-left:3px solid var(--purple);padding:10px 12px">
@@ -4398,7 +4418,7 @@ function rRankProd(){
     <tr style="border-bottom:1px solid rgba(255,255,255,.05)">
       <td style="padding:7px 10px;text-align:center;font-size:11px;color:var(--muted)">${i+1}</td>
       <td style="padding:7px 10px;text-align:center">${badgeABC(p.abc)}</td>
-      <td style="padding:7px 10px;font-size:11px;font-weight:600;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.nome}">${p.nome}</td>
+      <td style="padding:7px 10px;font-size:11px;font-weight:600;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(p.nome)}">${esc(p.nome)}</td>
       <td style="padding:7px 10px;text-align:right;font-size:11px;color:var(--green)">${brl(p.vlr)}</td>
       <td style="padding:7px 10px;text-align:right;font-size:11px">${p.qtd.toLocaleString('pt-BR')}</td>
       <td style="padding:7px 10px;text-align:right;font-size:11px">${p.nPed}</td>
@@ -4971,7 +4991,7 @@ function pdfPlanta(key){
     `<tr><td>${nome}</td><td style="text-align:right">${brl(v.vlr)}</td><td style="text-align:right">${v.qtd}</td></tr>`
   ).join('');
   const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
-  <title>Relatório — ${d.nome}</title>
+  <title>Relatório — ${esc(d.nome)}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:Arial,sans-serif;font-size:11px;color:#1a2d45;padding:24px;max-width:800px;margin:0 auto}
@@ -4996,7 +5016,7 @@ function pdfPlanta(key){
   </head><body>
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
     <div>
-      <h1>🏭 ${d.nome}</h1>
+      <h1>🏭 ${esc(d.nome)}</h1>
       <div class="sub">${d.peds[0]?.ped?.uf||'—'} · ${d.peds[0]?.ped?.cliente||'—'} · Loja Parauapebas 2026</div>
     </div>
     <div style="text-align:right">
@@ -5904,7 +5924,7 @@ function nav(pg){
   if(pg==='metas') rMetas();
   if(pg==='plantas') rPlantas();
   if(pg==='previsao') rPrevisao();
-  if(pg==='config') { renderContatosConfig(); listenConfigs(); atualizarBotaoNotif(); }
+  if(pg==='config') { renderContatosConfig(); listenConfigs(); atualizarBotaoNotif(); carregarHistorico(); }
   if(pg==='ranking') rRanking();
   if(pg==='rank-prod') rRankProd();
   if(pg==='comparativo') rComparativo();
@@ -5914,6 +5934,7 @@ function nav(pg){
 // ══════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const isoLocal=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 const hojeISO=()=>isoLocal(new Date());
 const brl = v=>isNaN(v)||v==null?'—':'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2});
@@ -6346,7 +6367,7 @@ function exportarTratativaCSV(){
       if(l.status==="ENTREGUE Á TRANSPORTADORA")return;
       if(fSt&&l.status!==fSt)return;
       if(fPl&&ped.planta!==fPl)return;
-      const t=`${ped.numPedido} ${ped.planta} ${ped.uf} ${l.nomeProduto}`.toLowerCase();
+      const t=`${ped.numPedido} ${ped.planta} ${ped.uf} ${esc(l.nomeProduto)}`.toLowerCase();
       if(srch&&!t.includes(srch))return;
       let dr="";
       if(ped.dataPedido){
@@ -6433,7 +6454,7 @@ function rpedidos(){
         ${lns.map(([lk,ln],i)=>`
           <div style="display:flex;align-items:center;gap:7px;padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.04);font-size:10px">
             <span style="color:var(--muted);min-width:16px">${i+1}.</span>
-            <span style="flex:2;color:var(--text)">${ln.nomeProduto||ln.codProduto||'—'}</span>
+            <span style="flex:2;color:var(--text)">${esc(ln.nomeProduto||ln.codProduto||'—')}</span>
             <span style="color:var(--muted)">Qtd: <b style="color:var(--text)">${ln.qtd}</b></span>
             <span style="color:var(--muted)">Vlr: <b style="color:var(--gold);font-family:'JetBrains Mono',monospace">${brl(ln.vlrTotal)}</b></span>
             <span>${badge(ln.status, ped.dataPedido, ln.dataEntrega)}</span>
@@ -6482,15 +6503,15 @@ function abrirPed(pk){
           ${badge(ln.status, ped.dataPedido, ln.dataEntrega)}
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-size:10px">
-          <div><span style="color:var(--muted)">Produto:</span><br><b>${ln.nomeProduto||'—'}</b></div>
+          <div><span style="color:var(--muted)">Produto:</span><br><b>${esc(ln.nomeProduto||'—')}</b></div>
           <div><span style="color:var(--muted)">Qtd:</span><br><b>${ln.qtd}</b></div>
           <div><span style="color:var(--muted)">Vlr. Total:</span><br><b style="color:var(--gold)">${brl(ln.vlrTotal)}</b></div>
           <div><span style="color:var(--muted)">Data Faturamento:</span><br><b>${fdt(ln.dataFat)||'—'}</b></div>
-          <div><span style="color:var(--muted)">Nº NF (EP):</span><br><b>${ln.statusEP||'—'}</b></div>
+          <div><span style="color:var(--muted)">Nº NF (EP):</span><br><b>${esc(ln.statusEP||'—')}</b></div>
           <div><span style="color:var(--muted)">Data Entrega:</span><br><b>${fdt(ln.dataEntrega)||'—'}</b></div>
           <div><span style="color:var(--muted)">Prev. Entrega:</span><br><b>${fdt(ln.prevEntrega)||'—'}</b></div>
           <div><span style="color:var(--muted)">Ocorrência:</span><br><b>${ln.ocorrencia||0} — ${['Nenhuma','Dev. Produtos','Dev. NF'][ln.ocorrencia]||'—'}</b></div>
-          ${ln.obs?`<div style="grid-column:1/-1"><span style="color:var(--muted)">Obs.:</span><br><b>${ln.obs}</b></div>`:''}
+          ${ln.obs?`<div style="grid-column:1/-1"><span style="color:var(--muted)">Obs.:</span><br><b>${esc(ln.obs)}</b></div>`:''}
         </div>
         <div style="margin-top:8px;text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">
           <button class="btn btn-g btn-sm" onclick="closeM('m-ped');abrirFat('${pk}','${lk}')">Atualizar Faturamento</button>
@@ -6525,7 +6546,7 @@ function openEditPed(pk){
   lns.forEach(([lk, ln], i) => {
     h += `
       <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.05)" id="edit-ln-${lk}">
-        <div style="font-weight:bold;margin-bottom:8px;font-size:12px;color:var(--gold)">${ln.nomeProduto || ln.codProduto || '—'}</div>
+        <div style="font-weight:bold;margin-bottom:8px;font-size:12px;color:var(--gold)">${esc(ln.nomeProduto || ln.codProduto || '—')}</div>
         <div class="fgrid g3">
           <div class="fg">
             <label>Quantidade</label>
@@ -6548,7 +6569,7 @@ function openEditPed(pk){
           </div>
           <div class="fg">
             <label>Observações</label>
-            <input type="text" id="edit-obs-${lk}" value="${ln.obs||''}" />
+            <input type="text" id="edit-obs-${lk}" value="${esc(ln.obs||'')}" />
           </div>
         </div>
       </div>
@@ -6686,7 +6707,7 @@ function onProdInput(el, i) {
       ${p.img ? `<img src="${p.img}" style="width:28px;height:28px;border-radius:4px;object-fit:cover" onerror="this.style.display='none'">` : '<span style="font-size:18px">📦</span>'}
       <div>
         <div style="font-family:\'JetBrains Mono\',monospace;color:var(--gold);font-size:10px">${p.cod}</div>
-        <div style="color:var(--text)">${p.nome.substring(0,50)}</div>
+        <div style="color:var(--text)">${esc(p.nome.substring(0,50))}</div>
       </div>
     </div>`).join('');
   pac.style.display='block';
@@ -6749,7 +6770,7 @@ async function salvarPed(){
   const uf=document.getElementById('n-uf').value;
   const st=document.getElementById('n-st').value;
   if(!np||!pl){toast('Preencha Nº Pedido e Planta','err');return;}
-  if(/[.#$\[\]\/\s]/.test(np)){toast('O nº do pedido não pode ter espaços nem os caracteres . # $ [ ] /','err');return;}
+  if(!/^[A-Za-z0-9_-]+$/.test(np)){toast('O nº do pedido só pode ter letras, números, - e _','err');return;}
   // Verificar duplicidade
   if(PEDS[np]){
     const confirm_dup = confirm(`⚠️ O pedido ${np} já existe no sistema!\nPlanta: ${PEDS[np].planta} | Data: ${fdt(PEDS[np].dataPedido)}\n\nDeseja continuar mesmo assim e adicionar novos itens ao pedido existente?`);
@@ -6854,14 +6875,14 @@ function rtrat(){
       cnt++;
       h+=`<tr class="trat-row ${vencido?'vencido':urgente?'urgente':pendente?'pendente':''}">
         <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold)">${ped.numPedido||'—'}</td>
-        <td style="font-size:10px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${ln.nomeProduto||ln.codProduto||'—'}</td>
+        <td style="font-size:10px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(ln.nomeProduto||ln.codProduto||'—')}</td>
         <td style="font-size:10px">${ped.planta||'—'}</td>
         <td>${ped.uf||'—'}</td>
         <td>${ln.qtd||'—'}</td>
         <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${brl(ln.vlrTotal)}</td>
         <td>${badge(ln.status, ped.dataPedido, ln.dataEntrega)}</td>
         <td style="font-size:10px">${fdt(ln.dataFat)||'<span style="color:var(--red)">—</span>'}</td>
-        <td style="font-size:10px">${ln.statusEP||'—'}</td>
+        <td style="font-size:10px">${esc(ln.statusEP||'—')}</td>
         <td style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--blue)">${ln.asn||'—'}</td>
         <td style="font-size:10px">${fdt(ln.dataEntrega)||'—'}</td>
         <td style="font-size:10px">${fdt(ln.prevEntrega)||'—'}</td>
@@ -6957,7 +6978,7 @@ function rprod(){
     </td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold)">${p.cod}</td>
     <td style="font-size:9px;color:var(--muted)">${p.sap||'—'}</td>
-    <td style="font-size:10px">${p.nome}</td>
+    <td style="font-size:10px">${esc(p.nome)}</td>
     <td><span class="tag" style="color:var(--blue);border-color:rgba(111,168,201,.3);background:rgba(111,168,201,.08)">${p.linha}</span></td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.PA?brl(p.PA):'—'}</td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.MG?brl(p.MG):'—'}</td>
@@ -7247,14 +7268,16 @@ async function confirmarDelLinha() {
   if(!(await segredoOk(inp.value,'del'))){ errEl.style.display='block'; inp.value=''; return; }
   if(!_delLinhaKey||!_delPedidoKey) return;
   const pk=_delPedidoKey, lk=_delLinhaKey, ln=PEDS?.[pk]?.linhas?.[lk]||{};
-  db.ref('pedidos_vale/'+pk+'/linhas/'+lk).remove()
-    .then(() => {
-      logAtividade('linha excluída', pk+' · '+(ln.nomeProduto||lk)+' · qtd '+(ln.qtd??'—')+' · '+brl(ln.vlrTotal));
-      closeM('m-dellinha'); toast('Linha excluída com sucesso','ok');
-      _delLinhaKey=null; _delPedidoKey=null;
-      rpedidos(); rdash(); rtrat();
-    })
-    .catch(e => toast('Erro ao excluir: '+e.message,'err'));
+  try{
+    const lix=db.ref('config/lixeira').push();
+    await lix.set({pk,lk,linha:ln,por:window._currentUser?.email||'—',em:new Date().toISOString()});
+    await db.ref('pedidos_vale/'+pk+'/linhas/'+lk).remove();
+    logAtividade('linha excluída', pk+' · '+(ln.nomeProduto||lk)+' · qtd '+(ln.qtd??'—')+' · '+brl(ln.vlrTotal));
+    closeM('m-dellinha');
+    toastUndo('Linha excluída', ()=>restaurarLinha(lix.key));
+    _delLinhaKey=null; _delPedidoKey=null;
+    rpedidos(); rdash(); rtrat();
+  }catch(e){ toast('Erro ao excluir: '+e.message,'err'); }
 }
 
 // ══════════════════════════════════════════════
@@ -7654,6 +7677,61 @@ function clearDraft() {
     }, 500));
   }
 })();
+
+// ── Desfazer, histórico, lixeira e backup ──
+function toastUndo(msg,fn){
+  const t=document.createElement('div'); t.className='toast ok';
+  const sp=document.createElement('span'); sp.textContent='✓ '+msg;
+  const b=document.createElement('button'); b.className='btn btn-sm btn-s'; b.textContent='Desfazer'; b.style.marginLeft='auto';
+  b.onclick=async()=>{ b.disabled=true; await fn(); t.remove(); };
+  t.append(sp,b); document.getElementById('toasts').appendChild(t); setTimeout(()=>t.remove(),12000);
+}
+async function restaurarLinha(id){
+  const x=(await db.ref('config/lixeira/'+id).once('value')).val(); if(!x) return;
+  await db.ref('pedidos_vale/'+x.pk+'/linhas/'+x.lk).set(x.linha);
+  await db.ref('config/lixeira/'+id).remove();
+  logAtividade('linha restaurada', x.pk+' · '+(x.linha?.nomeProduto||x.lk));
+  toast('Linha restaurada!');
+  if(document.getElementById('pg-config')?.classList.contains('on')) carregarHistorico();
+}
+let _hist=[], _lix={};
+async function carregarHistorico(){
+  if(!db) return;
+  const [a,b]=await Promise.all([db.ref('config/log').limitToLast(300).once('value'),db.ref('config/lixeira').limitToLast(50).once('value')]);
+  _hist=Object.values(a.val()||{}).sort((x,y)=>(y.data||'').localeCompare(x.data||''));
+  _lix=b.val()||{}; renderHistorico();
+}
+function renderHistorico(){
+  const body=document.getElementById('hist-body'); if(!body) return;
+  const q=(document.getElementById('hist-busca')?.value||'').toLowerCase();
+  const rows=_hist.filter(h=>!q||[h.acao,h.detalhes,h.usuario].join(' ').toLowerCase().includes(q)).slice(0,200);
+  body.innerHTML=rows.length?rows.map(h=>`<tr><td>${esc(new Date(h.data).toLocaleString('pt-BR'))}</td><td>${esc((h.usuario||'').split('@')[0])}</td><td>${esc(h.acao)}</td><td>${esc(h.detalhes)}</td></tr>`).join(''):'<tr><td colspan="4" style="color:var(--muted);padding:16px">Nenhuma atividade registrada ainda.</td></tr>';
+  const ids=Object.keys(_lix).reverse();
+  document.getElementById('lix-lista').innerHTML=ids.length?ids.map(id=>{const x=_lix[id],l=x.linha||{};return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:12px"><b>${esc(x.pk)}</b> · ${esc(l.nomeProduto||l.codProduto||'—')} · qtd ${esc(l.qtd??'—')}<div style="font-size:11px;color:var(--muted)">${esc(new Date(x.em).toLocaleString('pt-BR'))} · ${esc((x.por||'').split('@')[0])}</div></div><button class="btn btn-sm btn-s" onclick="restaurarLinha('${id}')">Restaurar</button></div>`;}).join(''):'<div style="font-size:12px;color:var(--muted)">Nenhuma linha excluída recentemente.</div>';
+}
+async function baixarBackup(){
+  toast('Gerando backup…','info');
+  const cfg={}; for(const k of ['contatos','alertas','plantas_extras']) cfg[k]=(await db.ref('config/'+k).once('value')).val();
+  const d={versao:1,geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
+  a.download='backup_pedidos_vale_'+hojeISO()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  logAtividade('backup baixado',''); toast('Backup baixado.');
+}
+async function restaurarBackup(file){
+  if(!file) return;
+  let d; try{ d=JSON.parse(await file.text()); }catch(e){ toast('Arquivo inválido.','err'); return; }
+  if(!d.pedidos||!d.produtos){ toast('Este arquivo não parece um backup do sistema.','err'); return; }
+  if(!confirm('Restaurar do backup de '+(d.geradoEm||'').slice(0,10)+'?\nSó serão recriados pedidos, itens e produtos que estiverem FALTANDO. Nada existente será sobrescrito.')) return;
+  let n=0; const upd={};
+  for(const [pk,p] of Object.entries(d.pedidos)){
+    const at=PEDS?.[pk];
+    if(!at){ upd['pedidos_vale/'+pk]=p; n++; continue; }
+    for(const [lk,l] of Object.entries(p.linhas||{})) if(!at.linhas?.[lk]){ upd['pedidos_vale/'+pk+'/linhas/'+lk]=l; n++; }
+  }
+  for(const [c,pr] of Object.entries(d.produtos)) if(!PRODUTOS.some(x=>x.cod===c)){ upd['produtos_vale/'+c]=pr; n++; }
+  if(!n){ toast('Nada a restaurar: tudo do backup já existe.','info'); return; }
+  await db.ref().update(upd); logAtividade('backup restaurado',n+' registro(s) recriado(s)'); toast(n+' registro(s) restaurado(s).');
+}
 </script>
 
 <!-- MODAL DEVOLUÇÃO (IN FULL) -->
