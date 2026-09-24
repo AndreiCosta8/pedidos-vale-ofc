@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vale · Sistema de Pedidos v36</title>
+<title>Vale · Sistema de Pedidos v37</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -799,7 +799,7 @@ body.somente-leitura .ro-pill{display:inline-flex}
       <div class="login-logo-icon">📊</div>
       <div>
         <div class="login-logo-name">BI · Pedidos Vale</div>
-        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v36</div>
+        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v37</div>
       </div>
     </div>
     <div class="login-title">Acesso restrito</div>
@@ -826,7 +826,7 @@ body.somente-leitura .ro-pill{display:inline-flex}
 <nav class="sb" id="sb">
   <div class="sb-logo">
     <div class="name">⚙️ Vale · Pedidos</div>
-    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v36</span></div>
+    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v37</span></div>
   </div>
   <div class="sb-sec">Análise</div>
   <div class="ni on" onclick="nav('dash')" data-pg="dash"><span class="ni-icon">📊</span>Dashboard</div>
@@ -6676,7 +6676,7 @@ async function salvarEdicao(){
     if(typeof rtrat === 'function') rtrat();
   } catch(e) {
     console.error(e);
-    toast('Erro ao editar pedido.','err');
+    toast('Erro ao editar pedido: '+(/permission/i.test(e.message)?'sem permissão no Firebase (confira as regras e o e-mail da conta)':e.message),'err');
   } finally {
     b.disabled = false;
     b.textContent = 'Salvar Alterações';
@@ -7770,7 +7770,7 @@ function renderHistorico(){
 async function baixarBackup(){
   toast('Gerando backup…','info');
   const cfg={}; for(const k of ['contatos','alertas','plantas_extras']) cfg[k]=(await db.ref('config/'+k).once('value')).val();
-  const d={versao:1,app:'v36',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
+  const d={versao:1,app:'v37',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
   a.download='backup_pedidos_vale_'+hojeISO()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   logAtividade('backup baixado',''); toast('Backup baixado.');
