@@ -11,9 +11,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root{
-  --navy:#060e1c;--card:#0b1830;--card2:#0f1f38;--border:#1a3255;
-  --gold:#e3b23c;--blue:#6fa8c9;--green:#2fb59a;--red:#d9683f;--amber:#f0a020;--purple:#9b72e8;
-  --text:#cce0f5;--muted:#4d7a9e;--faint:#040a14;--r:10px;
+  --navy:#0c1411;--card:#131f19;--card2:#182720;--border:#25382e;
+  --gold:#e3b23c;--blue:#6fa8c9;--green:#2fb59a;--red:#d9683f;--amber:#e08a3a;--purple:#a58bd6;
+  --text:#dde8e1;--muted:#829c8d;--faint:#080e0b;--r:10px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Sora',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;display:flex}
@@ -24,7 +24,7 @@ body{font-family:'Sora',sans-serif;background:var(--navy);color:var(--text);min-
 .sb-sec{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;padding:12px 14px 3px}
 .ni{display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-left:3px solid transparent;transition:all .12s;user-select:none}
 .ni:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.ni.on{color:var(--gold);background:rgba(245,196,24,.07);border-left-color:var(--gold)}
+.ni.on{color:var(--gold);background:rgba(227,178,60,.07);border-left-color:var(--gold)}
 .ni-icon{font-size:14px;width:18px;text-align:center}
 .nb{margin-left:auto;background:var(--red);color:#fff;font-size:8px;padding:1px 5px;border-radius:8px;font-weight:700}
 .nb.amber{background:var(--amber)}
@@ -51,8 +51,8 @@ body{font-family:'Sora',sans-serif;background:var(--navy);color:var(--text);min-
 .notif-txt{font-size:11px;color:var(--text);line-height:1.4}
 .notif-sub{font-size:10px;color:var(--muted);margin-top:2px}
 .notif-empty{padding:20px;text-align:center;color:var(--muted);font-size:11px}
-.chip.live{color:var(--green);border-color:rgba(34,201,122,.3);background:rgba(34,201,122,.06)}
-.chip.warn{color:var(--amber);border-color:rgba(240,160,32,.3);background:rgba(240,160,32,.06)}
+.chip.live{color:var(--green);border-color:rgba(47,181,154,.3);background:rgba(47,181,154,.06)}
+.chip.warn{color:var(--amber);border-color:rgba(224,138,58,.3);background:rgba(224,138,58,.06)}
 .pg{display:none;padding:18px 22px;flex:1;animation:fadeIn .15s ease}
 .pg.on{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
@@ -80,7 +80,7 @@ body{font-family:'Sora',sans-serif;background:var(--navy);color:var(--text);min-
 .si{background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:7px 11px;font-size:11px;font-family:'Sora',sans-serif;outline:none;min-width:200px}
 .si:focus{border-color:var(--gold)}
 .fs{background:var(--card2);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:6px 9px;font-size:10px;font-family:'Sora',sans-serif;outline:none;cursor:pointer}
-.fs option{background:#0f1f38}
+.fs option{background:#182720}
 .rc{font-size:10px;color:var(--muted);margin-left:auto}
 .tw{overflow-x:auto;border-radius:var(--r)}
 table{width:100%;border-collapse:collapse;font-size:11px}
@@ -89,19 +89,19 @@ thead th{padding:7px 9px;text-align:left;font-size:9px;font-weight:600;color:var
 tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .1s}
 tbody tr:hover{background:rgba(255,255,255,.025)}
 tbody td{padding:8px 9px;vertical-align:middle}
-.ph{background:rgba(245,196,24,.04)!important;cursor:pointer}
+.ph{background:rgba(227,178,60,.04)!important;cursor:pointer}
 .ph td{font-weight:600}
 .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:9px;font-weight:600;white-space:nowrap}
-.b-p{background:rgba(240,160,32,.12);color:var(--amber);border:1px solid rgba(240,160,32,.3)}
-.b-c{background:rgba(59,143,212,.12);color:var(--blue);border:1px solid rgba(59,143,212,.3)}
-.b-e{background:rgba(34,201,122,.12);color:var(--green);border:1px solid rgba(34,201,122,.3)}
+.b-p{background:rgba(224,138,58,.12);color:var(--amber);border:1px solid rgba(224,138,58,.3)}
+.b-c{background:rgba(111,168,201,.12);color:var(--blue);border:1px solid rgba(111,168,201,.3)}
+.b-e{background:rgba(47,181,154,.12);color:var(--green);border:1px solid rgba(47,181,154,.3)}
 .fg{display:flex;flex-direction:column;gap:3px}
 .fg label{font-size:9px;color:var(--muted);font-weight:600;letter-spacing:.3px;text-transform:uppercase}
 .fg label.req::after{content:' *';color:var(--red)}
 .fg input,.fg select,.fg textarea{background:var(--card2);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:7px 9px;font-size:11px;font-family:'Sora',sans-serif;outline:none;transition:border-color .12s}
 .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold)}
 .fg input[readonly]{color:var(--muted);cursor:default;background:rgba(0,0,0,.2)}
-.fg select option{background:#0f1f38}
+.fg select option{background:#182720}
 .fg input[type=number]{-moz-appearance:textfield}
 .fgrid{display:grid;gap:10px}
 .g2{grid-template-columns:1fr 1fr}
@@ -110,27 +110,27 @@ tbody td{padding:8px 9px;vertical-align:middle}
 .g1{grid-template-columns:1fr}
 .li-item{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;position:relative}
 .li-num{font-size:9px;color:var(--gold);font-weight:700;text-transform:uppercase;margin-bottom:8px}
-.rm-li{position:absolute;top:8px;right:8px;background:rgba(232,80,58,.12);border:1px solid rgba(232,80,58,.25);color:var(--red);border-radius:5px;padding:2px 7px;font-size:9px;cursor:pointer}
+.rm-li{position:absolute;top:8px;right:8px;background:rgba(217,104,63,.12);border:1px solid rgba(217,104,63,.25);color:var(--red);border-radius:5px;padding:2px 7px;font-size:9px;cursor:pointer}
 .add-li{display:flex;align-items:center;gap:6px;width:100%;padding:9px;border:1px dashed var(--border);border-radius:7px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;justify-content:center;transition:all .15s;margin-top:4px;font-family:'Sora',sans-serif}
 .add-li:hover{border-color:var(--gold);color:var(--gold)}
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 15px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid;transition:all .12s;font-family:'Sora',sans-serif;text-decoration:none}
 .btn-p{background:var(--gold);border-color:var(--gold);color:var(--navy)}
-.btn-p:hover{background:#e0b010;border-color:#e0b010}
+.btn-p:hover{background:#cf9f2c;border-color:#cf9f2c}
 .btn-s{background:transparent;border-color:var(--border);color:var(--text)}
 .btn-s:hover{background:var(--card2)}
-.btn-g{background:rgba(34,201,122,.15);border-color:rgba(34,201,122,.4);color:var(--green)}
-.btn-g:hover{background:rgba(34,201,122,.25)}
-.btn-b{background:rgba(59,143,212,.15);border-color:rgba(59,143,212,.4);color:var(--blue)}
-.btn-b:hover{background:rgba(59,143,212,.25)}
-.btn-r{background:rgba(232,80,58,.12);border-color:rgba(232,80,58,.3);color:var(--red)}
-.btn-r:hover{background:rgba(232,80,58,.22)}
+.btn-g{background:rgba(47,181,154,.15);border-color:rgba(47,181,154,.4);color:var(--green)}
+.btn-g:hover{background:rgba(47,181,154,.25)}
+.btn-b{background:rgba(111,168,201,.15);border-color:rgba(111,168,201,.4);color:var(--blue)}
+.btn-b:hover{background:rgba(111,168,201,.25)}
+.btn-r{background:rgba(217,104,63,.12);border-color:rgba(217,104,63,.3);color:var(--red)}
+.btn-r:hover{background:rgba(217,104,63,.22)}
 .btn-sm{padding:4px 10px;font-size:9px}
 .btn-sec{background:transparent;border-color:var(--border);color:var(--text)}
 .btn-sec:hover{background:var(--card2)}
 .btn-out{background:transparent;border-color:var(--border);color:var(--muted)}
 .btn-out:hover{background:var(--card2);color:var(--text)}
-.btn-danger{background:rgba(232,80,58,.15);border-color:rgba(232,80,58,.4);color:var(--red)}
-.btn-danger:hover{background:rgba(232,80,58,.28)}
+.btn-danger{background:rgba(217,104,63,.15);border-color:rgba(217,104,63,.4);color:var(--red)}
+.btn-danger:hover{background:rgba(217,104,63,.28)}
 
 /* ══════════════════════════════════════
    MELHORIAS VISUAIS v3
@@ -189,7 +189,7 @@ body.light-mode .fs,.si{color-scheme:light}
 }
 .gsr-item:hover{background:rgba(255,255,255,.04)}
 .gsr-item:last-child{border-bottom:none}
-.gsr-tag{font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(59,143,212,.15);color:var(--blue);font-weight:600;flex-shrink:0}
+.gsr-tag{font-size:9px;padding:2px 6px;border-radius:6px;background:rgba(111,168,201,.15);color:var(--blue);font-weight:600;flex-shrink:0}
 .gsr-main{font-weight:600;color:var(--text)}
 .gsr-sub{font-size:10px;color:var(--muted);margin-top:1px}
 
@@ -199,9 +199,9 @@ body.light-mode .fs,.si{color-scheme:light}
   padding:2px 7px;border-radius:10px;font-size:9px;font-weight:700;
   font-family:'JetBrains Mono',monospace;white-space:nowrap;
 }
-.dias-badge.ok{background:rgba(34,201,122,.12);color:var(--green);border:1px solid rgba(34,201,122,.3)}
-.dias-badge.warn{background:rgba(240,160,32,.12);color:var(--amber);border:1px solid rgba(240,160,32,.3)}
-.dias-badge.crit{background:rgba(232,80,58,.12);color:var(--red);border:1px solid rgba(232,80,58,.3);animation:blink 2s infinite}
+.dias-badge.ok{background:rgba(47,181,154,.12);color:var(--green);border:1px solid rgba(47,181,154,.3)}
+.dias-badge.warn{background:rgba(224,138,58,.12);color:var(--amber);border:1px solid rgba(224,138,58,.3)}
+.dias-badge.crit{background:rgba(217,104,63,.12);color:var(--red);border:1px solid rgba(217,104,63,.3);animation:blink 2s infinite}
 
 /* Cards com hover lift */
 .card{transition:border-color .15s,box-shadow .15s}
@@ -228,7 +228,7 @@ body.modo-apres [data-pg],
 body.modo-apres #print-btn-wrap{display:none!important}
 body.modo-apres .main{margin-left:0!important;padding:16px!important}
 body.modo-apres .pg.on{animation:fadeIn .4s ease}
-.apres-btn{position:fixed;bottom:16px;right:16px;background:rgba(245,196,24,.15);border:1px solid rgba(245,196,24,.3);color:var(--gold);font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;z-index:999;backdrop-filter:blur(4px)}
+.apres-btn{position:fixed;bottom:16px;right:16px;background:rgba(227,178,60,.15);border:1px solid rgba(227,178,60,.3);color:var(--gold);font-size:11px;padding:6px 12px;border-radius:8px;cursor:pointer;z-index:999;backdrop-filter:blur(4px)}
 
 /* ── HEATMAP (#7) ── */
 .heatmap-wrap{display:flex;gap:2px;overflow-x:auto;padding-bottom:4px}
@@ -264,7 +264,7 @@ body.modo-apres .pg.on{animation:fadeIn .4s ease}
 
 /* Borda gradiente no card ativo */
 .kpi.destaque{
-  background:linear-gradient(135deg,var(--card) 0%,rgba(245,196,24,.04) 100%);
+  background:linear-gradient(135deg,var(--card) 0%,rgba(227,178,60,.04) 100%);
   border-left-width:4px;
 }
 
@@ -280,7 +280,7 @@ body.modo-apres .pg.on{animation:fadeIn .4s ease}
 .prod-ac-item:hover{background:rgba(255,255,255,.05)}
 
 /* Melhor seleção de texto */
-::selection{background:rgba(245,196,24,.25);color:#fff}
+::selection{background:rgba(227,178,60,.25);color:#fff}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:14px}
 .modal-bg.open{display:flex}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto}
@@ -307,8 +307,8 @@ body.modo-apres .pg.on{animation:fadeIn .4s ease}
 .exp{display:inline-block;transition:transform .18s;margin-right:4px;font-size:9px;color:var(--muted)}
 .exp.open{transform:rotate(90deg)}
 .trat-row{border-left:3px solid transparent}
-.trat-row.vencido{border-left-color:var(--red);background:rgba(232,80,58,.06);animation:blink 3s infinite}
-.trat-row.urgente{border-left-color:var(--amber);background:rgba(240,160,32,.04)}
+.trat-row.vencido{border-left-color:var(--red);background:rgba(217,104,63,.06);animation:blink 3s infinite}
+.trat-row.urgente{border-left-color:var(--amber);background:rgba(224,138,58,.04)}
 .trat-row.pendente{border-left-color:var(--blue)}
 .info-box{background:var(--card2);border-radius:7px;padding:9px 12px;margin-bottom:12px;font-size:11px}
 .tag{display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:8px;font-size:9px;font-weight:500;border:1px solid;margin-right:3px}
@@ -357,7 +357,7 @@ body.modo-apres .pg.on{animation:fadeIn .4s ease}
   position:relative;
 }
 .bni:hover,.bni.on{color:var(--gold)}
-.bni.on{background:rgba(245,196,24,.07)}
+.bni.on{background:rgba(227,178,60,.07)}
 .bni-icon{font-size:18px;line-height:1}
 .bni-lbl{font-size:9px;font-weight:500;letter-spacing:.2px;text-transform:uppercase}
 .bni-badge{
@@ -436,12 +436,12 @@ body.modo-apres .pg.on{animation:fadeIn .4s ease}
 /* ── LOGIN SCREEN ──────────────────────────── */
 #login-screen{
   position:fixed;inset:0;z-index:9999;
-  background:var(--navy,#060e1c);
+  background:var(--navy,#0c1411);
   display:flex;align-items:center;justify-content:center;padding:20px;
 }
 .login-wrap{
-  background:var(--card,#0b1830);
-  border:1px solid var(--border,#1a3255);
+  background:var(--card,#131f19);
+  border:1px solid var(--border,#25382e);
   border-radius:20px;padding:36px 32px;
   width:100%;max-width:380px;
   animation:loginFadeUp .35s ease;
@@ -453,20 +453,20 @@ body.modo-apres .pg.on{animation:fadeIn .4s ease}
   background:linear-gradient(135deg,#e3b23c,#e8a800);
   display:flex;align-items:center;justify-content:center;font-size:20px;
 }
-.login-logo-name{font-size:14px;font-weight:700;color:var(--text,#cce0f5)}
-.login-logo-sub{font-size:9px;color:var(--muted,#4d7a9e);text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+.login-logo-name{font-size:14px;font-weight:700;color:var(--text,#dde8e1)}
+.login-logo-sub{font-size:9px;color:var(--muted,#829c8d);text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
 .login-title{font-size:20px;font-weight:700;color:#fff;margin-bottom:4px}
-.login-sub{font-size:11px;color:var(--muted,#4d7a9e);margin-bottom:22px}
+.login-sub{font-size:11px;color:var(--muted,#829c8d);margin-bottom:22px}
 .login-fg{margin-bottom:13px}
-.login-fg label{display:block;font-size:10px;color:var(--muted,#4d7a9e);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.login-fg label{display:block;font-size:10px;color:var(--muted,#829c8d);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .login-fg input{
   width:100%;background:rgba(255,255,255,.04);
-  border:1px solid var(--border,#1a3255);border-radius:9px;
-  padding:10px 13px;font-size:13px;color:var(--text,#cce0f5);
+  border:1px solid var(--border,#25382e);border-radius:9px;
+  padding:10px 13px;font-size:13px;color:var(--text,#dde8e1);
   font-family:inherit;outline:none;transition:border-color .15s;
 }
-.login-fg input:focus{border-color:rgba(245,196,24,.4)}
-.login-fg input::placeholder{color:var(--muted,#4d7a9e)}
+.login-fg input:focus{border-color:rgba(227,178,60,.4)}
+.login-fg input::placeholder{color:var(--muted,#829c8d)}
 .login-btn{
   width:100%;background:linear-gradient(135deg,#e3b23c,#e8a800);
   color:#000;font-weight:700;font-size:13px;
@@ -477,23 +477,23 @@ body.modo-apres .pg.on{animation:fadeIn .4s ease}
 .login-btn:hover{opacity:.9;transform:translateY(-1px)}
 .login-btn:active{transform:translateY(0)}
 .login-err{
-  background:rgba(232,80,58,.1);border:1px solid rgba(232,80,58,.3);
+  background:rgba(217,104,63,.1);border:1px solid rgba(217,104,63,.3);
   border-radius:7px;padding:8px 11px;font-size:11px;
   color:#d9683f;margin-top:10px;display:none;
 }
-.login-ld{text-align:center;font-size:11px;color:var(--muted,#4d7a9e);margin-top:8px;display:none}
-.login-forgot{text-align:center;margin-top:12px;font-size:11px;color:var(--muted,#4d7a9e)}
+.login-ld{text-align:center;font-size:11px;color:var(--muted,#829c8d);margin-top:8px;display:none}
+.login-forgot{text-align:center;margin-top:12px;font-size:11px;color:var(--muted,#829c8d)}
 .login-forgot a{color:#e3b23c;text-decoration:none;cursor:pointer}
 .login-forgot a:hover{text-decoration:underline}
 body.logged-out .sb,
 body.logged-out .main{display:none !important}
 #login-loading-overlay{
-  position:fixed;inset:0;background:var(--navy,#060e1c);
+  position:fixed;inset:0;background:var(--navy,#0c1411);
   z-index:10000;display:flex;align-items:center;justify-content:center;
   flex-direction:column;gap:12px;
 }
 .login-spinner{
-  width:28px;height:28px;border:3px solid var(--border,#1a3255);
+  width:28px;height:28px;border:3px solid var(--border,#25382e);
   border-top-color:#e3b23c;border-radius:50%;
   animation:loginSpin .7s linear infinite;
 }
@@ -527,7 +527,7 @@ body.logged-out .main{display:none !important}
 .com-person-pct{font-size:10px;color:var(--muted);margin-top:2px}
 .com-person-val{font-family:'JetBrains Mono',monospace;font-size:15px;
   font-weight:700;color:var(--gold)}
-.com-total-box{background:rgba(245,196,24,.07);border:1px solid rgba(245,196,24,.2);
+.com-total-box{background:rgba(227,178,60,.07);border:1px solid rgba(227,178,60,.2);
   border-radius:10px;padding:14px 16px;margin-bottom:12px;
   display:flex;justify-content:space-between;align-items:center}
 .com-total-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
@@ -594,9 +594,9 @@ body.logged-out .main{display:none !important}
   display:flex;align-items:center;gap:2px;
   padding:2px 6px;border-radius:6px;
 }
-.trend.up{color:#2fb59a;background:rgba(34,201,122,.12)}
-.trend.dn{color:#d9683f;background:rgba(232,80,58,.12)}
-.trend.eq{color:#4d7a9e;background:rgba(77,122,158,.10)}
+.trend.up{color:#2fb59a;background:rgba(47,181,154,.12)}
+.trend.dn{color:#d9683f;background:rgba(217,104,63,.12)}
+.trend.eq{color:#829c8d;background:rgba(77,122,158,.10)}
 .trend-arrow{font-size:10px}
 
 /* ── RANKING PAGE ─────────────────────────── */
@@ -613,7 +613,7 @@ body.logged-out .main{display:none !important}
   font-size:10px;font-weight:700;flex-shrink:0;
   background:var(--card2);color:var(--muted);
 }
-.rank-pos.gold{background:rgba(245,196,24,.2);color:var(--gold)}
+.rank-pos.gold{background:rgba(227,178,60,.2);color:var(--gold)}
 .rank-pos.silver{background:rgba(180,180,180,.2);color:#b0b0b0}
 .rank-pos.bronze{background:rgba(205,127,50,.2);color:#cd7f32}
 .rank-cliente{flex:1;min-width:0}
@@ -699,6 +699,48 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
   .ledger .kpi{border-left:0;border-top:1px solid var(--border)}
 }
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ═══ v29 · NOVO VISUAL (todas as abas) ═══ */
+.sb-logo{padding:20px 18px 16px}
+.sb-logo .name{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:-.2px}
+.sb-logo .sub,.sb-sec{text-transform:none;letter-spacing:0;font-size:11px}
+.sb-sec{padding:16px 18px 4px}
+.ni{margin:1px 10px;padding:8px 10px;border-left:0;border-radius:10px;font-size:12.5px}
+.ni.on{background:rgba(227,178,60,.13)}
+.topbar{padding:14px 26px;background:color-mix(in srgb,var(--navy) 88%,transparent);backdrop-filter:blur(10px)}
+.tb-title{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--text)}
+.tb-sub{font-size:11.5px}
+.pg{padding:22px 26px}
+.card{border-radius:20px;padding:18px 20px}
+.card-accent::before{display:none}
+.sec{font-size:13px!important;font-weight:600;letter-spacing:0;text-transform:none;color:var(--text);margin-bottom:12px}
+.sec::after{display:none}
+.kpi{border-radius:16px;border-left-width:1px;border-left-color:var(--border);padding:14px 16px}
+.kpi .v{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.4px}
+.kpi .l{font-size:12px;text-transform:none;letter-spacing:0;margin-top:6px}
+.gbox{border-radius:20px}
+.hbar-tr{height:16px;border-radius:8px;background:rgba(255,255,255,.05)}
+.hbar-fi{border-radius:8px}
+thead tr{background:transparent}
+thead th{font-size:11.5px;text-transform:none;letter-spacing:0;padding:10px 12px}
+tbody tr{border-bottom:1px solid color-mix(in srgb,var(--border) 60%,transparent)}
+tbody tr:hover{background:rgba(227,178,60,.06)}
+tbody td{padding:11px 12px}
+.ph{background:rgba(227,178,60,.06)!important}
+.badge{font-size:10.5px;padding:3px 9px;border-radius:999px}
+.btn{border-radius:999px;padding:8px 16px;font-size:12px}
+.btn.btn-sm{padding:5px 12px;font-size:11px}
+.si,.fs{border-radius:999px;padding:8px 14px;font-size:11.5px}
+.fg label{font-size:11.5px;text-transform:none;letter-spacing:0}
+.fg input,.fg select,.fg textarea{border-radius:10px;padding:9px 11px;font-size:12px}
+.modal-bg{background:rgba(6,12,9,.72);backdrop-filter:blur(3px)}
+.modal{border-radius:22px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.mh{padding:18px 24px}
+.mh h3{font-family:var(--serif);font-size:18px;color:var(--text)}
+.mc{padding:20px 24px}
+.mf{padding:14px 24px}
+.mclose:hover{color:var(--text)}
+.toast{border-radius:12px}
 </style>
 </head>
 <body class="logged-out">
@@ -706,7 +748,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
 <!-- LOGIN OVERLAY -->
 <div id="login-loading-overlay">
   <div class="login-spinner"></div>
-  <div style="font-size:11px;color:var(--muted,#4d7a9e)">Verificando acesso...</div>
+  <div style="font-size:11px;color:var(--muted,#829c8d)">Verificando acesso...</div>
 </div>
 
 <div id="login-screen" style="display:none">
@@ -809,8 +851,8 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
       <span class="chip live" id="chip-fb">● Firebase</span>
       <span class="chip" id="chip-date"></span>
       <button class="btn btn-s" style="font-size:9px;padding:4px 9px" onclick="importarDados()">⬆ Importar Planilha</button>
-      <button class="btn btn-s" id="print-btn-wrap" style="font-size:9px;padding:4px 9px;background:rgba(59,143,212,.15);border-color:#6fa8c9;color:#6fa8c9" onclick="pdfDashboard()" title="Exportar Dashboard como PDF executivo (1 página, tema claro)">📄 PDF</button>
-      <button class="btn btn-s" style="font-size:9px;padding:4px 9px;background:rgba(245,196,24,.12);border-color:rgba(245,196,24,.4);color:var(--gold)" onclick="toggleApres()" title="Modo Apresentação (Esc para sair)">🖥️</button>
+      <button class="btn btn-s" id="print-btn-wrap" style="font-size:9px;padding:4px 9px;background:rgba(111,168,201,.15);border-color:#6fa8c9;color:#6fa8c9" onclick="pdfDashboard()" title="Exportar Dashboard como PDF executivo (1 página, tema claro)">📄 PDF</button>
+      <button class="btn btn-s" style="font-size:9px;padding:4px 9px;background:rgba(227,178,60,.12);border-color:rgba(227,178,60,.4);color:var(--gold)" onclick="toggleApres()" title="Modo Apresentação (Esc para sair)">🖥️</button>
     </div>
   </div>
 
@@ -962,7 +1004,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
     <div class="card card-accent" style="--accent:var(--gold);padding:12px 16px;margin-bottom:10px" id="card-meta-r">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="font-size:13px;font-weight:600;color:var(--text)">Meta de faturamento — <span id="meta-mes-nome" style="color:var(--gold)"></span></div>
-        <button onclick="editarMetaR()" style="background:none;border:1px solid rgba(245,196,24,.3);color:var(--gold);font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer">✏️ Editar</button>
+        <button onclick="editarMetaR()" style="background:none;border:1px solid rgba(227,178,60,.3);color:var(--gold);font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer">✏️ Editar</button>
       </div>
       <div style="display:flex;align-items:center;gap:14px">
         <div style="flex:1">
@@ -1078,10 +1120,10 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
 
   <!-- TRATATIVA -->
   <div class="pg" id="pg-tratativa">
-    <div style="background:rgba(240,160,32,.07);border:1px solid rgba(240,160,32,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:var(--amber)">
+    <div style="background:rgba(224,138,58,.07);border:1px solid rgba(224,138,58,.25);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11px;color:var(--amber)">
       ⚡ Tratativa — apenas pedidos <strong>em aberto</strong>. Prazo de entrega: 30 dias da data do pedido.
     </div>
-    <div id="alerta-banner" style="display:none;background:rgba(232,80,58,.1);border:1px solid rgba(232,80,58,.4);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:var(--red);font-weight:600"></div>
+    <div id="alerta-banner" style="display:none;background:rgba(217,104,63,.1);border:1px solid rgba(217,104,63,.4);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:11px;color:var(--red);font-weight:600"></div>
     <div class="sr">
       <input class="si" id="s-trat" placeholder="🔍 Nº Pedido ou planta..." oninput="dRtrat()"/>
       <select class="fs" id="f-trat-st" onchange="saveFilter(this.id);rtrat()"><option value="">Todos os Status</option><option value="AGUARDANDO PRODUÇÃO">Ag. Produção</option><option value="AGUARDANDO COLETA">Ag. Coleta</option></select>
@@ -1237,7 +1279,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
 <!-- MODAL EXCLUIR LINHA -->
 <div class="modal-bg" id="m-dellinha">
   <div class="modal" style="max-width:420px">
-    <div class="mh" style="background:rgba(232,80,58,.12);border-bottom:1px solid rgba(232,80,58,.3)">
+    <div class="mh" style="background:rgba(217,104,63,.12);border-bottom:1px solid rgba(217,104,63,.3)">
       <h3 style="color:var(--red)">🗑 Excluir Linha</h3>
       <button class="mclose" onclick="closeM('m-dellinha')">✕</button>
     </div>
@@ -1314,7 +1356,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px" id="pl-kpis"></div>
 
   <!-- Texto explicativo (compacto) -->
-  <div style="background:rgba(245,196,24,.06);border:1px solid rgba(245,196,24,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted);line-height:1.6">
+  <div style="background:rgba(227,178,60,.06);border:1px solid rgba(227,178,60,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted);line-height:1.6">
     <strong style="color:var(--gold)">ℹ️</strong> O alerta dispara se a planta passar do tempo absoluto (15d/30d/90d) <strong>OU</strong> de múltiplos da frequência média dela (1,3× / 2× / 4×). Clique numa linha para ver detalhes.
   </div>
 
@@ -1351,14 +1393,14 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
       <option value="planta">Por Planta</option>
       <option value="produto">Por Produto</option>
     </select>
-    <button class="btn btn-sec btn-sm" onclick="pdfEvolucaoPlantas()" title="Gerar PDF executivo da evolução de faturamento por planta (para enviar à liderança)" style="border-color:#6fa8c9;color:#6fa8c9;background:rgba(59,143,212,.12)">📄 PDF Executivo</button>
+    <button class="btn btn-sec btn-sm" onclick="pdfEvolucaoPlantas()" title="Gerar PDF executivo da evolução de faturamento por planta (para enviar à liderança)" style="border-color:#6fa8c9;color:#6fa8c9;background:rgba(111,168,201,.12)">📄 PDF Executivo</button>
     <span style="font-size:11px;color:var(--muted);margin-left:auto" id="pv-sub"></span>
   </div>
   <!-- KPIs de previsão -->
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px" id="pv-kpis"></div>
   <!-- Gráfico de barras -->
   <!-- Texto explicativo -->
-  <div style="background:rgba(59,143,212,.07);border:1px solid rgba(59,143,212,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:11px;color:var(--muted);line-height:1.7">
+  <div style="background:rgba(111,168,201,.07);border:1px solid rgba(111,168,201,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:11px;color:var(--muted);line-height:1.7">
     <strong style="color:var(--blue)">ℹ️ Como ler este gráfico:</strong>
     Cada barra representa o <strong>valor total a faturar</strong> dos pedidos em aberto com prazo dentro dos próximos 30 dias.
     Use o filtro acima para agrupar <strong>por cliente</strong> (quem mais tem pedido), <strong>por planta</strong> (qual unidade) ou <strong>por produto</strong>.
@@ -1377,7 +1419,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
     <div style="font-size:11px;font-weight:600;color:var(--gold);margin-bottom:10px;text-transform:uppercase;letter-spacing:.8px">
       💡 Potencial Não Realizado por Planta
     </div>
-    <div style="background:rgba(34,201,122,.06);border:1px solid rgba(34,201,122,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted)">
+    <div style="background:rgba(47,181,154,.06);border:1px solid rgba(47,181,154,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted)">
       <strong style="color:#2fb59a">ℹ️</strong> Compara a <strong>média histórica mensal</strong> de cada planta (últimos 6 meses) com o que ela comprou <strong>neste mês</strong>. Plantas abaixo da média histórica = oportunidade de acompanhamento.
     </div>
     <div id="pv-potencial"></div>
@@ -1526,7 +1568,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
 
 <!-- PAINEL DE ALERTA (aparece no dashboard quando há pedidos vencendo) -->
 <div id="painel-alerta" style="display:none;position:fixed;bottom:20px;right:20px;z-index:300;
-  background:var(--card);border:1px solid rgba(232,80,58,.4);border-radius:16px;
+  background:var(--card);border:1px solid rgba(217,104,63,.4);border-radius:16px;
   padding:16px;max-width:340px;box-shadow:0 8px 32px rgba(0,0,0,.4);animation:slideUp .3s ease">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
     <div style="font-size:13px;font-weight:700;color:var(--red)">🔴 Pedidos vencendo!</div>
@@ -1560,7 +1602,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px" id="rk-kpis"></div>
 
   <!-- Texto explicativo -->
-  <div style="background:rgba(245,196,24,.07);border:1px solid rgba(245,196,24,.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:11px;color:var(--muted);line-height:1.7">
+  <div style="background:rgba(227,178,60,.07);border:1px solid rgba(227,178,60,.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;font-size:11px;color:var(--muted);line-height:1.7">
     <strong style="color:var(--gold)">ℹ️ Ranking de Clientes:</strong>
     Lista dos seus clientes com o OTIFF de cada um — quanto maior, melhor o desempenho de entrega.
     <strong>OTIFF</strong> = % de pedidos entregues no prazo e sem devolução.
@@ -1647,7 +1689,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
     <button class="btn btn-sec" style="font-size:10px;padding:4px 10px" onclick="exportarComparativoCSV()">📥 CSV</button>
     <span style="font-size:11px;color:var(--muted);margin-left:auto" id="cm-sub"></span>
   </div>
-  <div style="background:rgba(245,196,24,.06);border:1px solid rgba(245,196,24,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted)">
+  <div style="background:rgba(227,178,60,.06);border:1px solid rgba(227,178,60,.18);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:10px;color:var(--muted)">
     <strong style="color:var(--gold)">ℹ️</strong> Cada linha é um mês. As setas mostram variação vs mês anterior: <span style="color:#2fb59a">↑ cresceu</span> · <span style="color:#d9683f">↓ caiu</span>. Ctrl+clique no filtro de anos para comparar múltiplos anos.
   </div>
   <div class="card" style="padding:0;overflow-x:auto">
@@ -1686,7 +1728,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
   </div>
 
   <!-- Texto explicativo -->
-  <div style="background:rgba(59,143,212,.08);border:1px solid rgba(59,143,212,.25);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.7">
+  <div style="background:rgba(111,168,201,.08);border:1px solid rgba(111,168,201,.25);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:11px;color:var(--muted);line-height:1.7">
     <strong style="color:var(--blue)">ℹ️ Como usar este painel:</strong>
     Acompanhe todos os pedidos que estão na distribuidora.<br>
     <strong>ASN gerada</strong> = expedição gerou a coleta (a distribuidora retirou o pedido).
@@ -1808,7 +1850,7 @@ body.light-mode{--navy:#eef2ef;--card:#fff;--card2:#e5ebe7;--border:#cfd9d3;--te
 <!-- MODAL EDITAR PEDIDO -->
 <div class="modal-bg" id="m-edit">
   <div class="modal" style="max-width:820px">
-    <div class="mh" style="background:rgba(240,160,32,.06);border-bottom:1px solid rgba(240,160,32,.2)">
+    <div class="mh" style="background:rgba(224,138,58,.06);border-bottom:1px solid rgba(224,138,58,.2)">
       <div>
         <h3>✏️ Editar Pedido</h3>
         <div style="font-size:10px;color:var(--amber);margin-top:2px">Revise as alterações antes de salvar</div>
@@ -1984,7 +2026,7 @@ function initConexao(){
       _offlineBanner.style.cssText = [
         'position:fixed;bottom:0;left:220px;right:0;z-index:9999',
         'padding:10px 20px;text-align:center;font-size:12px;font-weight:700',
-        'background:rgba(232,80,58,.95);color:#fff;display:none;transition:all .3s'
+        'background:rgba(217,104,63,.95);color:#fff;display:none;transition:all .3s'
       ].join(';');
       _offlineBanner.innerHTML = '📡 Sem conexão com Firebase — dados podem estar desatualizados. Verifique sua internet.';
       document.body.appendChild(_offlineBanner);
@@ -2253,17 +2295,17 @@ function rEvolucao() {
     data: {
       labels: labelsComDados,
       datasets: [
-        { label:'OTIFF', data:otArr,  borderColor:'#e3b23c', backgroundColor:'rgba(245,196,24,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2.5 },
-        { label:'ONTIME',data:onArr,  borderColor:'#6fa8c9', backgroundColor:'rgba(59,143,212,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2, borderDash:[5,3] },
-        { label:'IN FULL',data:ifArr, borderColor:'#2fb59a', backgroundColor:'rgba(34,201,122,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2, borderDash:[2,3] },
+        { label:'OTIFF', data:otArr,  borderColor:'#e3b23c', backgroundColor:'rgba(227,178,60,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2.5 },
+        { label:'ONTIME',data:onArr,  borderColor:'#6fa8c9', backgroundColor:'rgba(111,168,201,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2, borderDash:[5,3] },
+        { label:'IN FULL',data:ifArr, borderColor:'#2fb59a', backgroundColor:'rgba(47,181,154,.1)', tension:.4, pointRadius:5, pointHoverRadius:7, borderWidth:2, borderDash:[2,3] },
       ]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: {display:false}, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}%` } } },
       scales: {
-        x: { grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#4d7a9e',font:{size:11}} },
-        y: { min:0, max:100, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#4d7a9e',font:{size:11},callback:v=>v+'%'} }
+        x: { grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#829c8d',font:{size:11}} },
+        y: { min:0, max:100, grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#829c8d',font:{size:11},callback:v=>v+'%'} }
       }
     }
   });
@@ -2334,7 +2376,7 @@ function rMetas() {
     const otiff = tot ? Math.round(otf/tot*100) : null;
     const meta = getMetaPlanta(planta);
     // Semáforo: verde ≥ meta, amarelo ≥ meta-10, vermelho < meta-10
-    const cor = otiff === null ? '#4d7a9e' :
+    const cor = otiff === null ? '#829c8d' :
       otiff >= 90 ? '#2fb59a' :
       otiff >= 80 ? '#e3b23c' : '#d9683f';
     const label = otiff === null ? 'Sem dados' :
@@ -2457,7 +2499,7 @@ function rPrevisao() {
         datasets: [{
           label:'Valor a faturar',
           data: top10.map(([,v])=>v.vlr),
-          backgroundColor: 'rgba(59,143,212,.7)',
+          backgroundColor: 'rgba(111,168,201,.7)',
           borderColor: '#6fa8c9',
           borderWidth: 1.5,
           borderRadius: 6,
@@ -2467,8 +2509,8 @@ function rPrevisao() {
         responsive:true, maintainAspectRatio:false, indexAxis:'y',
         plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>'R$ '+c.parsed.x.toLocaleString('pt-BR',{minimumFractionDigits:2}) } } },
         scales:{
-          x:{ grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#4d7a9e',font:{size:10},callback:v=>'R$ '+(v/1000).toFixed(0)+'k'} },
-          y:{ grid:{display:false}, ticks:{color:'#cce0f5',font:{size:10}} }
+          x:{ grid:{color:'rgba(255,255,255,.06)'}, ticks:{color:'#829c8d',font:{size:10},callback:v=>'R$ '+(v/1000).toFixed(0)+'k'} },
+          y:{ grid:{display:false}, ticks:{color:'#dde8e1',font:{size:10}} }
         }
       }
     });
@@ -3082,8 +3124,8 @@ function initModoConsulta() {
 
     /* Banner de consulta */
     #consulta-banner {
-      background: rgba(59,143,212,.08);
-      border-bottom: 1px solid rgba(59,143,212,.2);
+      background: rgba(111,168,201,.08);
+      border-bottom: 1px solid rgba(111,168,201,.2);
       padding: 6px 22px;
       font-size: 11px;
       color: var(--muted);
@@ -4484,7 +4526,7 @@ function rComparativo(){
     const pinfull=prev?.totMetric?Math.round(prev.inf/prev.totMetric*100):null;
     // Linha destaque para mês atual
     const isAtual=key===`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
-    const bg=isAtual?'background:rgba(245,196,24,.05);':'';
+    const bg=isAtual?'background:rgba(227,178,60,.05);':'';
     return `<tr style="border-bottom:1px solid rgba(255,255,255,.05);${bg}">
       <td style="padding:7px 10px;font-size:11px;font-weight:${isAtual?700:400};color:${isAtual?'var(--gold)':'var(--text)'}">${mesNome}${isAtual?' ◀':''}</td>
       ${cel(otiff,potiff,'pct')}
@@ -5596,10 +5638,10 @@ function calcABC(lista, totalVlr){
 
 function badgeABC(abc){
   const cfg = {
-    A: {cor:'#d9683f', bg:'rgba(232,80,58,.15)', label:'A'},
-    B: {cor:'#e3b23c', bg:'rgba(245,196,24,.15)', label:'B'},
-    C: {cor:'#2fb59a', bg:'rgba(34,201,122,.15)', label:'C'},
-  }[abc] || {cor:'#4d7a9e', bg:'rgba(77,122,158,.12)', label:'?'};
+    A: {cor:'#d9683f', bg:'rgba(217,104,63,.15)', label:'A'},
+    B: {cor:'#e3b23c', bg:'rgba(227,178,60,.15)', label:'B'},
+    C: {cor:'#2fb59a', bg:'rgba(47,181,154,.15)', label:'C'},
+  }[abc] || {cor:'#829c8d', bg:'rgba(77,122,158,.12)', label:'?'};
   return `<span style="display:inline-block;padding:1px 6px;border-radius:4px;font-size:9px;font-weight:700;color:${cfg.cor};background:${cfg.bg}">${cfg.label}</span>`;
 }
 
@@ -5698,7 +5740,7 @@ function abrirHistOTIFF(nome, isUF=false){
           label:'OTIFF %',
           data: vals,
           borderColor:'#e3b23c',
-          backgroundColor:'rgba(245,196,24,.1)',
+          backgroundColor:'rgba(227,178,60,.1)',
           borderWidth:2,
           pointRadius:4,
           pointBackgroundColor: vals.map(v=>v==null?'transparent':v>=90?'#2fb59a':v>=80?'#e3b23c':'#d9683f'),
@@ -5709,7 +5751,7 @@ function abrirHistOTIFF(nome, isUF=false){
         },{
           label:'Meta (80%)',
           data: meses.map(()=>80),
-          borderColor:'rgba(232,80,58,.4)',
+          borderColor:'rgba(217,104,63,.4)',
           borderWidth:1,
           borderDash:[4,4],
           pointRadius:0,
@@ -5727,8 +5769,8 @@ function abrirHistOTIFF(nome, isUF=false){
           }}
         },
         scales:{
-          x:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
-          y:{min:0,max:105,ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.04)'}}
+          x:{ticks:{color:'#829c8d',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
+          y:{min:0,max:105,ticks:{color:'#829c8d',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.04)'}}
         }
       }
     });
@@ -5894,7 +5936,7 @@ function badge(s, dataPedido, dataEntrega){
       const prazo = new Date(pdt(dataPedido).getTime()+30*86400000);
       const dEnt  = pdt(dataEntrega);
       if(dEnt && dEnt > prazo)
-        return `<span class="badge" style="background:rgba(240,160,32,.15);color:var(--amber);border:1px solid rgba(240,160,32,.4)">⚠ Entregue c/ Atraso</span>`;
+        return `<span class="badge" style="background:rgba(224,138,58,.15);color:var(--amber);border:1px solid rgba(224,138,58,.4)">⚠ Entregue c/ Atraso</span>`;
     }
     return `<span class="badge b-e">✓ Entregue</span>`;
   }
@@ -5977,8 +6019,8 @@ function rdash(){
   const daDiv=document.getElementById("dash-alerts");
   if(daDiv){
     daDiv.innerHTML="";
-    if(vencidas>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(232,80,58,0.1);border:1px solid #d9683f;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="abrirVencimentos('vencidas')"><span style="font-size:20px">🚨</span><div><strong style="color:#d9683f">ATENÇÃO: ${vencidas} linha(s) com PRAZO VENCIDO!</strong><br><span style="font-size:12px;color:var(--text)">Ação imediata necessária. Clique para ver detalhes.</span></div></div>`;
-    if(urgentes>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(245,196,24,0.1);border:1px solid #e3b23c;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="abrirVencimentos('proximas')"><span style="font-size:20px">⏰</span><div><strong style="color:#e3b23c">ALERTA: ${urgentes} linha(s) vencendo em até 5 dias!</strong><br><span style="font-size:12px;color:var(--text)">Clique para ver a lista completa.</span></div></div>`;
+    if(vencidas>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(217,104,63,0.1);border:1px solid #d9683f;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="abrirVencimentos('vencidas')"><span style="font-size:20px">🚨</span><div><strong style="color:#d9683f">ATENÇÃO: ${vencidas} linha(s) com PRAZO VENCIDO!</strong><br><span style="font-size:12px;color:var(--text)">Ação imediata necessária. Clique para ver detalhes.</span></div></div>`;
+    if(urgentes>0) daDiv.innerHTML+=`<div class="card" style="background:rgba(227,178,60,0.1);border:1px solid #e3b23c;cursor:pointer;margin-bottom:15px;padding:10px;display:flex;align-items:center;gap:10px" onclick="abrirVencimentos('proximas')"><span style="font-size:20px">⏰</span><div><strong style="color:#e3b23c">ALERTA: ${urgentes} linha(s) vencendo em até 5 dias!</strong><br><span style="font-size:12px;color:var(--text)">Clique para ver a lista completa.</span></div></div>`;
   }
 
   const ent=lns.filter(l=>l.status==='ENTREGUE Á TRANSPORTADORA');
@@ -6094,15 +6136,15 @@ function rdash(){
   });
 
   const gO={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-    scales:{x:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.04)'}},
-            y:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.04)'}}}};
+    scales:{x:{ticks:{color:'#829c8d',font:{size:8}},grid:{color:'rgba(255,255,255,.04)'}},
+            y:{ticks:{color:'#829c8d',font:{size:8}},grid:{color:'rgba(255,255,255,.04)'}}}};
 
   if(chOM)chOM.destroy();
   chOM=new Chart(document.getElementById('ch-om'),{type:'bar',
     data:{labels:mLbls,datasets:[{data:omV,backgroundColor:omV.map(v=>bc(v)),borderRadius:4}]},
     options:{...gO,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+'%'}}},
-      scales:{x:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
-              y:{min:0,max:105,ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.03)'}}}},
+      scales:{x:{ticks:{color:'#829c8d',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
+              y:{min:0,max:105,ticks:{color:'#829c8d',font:{size:8},callback:v=>v+'%'},grid:{color:'rgba(255,255,255,.03)'}}}},
     plugins:[{
       afterDatasetsDraw(chart){
         const ctx=chart.ctx, meta=chart.getDatasetMeta(0);
@@ -6168,8 +6210,8 @@ function rdash(){
   chVM=new Chart(document.getElementById('ch-vm'),{type:'bar',
     data:{labels:mLbls,datasets:[{data:vlrV,backgroundColor:'#6fa8c9',borderRadius:4}]},
     options:{...gO,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+Math.round(c.parsed.y).toLocaleString('pt-BR')}}},
-      scales:{x:{ticks:{color:'#4d7a9e',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
-              y:{ticks:{color:'#4d7a9e',font:{size:8},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':'R$'+Math.round(v/1e3)+'K'},grid:{color:'rgba(255,255,255,.03)'}}}},
+      scales:{x:{ticks:{color:'#829c8d',font:{size:8}},grid:{color:'rgba(255,255,255,.03)'}},
+              y:{ticks:{color:'#829c8d',font:{size:8},callback:v=>v>=1e6?(v/1e6).toFixed(1)+'M':'R$'+Math.round(v/1e3)+'K'},grid:{color:'rgba(255,255,255,.03)'}}}},
     plugins:[{
       // Mostra valor formatado em cima de cada barra (R$XXK ou R$X.XM)
       afterDatasetsDraw(chart){
@@ -6194,16 +6236,16 @@ function rdash(){
   if(chST)chST.destroy();
   chST=new Chart(document.getElementById('ch-st'),{type:'doughnut',
     data:{labels:['Entregue','Ag. Produção','Ag. Coleta'],
-          datasets:[{data:[ent.length,agP.length,ab.length-agP.length],backgroundColor:['#2fb59a','#f0a020','#6fa8c9'],borderWidth:0,hoverOffset:6}]},
+          datasets:[{data:[ent.length,agP.length,ab.length-agP.length],backgroundColor:['#2fb59a','#e08a3a','#6fa8c9'],borderWidth:0,hoverOffset:6}]},
     options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
-      plugins:{legend:{display:true,position:'bottom',labels:{color:'#4d7a9e',font:{size:9},boxWidth:8,padding:8,
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#829c8d',font:{size:9},boxWidth:8,padding:8,
         generateLabels(chart){
           const d=chart.data;
           return d.labels.map((lbl,i)=>({
             text: lbl+': '+d.datasets[0].data[i],
             fillStyle: d.datasets[0].backgroundColor[i],
             strokeStyle: d.datasets[0].backgroundColor[i],
-            fontColor: '#4d7a9e',
+            fontColor: '#829c8d',
             lineWidth:0, hidden:false, index:i
           }));
         }
@@ -6397,9 +6439,9 @@ function rpedidos(){
             <span>${badge(ln.status, ped.dataPedido, ln.dataEntrega)}</span>
             <span style="font-size:9px;color:var(--muted)">${ln.dataFat?'NF: '+ln.statusEP:'—'}</span>
             ${ln.asn?('<span style="font-size:9px;color:var(--blue)">ASN: '+ln.asn+'</span>'):''}
-            ${ln.ocorrencia>0?'<span class="badge" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.4)">🔴 Devolução</span>':''}
+            ${ln.ocorrencia>0?'<span class="badge" style="background:rgba(217,104,63,.15);color:var(--red);border:1px solid rgba(217,104,63,.4)">🔴 Devolução</span>':''}
             <button class="btn btn-sm btn-g" style="padding:2px 7px;font-size:9px" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
-            ${isAdmin() ? `<button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3)" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>` : ``}
+            ${isAdmin() ? `<button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(217,104,63,.15);color:var(--red);border:1px solid rgba(217,104,63,.3)" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>` : ``}
             ${ln.status==='ENTREGUE Á TRANSPORTADORA'?`<button class="btn btn-sm btn-r" style="padding:2px 7px;font-size:9px" onclick="event.stopPropagation();abrirDevolucao('${pk}','${lk}')" title="Registrar devolução — impacta IN FULL">📦 Devolução</button>`:''}
           </div>`).join('')}
       <div style="text-align:right;padding:5px 10px 2px">
@@ -6781,9 +6823,9 @@ function statusPrazo(ln,dataPedido){
 }
 function alertaBadge(dr){
   if(dr===null) return '';
-  if(dr<0) return `<span class="badge" style="background:rgba(232,80,58,.2);color:var(--red);border:1px solid var(--red);font-weight:800">🔴 VENCIDO ${Math.abs(dr)}d</span>`;
-  if(dr<=5) return `<span class="badge" style="background:rgba(240,160,32,.15);color:var(--amber);border:1px solid var(--amber)">⚠️ Vence em ${dr}d</span>`;
-  return `<span class="badge" style="background:rgba(34,201,122,.1);color:var(--green);border:1px solid rgba(34,201,122,.3)">${dr}d restantes</span>`;
+  if(dr<0) return `<span class="badge" style="background:rgba(217,104,63,.2);color:var(--red);border:1px solid var(--red);font-weight:800">🔴 VENCIDO ${Math.abs(dr)}d</span>`;
+  if(dr<=5) return `<span class="badge" style="background:rgba(224,138,58,.15);color:var(--amber);border:1px solid var(--amber)">⚠️ Vence em ${dr}d</span>`;
+  return `<span class="badge" style="background:rgba(47,181,154,.1);color:var(--green);border:1px solid rgba(47,181,154,.3)">${dr}d restantes</span>`;
 }
 
 function rtrat(){
@@ -6823,12 +6865,12 @@ function rtrat(){
         <td style="font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--blue)">${ln.asn||'—'}</td>
         <td style="font-size:10px">${fdt(ln.dataEntrega)||'—'}</td>
         <td style="font-size:10px">${fdt(ln.prevEntrega)||'—'}</td>
-        <td><span class="badge" style="${ln.ocorrencia?'background:rgba(232,80,58,.12);color:var(--red);border:1px solid rgba(232,80,58,.3)':''}">${ln.ocorrencia||0}</span></td>
+        <td><span class="badge" style="${ln.ocorrencia?'background:rgba(217,104,63,.12);color:var(--red);border:1px solid rgba(217,104,63,.3)':''}">${ln.ocorrencia||0}</span></td>
         <td>${alertaBadge(dr)}</td>
         <td style="text-align:center">${diasAbertoBadge}</td>
         <td style="display:flex;gap:4px;align-items:center">
       <button class="btn btn-g btn-sm" onclick="abrirFat('${pk}','${lk}')">Atualizar</button>
-      ${isAdmin() ? `<button class="btn btn-sm" style="background:rgba(232,80,58,.15);color:var(--red);border:1px solid rgba(232,80,58,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>` : ``}
+      ${isAdmin() ? `<button class="btn btn-sm" style="background:rgba(217,104,63,.15);color:var(--red);border:1px solid rgba(217,104,63,.3);padding:4px 8px" onclick="event.stopPropagation();abrirDelLinha('${lk}','${ped.numPedido||pk}','${ln.produto||''}','${pk}')">🗑</button>` : ``}
     </td>
       </tr>`;
     });
@@ -6916,7 +6958,7 @@ function rprod(){
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gold)">${p.cod}</td>
     <td style="font-size:9px;color:var(--muted)">${p.sap||'—'}</td>
     <td style="font-size:10px">${p.nome}</td>
-    <td><span class="tag" style="color:var(--blue);border-color:rgba(59,143,212,.3);background:rgba(59,143,212,.08)">${p.linha}</span></td>
+    <td><span class="tag" style="color:var(--blue);border-color:rgba(111,168,201,.3);background:rgba(111,168,201,.08)">${p.linha}</span></td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.PA?brl(p.PA):'—'}</td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.MG?brl(p.MG):'—'}</td>
     <td style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.ES?brl(p.ES):'—'}</td>
@@ -7321,14 +7363,14 @@ function renderComissao(){
 
   // KPI por pessoa filtrada
   const kpiAndrei = comFiltPes==='myrelle'?'':
-    `<div style="background:rgba(245,196,24,.08);border:1px solid rgba(245,196,24,.2);border-radius:12px;padding:14px 16px;flex:1;min-width:140px">
+    `<div style="background:rgba(227,178,60,.08);border:1px solid rgba(227,178,60,.2);border-radius:12px;padding:14px 16px;flex:1;min-width:140px">
       <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Andrei Costa · 1%</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--gold)">${brl(comA_filt)}</div>
       <div style="font-size:9px;color:var(--muted);margin-top:4px">${periodoLabel}</div>
     </div>`;
 
   const kpiMyrelle = comFiltPes==='andrei'?'':
-    `<div style="background:rgba(59,143,212,.08);border:1px solid rgba(59,143,212,.2);border-radius:12px;padding:14px 16px;flex:1;min-width:140px">
+    `<div style="background:rgba(111,168,201,.08);border:1px solid rgba(111,168,201,.2);border-radius:12px;padding:14px 16px;flex:1;min-width:140px">
       <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Myrelle · 0,5%</div>
       <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--blue)">${brl(comM_filt)}</div>
       <div style="font-size:9px;color:var(--muted);margin-top:4px">${periodoLabel}</div>
@@ -7344,7 +7386,7 @@ function renderComissao(){
       <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)">${brl(byM[m].vFat).replace('R$ ','')}</div>
       <div style="width:100%;background:var(--card2);border-radius:6px;height:${barMaxH}px;position:relative;display:flex;align-items:flex-end;overflow:hidden;
         ${sel?'outline:1px solid var(--gold);':''}">
-        <div style="width:100%;height:${hV}px;background:${sel?'var(--gold)':'rgba(245,196,24,.25)'};border-radius:4px 4px 0 0;transition:height .3s"></div>
+        <div style="width:100%;height:${hV}px;background:${sel?'var(--gold)':'rgba(227,178,60,.25)'};border-radius:4px 4px 0 0;transition:height .3s"></div>
       </div>
       <div style="font-size:9px;color:${sel?'var(--gold)':'var(--muted)'};text-transform:capitalize;font-weight:${sel?'700':'400'}">${m}</div>
     </div>`;
@@ -7355,7 +7397,7 @@ function renderComissao(){
     const sel=comFiltMes===m;
     const showA=comFiltPes!=='myrelle';
     const showM=comFiltPes!=='andrei';
-    return `<tr style="background:${sel?'rgba(245,196,24,.05)':''}">
+    return `<tr style="background:${sel?'rgba(227,178,60,.05)':''}">
       <td style="padding:9px 10px;font-size:11px;color:${sel?'var(--gold)':'var(--text)'};font-weight:${sel?'700':'400'};cursor:pointer;text-transform:capitalize"
         onclick="window._comFiltMes='${sel?'todos':m}';renderComissao()">${MO_PT[MO.indexOf(m)]}</td>
       <td style="padding:9px 10px;font-size:10px;color:var(--muted);text-align:right">${byM[m].nFat||0}</td>
@@ -7378,7 +7420,7 @@ function renderComissao(){
         <div style="font-size:17px;font-weight:700;color:#fff">Comissões · S11D</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${ano} · ${nPed} pedidos · ${nFatTotal} linhas c/ NF · ${todasS11D.length} linhas total</div>
       </div>
-      <span style="background:rgba(232,80,58,.1);border:1px solid rgba(232,80,58,.3);color:var(--red);font-size:9px;padding:3px 10px;border-radius:10px;font-weight:600">🔒 Confidencial</span>
+      <span style="background:rgba(217,104,63,.1);border:1px solid rgba(217,104,63,.3);color:var(--red);font-size:9px;padding:3px 10px;border-radius:10px;font-weight:600">🔒 Confidencial</span>
     </div>
 
     <!-- FILTROS -->
@@ -7395,7 +7437,7 @@ function renderComissao(){
     </div>
 
     <!-- TOTAL FATURADO -->
-    <div style="background:rgba(245,196,24,.07);border:1px solid rgba(245,196,24,.2);border-radius:12px;padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+    <div style="background:rgba(227,178,60,.07);border:1px solid rgba(227,178,60,.2);border-radius:12px;padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
       <div>
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Faturado S11D (c/ NF)</div>
         <div style="font-size:9px;color:var(--muted);margin-top:2px">${periodoLabel}</div>
@@ -7632,7 +7674,7 @@ function clearDraft() {
       </div>
 
       <!-- Alerta visual -->
-      <div style="background:rgba(232,80,58,.08);border:1px solid rgba(232,80,58,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--red)">
+      <div style="background:rgba(217,104,63,.08);border:1px solid rgba(217,104,63,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:11px;color:var(--red)">
         ⚠️ Registrar uma devolução <strong>impacta o IN FULL</strong> desta linha e o indicador OTIFF do período.
       </div>
 
