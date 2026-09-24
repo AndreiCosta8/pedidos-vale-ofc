@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vale · Sistema de Pedidos v33</title>
+<title>Vale · Sistema de Pedidos v34</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -745,6 +745,21 @@ tbody td{padding:11px 12px}
 .kpi .v,.gnum,#meta-pct-label{font-variant-numeric:lining-nums tabular-nums}
 
 .ver-tag{margin-left:8px;padding:1px 8px;border:1px solid var(--border);border-radius:999px;font-size:10px;font-weight:600;color:var(--gold)}
+
+/* ═══ Uni · assistente ═══ */
+#uni-fab{display:none;position:fixed;right:20px;bottom:20px;z-index:900;align-items:center;gap:8px;padding:11px 18px;border-radius:999px;border:1px solid rgba(227,178,60,.5);background:linear-gradient(135deg,#e3b23c,#cf9f2c);color:#1a1405;font:600 13px inherit;font-family:inherit;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+#uni-fab .n{background:var(--red);color:#fff;border-radius:999px;font-size:10px;padding:1px 7px}
+#uni-panel{position:fixed;top:0;right:0;height:100%;width:min(440px,100%);z-index:950;background:var(--card);border-left:1px solid var(--border);transform:translateX(104%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.35)}
+#uni-panel.open{transform:none}
+#uni-panel .uh{display:flex;align-items:center;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border)}
+#uni-panel .av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#e3b23c,#cf9f2c);color:#1a1405;display:grid;place-items:center;font-family:var(--serif);font-weight:600;font-size:18px}
+#uni-body{flex:1;overflow-y:auto;padding:16px 20px 30px}
+.uni-card{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:10px;font-size:12.5px}
+.uni-chip{display:inline-block;margin:6px 6px 0 0;padding:3px 10px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--text);font-size:11.5px;cursor:pointer}
+.uni-chip:hover{border-color:var(--gold);color:var(--gold)}
+.uni-h{font-size:13px;font-weight:600;margin:18px 0 8px}
+.uni-n{float:right;background:rgba(217,104,63,.18);color:var(--red);border-radius:999px;padding:0 9px;font-size:11px;font-weight:600}
+@media(max-width:900px){#uni-fab{bottom:80px}}
 </style>
 </head>
 <body class="logged-out">
@@ -761,7 +776,7 @@ tbody td{padding:11px 12px}
       <div class="login-logo-icon">📊</div>
       <div>
         <div class="login-logo-name">BI · Pedidos Vale</div>
-        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v33</div>
+        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v34</div>
       </div>
     </div>
     <div class="login-title">Acesso restrito</div>
@@ -788,7 +803,7 @@ tbody td{padding:11px 12px}
 <nav class="sb" id="sb">
   <div class="sb-logo">
     <div class="name">⚙️ Vale · Pedidos</div>
-    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v33</span></div>
+    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v34</span></div>
   </div>
   <div class="sb-sec">Análise</div>
   <div class="ni on" onclick="nav('dash')" data-pg="dash"><span class="ni-icon">📊</span>Dashboard</div>
@@ -2101,6 +2116,7 @@ function listenPeds(){
       document.getElementById('fb-lbl').textContent = `Conectado (${total} pedidos)`;
       document.getElementById('chip-fb').className = 'chip live';
         popularClasses();
+        uniBadge();
       },150);
     } else {
       // Firebase vazio — manter dados locais, sugerir importar
@@ -7707,7 +7723,7 @@ function renderHistorico(){
 async function baixarBackup(){
   toast('Gerando backup…','info');
   const cfg={}; for(const k of ['contatos','alertas','plantas_extras']) cfg[k]=(await db.ref('config/'+k).once('value')).val();
-  const d={versao:1,app:'v33',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
+  const d={versao:1,app:'v34',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
   a.download='backup_pedidos_vale_'+hojeISO()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   logAtividade('backup baixado',''); toast('Backup baixado.');
@@ -7761,6 +7777,90 @@ async function abrirHistPed(pk){
     logs=m.length?m.map(h=>`<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:11.5px"><span style="color:var(--muted)">${esc(new Date(h.data).toLocaleString('pt-BR'))} · ${esc((h.usuario||'').split('@')[0])}</span><br>${esc(h.acao)}<span style="color:var(--muted)"> — ${esc(h.detalhes)}</span></div>`).join(''):'<div style="font-size:12px;color:var(--muted)">Nenhuma alteração registrada ainda para este pedido.</div>';
   }catch(e){ logs='<div style="font-size:12px;color:var(--muted)">Não foi possível carregar o registro de alterações.</div>'; }
   box.innerHTML=`<div class="sec">Linha do tempo</div>${linhas||'<div style="font-size:12px;color:var(--muted)">Sem datas registradas.</div>'}${extra}<div class="sec" style="margin-top:18px">Alterações feitas no sistema</div>${logs}`;
+}
+
+// ═══ UNI · Fase 1 (assistente local: nada é enviado para fora do sistema) ═══
+const UNI_ENT='ENTREGUE Á TRANSPORTADORA';
+const UNI_MESES=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const uniNorm=x=>String(x||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+const uniNF=l=>String(l.statusEP||'').trim();
+function uniLinhas(){const o=[];Object.entries(PEDS||{}).forEach(([pk,p])=>Object.entries(p.linhas||{}).forEach(([lk,l])=>o.push({...l,_pk:pk,_lk:lk,_p:p})));return o;}
+function uniDias(l){ if(l.status===UNI_ENT) return null; const dp=pdt(l._p.dataPedido); if(!dp) return null; const h=new Date(); h.setHours(0,0,0,0); return Math.round((dp.getTime()+30*864e5-h)/864e5); }
+function uniChecks(){
+  const L=uniLinhas(), h=new Date(); h.setHours(0,0,0,0);
+  const C=[
+    {t:'NF preenchida sem data de faturamento',d:'Essas linhas não entram na meta de faturamento do mês.',f:l=>uniNF(l)&&!l.dataFat},
+    {t:'Data de faturamento sem NF',d:'Confira se a NF foi lançada.',f:l=>l.dataFat&&!uniNF(l)},
+    {t:'Entregue sem data de faturamento',d:'Linha entregue à transportadora sem faturamento registrado.',f:l=>l.status===UNI_ENT&&!l.dataFat},
+    {t:'Entrega antes do faturamento',d:'Datas fora de ordem.',f:l=>l.dataFat&&l.dataEntrega&&l.dataEntrega<l.dataFat},
+    {t:'Linha sem valor',d:'Valor total zerado ou vazio.',f:l=>!(+l.vlrTotal>0)},
+    {t:'Data de pedido no futuro',d:'Provável erro de digitação na data.',f:l=>{const d=pdt(l._p.dataPedido);return d&&d>h;}}
+  ].map(c=>({t:c.t,d:c.d,it:L.filter(c.f)}));
+  const vazios=Object.entries(PEDS||{}).filter(([k,p])=>!Object.keys(p.linhas||{}).length).map(([k,p])=>({_pk:k,_p:p}));
+  C.push({t:'Pedido sem nenhuma linha',d:'Pedido criado sem itens (ou com todas as linhas excluídas).',it:vazios});
+  return C;
+}
+function uniBadge(){
+  const fab=document.getElementById('uni-fab'); if(!fab||!window._currentUser) return;
+  fab.style.display='flex';
+  const n=uniLinhas().filter(l=>{const d=uniDias(l);return d!==null&&d<0;}).length?1:0;
+  const c=n+uniChecks().filter(x=>x.it.length).length, b=document.getElementById('uni-fab-n');
+  b.style.display=c?'inline':'none'; b.textContent=c;
+  if(document.getElementById('uni-panel').classList.contains('open')) uniRender();
+}
+function toggleUni(f){ const p=document.getElementById('uni-panel'); const on=f===undefined?!p.classList.contains('open'):f; p.classList.toggle('open',on); if(on) uniRender(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') toggleUni(false); });
+function uniAbrirHist(pk){ toggleUni(false); abrirHistPed(pk); }
+function uniAbrirEdit(pk){ toggleUni(false); window['openEditPed'](pk); }
+function uniRender(){
+  const b=document.getElementById('uni-body'); if(!b) return;
+  const L=uniLinhas(), hoje=new Date(), nome=((window._currentUser?.email||'').split('@')[0].split('.')[0]||'').replace(/^./,c=>c.toUpperCase());
+  const sug=['linhas vencidas','em aberto','faturado este mês','entregue em agosto'];
+  document.getElementById('uni-sug').innerHTML=sug.map(x=>`<button class="uni-chip" onclick="document.getElementById('uni-q').value='${x}';uniPerguntar('${x}')">${esc(x)}</button>`).join('');
+  const venc=L.filter(l=>{const d=uniDias(l);return d!==null&&d<0;}), prox=L.filter(l=>{const d=uniDias(l);return d!==null&&d>=0&&d<=5;});
+  const pks=a=>[...new Set(a.map(l=>l._pk))];
+  const chips=(a,fn)=>pks(a).slice(0,8).map(k=>`<button class="uni-chip" onclick="${fn}('${esc(k)}')">${esc(k)}</button>`).join('')+(pks(a).length>8?` <span style="color:var(--muted)">+${pks(a).length-8}</span>`:'');
+  const val=a=>brl(a.reduce((s,l)=>s+(+l.vlrTotal||0),0));
+  let h=`<div style="font-size:13px">${hoje.getHours()<12?'Bom dia':hoje.getHours()<18?'Boa tarde':'Boa noite'}${nome?', '+esc(nome):''}. Aqui está o que merece atenção.</div>`;
+  h+=`<div class="uni-h">Precisa de ação hoje</div>`;
+  h+=`<div class="uni-card"><span class="uni-n" style="${venc.length?'':'background:rgba(47,181,154,.18);color:var(--green)'}">${venc.length}</span><b>Linhas vencidas</b><div style="color:var(--muted);margin-top:2px">${venc.length?pks(venc).length+' pedido(s) · '+val(venc)+' em aberto além do prazo de 30 dias':'Nenhuma linha vencida.'}</div>${chips(venc,'uniAbrirHist')}</div>`;
+  h+=`<div class="uni-card"><span class="uni-n" style="background:rgba(227,178,60,.18);color:var(--gold)">${prox.length}</span><b>Vencem em até 5 dias</b><div style="color:var(--muted);margin-top:2px">${prox.length?pks(prox).length+' pedido(s) · '+val(prox):'Nada vencendo nos próximos dias.'}</div>${chips(prox,'uniAbrirHist')}</div>`;
+  h+=`<div class="uni-h">Verificação dos dados</div>`;
+  uniChecks().forEach(c=>{
+    h+=`<div class="uni-card"><span class="uni-n" style="${c.it.length?'':'background:rgba(47,181,154,.18);color:var(--green)'}">${c.it.length?c.it.length:'✓'}</span><b>${esc(c.t)}</b><div style="color:var(--muted);margin-top:2px">${c.it.length?esc(c.d):'Sem problemas.'}</div>${c.it.length?chips(c.it,'uniAbrirEdit'):''}</div>`;
+  });
+  b.innerHTML=h;
+}
+function uniPerguntar(q){
+  const box=document.getElementById('uni-resp'); const t=uniNorm(q), tok=t.match(/[a-z0-9]+/g)||[];
+  if(!tok.length){ box.innerHTML=''; return; }
+  const L=uniLinhas(), ano=new Date().getFullYear();
+  const pkm=Object.keys(PEDS).find(k=>tok.includes(uniNorm(k)));
+  if(pkm){
+    const p=PEDS[pkm], ls=Object.values(p.linhas||{}), ent=ls.filter(l=>l.status===UNI_ENT).length;
+    box.innerHTML=`<div class="uni-card"><b>Pedido ${esc(pkm)}</b><br>${esc(p.cliente||'—')} · ${esc(p.planta||'—')}<br>${ls.length} linha(s), ${ent} entregue(s) · ${esc(brl(ls.reduce((s,l)=>s+(+l.vlrTotal||0),0)))}<br><button class="uni-chip" onclick="uniAbrirHist('${esc(pkm)}')">Ver histórico</button></div>`; return;
+  }
+  const mm=/(este|esse|atual)/.test(t)&&/mes/.test(t)?new Date().getMonth():UNI_MESES.findIndex(m=>tok.includes(m));
+  const anoQ=(t.match(/\b(20\d\d)\b/)||[])[1], yy=+anoQ||ano;
+  const tipo=/vencid|atrasad/.test(t)?'venc':/abert|pendent|aguard/.test(t)?'aberto':/fatur/.test(t)?'fat':/entreg/.test(t)?'ent':null;
+  const casa=n=>{const nn=uniNorm(n); return t.includes(nn)||nn.split(/\s+/).some(w=>w.length>=4&&!['vale','pedido','pedidos'].includes(w)&&tok.includes(w));};
+  const pl=[...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].filter(casa);
+  const cl=[...new Set(Object.values(PEDS).map(p=>p.cliente).filter(Boolean))].filter(casa);
+  if(!tipo&&!pl.length&&!cl.length&&mm<0&&!anoQ){ box.innerHTML='<div class="uni-card">Ainda não entendi. Tente perguntas com <b>vencidas</b>, <b>em aberto</b>, <b>faturadas</b> ou <b>entregues</b>, junto com um mês, uma planta ou um cliente. Ou digite o número de um pedido.</div>'; return; }
+  const dref=l=>tipo==='fat'?l.dataFat:tipo==='ent'?l.dataEntrega:l._p.dataPedido;
+  const R=L.filter(l=>{
+    if(pl.length&&!pl.includes(l._p.planta)) return false;
+    if(cl.length&&!cl.includes(l._p.cliente)) return false;
+    if(tipo==='venc'){const d=uniDias(l); if(d===null||d>=0) return false;}
+    if(tipo==='aberto'&&l.status===UNI_ENT) return false;
+    if(tipo==='fat'&&!l.dataFat) return false;
+    if(tipo==='ent'&&l.status!==UNI_ENT) return false;
+    if(mm>=0||anoQ){ const d=pdt(dref(l)); if(!d||d.getFullYear()!==yy||(mm>=0&&d.getMonth()!==mm)) return false; }
+    return true;
+  });
+  const v=R.reduce((s,l)=>s+(tipo==='fat'?(+l.vlrFaturado||+l.vlrTotal||0):(+l.vlrTotal||0)),0), pks=[...new Set(R.map(l=>l._pk))];
+  const desc=[{venc:'vencidas',aberto:'em aberto',fat:'faturadas',ent:'entregues'}[tipo]||'todas as linhas',...pl,...cl,mm>=0?UNI_MESES[mm].replace('marco','março')+'/'+yy:(anoQ?String(yy):'')].filter(Boolean).join(' · ');
+  box.innerHTML=R.length?`<div class="uni-card"><div style="font-family:var(--serif);font-size:22px;font-weight:600">${R.length} linha(s)</div><div>${pks.length} pedido(s) · ${esc(brl(v))}</div><div style="color:var(--muted);margin-top:2px">${esc(desc)}</div>${pks.slice(0,8).map(k=>`<button class="uni-chip" onclick="uniAbrirHist('${esc(k)}')">${esc(k)}</button>`).join('')}${pks.length>8?` <span style="color:var(--muted)">+${pks.length-8}</span>`:''}</div>`:`<div class="uni-card">Nada encontrado para: ${esc(desc)}.</div>`;
 }
 </script>
 
@@ -7820,5 +7920,20 @@ async function abrirHistPed(pk){
   </div>
 </div>
 
+
+<button id="uni-fab" onclick="toggleUni()" aria-label="Abrir a Uni">Uni <span class="n" id="uni-fab-n" style="display:none"></span></button>
+<aside id="uni-panel" aria-label="Uni, assistente do sistema">
+  <div class="uh">
+    <div class="av">U</div>
+    <div style="flex:1"><div style="font-family:var(--serif);font-size:17px;font-weight:600">Uni</div><div style="font-size:11px;color:var(--muted)">Assistente do sistema · seus dados não saem daqui</div></div>
+    <button class="mclose" onclick="toggleUni(false)" aria-label="Fechar">✕</button>
+  </div>
+  <div style="padding:14px 20px 0">
+    <div style="display:flex;gap:8px"><input class="si" id="uni-q" style="flex:1" placeholder="Pergunte à Uni…" onkeydown="if(event.key==='Enter')uniPerguntar(this.value)"><button class="btn btn-p btn-sm" onclick="uniPerguntar(document.getElementById('uni-q').value)">Ok</button></div>
+    <div id="uni-sug"></div>
+    <div id="uni-resp" style="margin-top:12px"></div>
+  </div>
+  <div id="uni-body"></div>
+</aside>
 </body>
 </html>
