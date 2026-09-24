@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vale · Sistema de Pedidos v37</title>
+<title>Vale · Sistema de Pedidos v38</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -783,6 +783,8 @@ body.somente-leitura [onclick*="addLi"],
 body.somente-leitura .ni[data-pg="novo"],body.somente-leitura .ni[data-pg="config"],body.somente-leitura .bni[data-pg="novo"]{display:none!important}
 .ro-pill{display:none;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap}
 body.somente-leitura .ro-pill{display:inline-flex}
+
+body.somente-leitura [onclick*="abrirDelPedido"]{display:none!important}
 </style>
 </head>
 <body class="logged-out">
@@ -799,7 +801,7 @@ body.somente-leitura .ro-pill{display:inline-flex}
       <div class="login-logo-icon">📊</div>
       <div>
         <div class="login-logo-name">BI · Pedidos Vale</div>
-        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v37</div>
+        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v38</div>
       </div>
     </div>
     <div class="login-title">Acesso restrito</div>
@@ -826,7 +828,7 @@ body.somente-leitura .ro-pill{display:inline-flex}
 <nav class="sb" id="sb">
   <div class="sb-logo">
     <div class="name">⚙️ Vale · Pedidos</div>
-    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v37</span></div>
+    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v38</span></div>
   </div>
   <div class="sb-sec">Análise</div>
   <div class="ni on" onclick="nav('dash')" data-pg="dash"><span class="ni-icon">📊</span>Dashboard</div>
@@ -1324,6 +1326,24 @@ body.somente-leitura .ro-pill{display:inline-flex}
     <div class="mc" id="histped-body" style="max-height:65vh;overflow-y:auto"></div>
   </div>
 </div>
+<div class="modal-bg" id="m-delped">
+  <div class="modal" style="max-width:420px">
+    <div class="mh" style="background:rgba(217,104,63,.12);border-bottom:1px solid rgba(217,104,63,.3)">
+      <h3 style="color:var(--red)">🗑 Excluir Pedido</h3>
+      <button class="mclose" onclick="closeM('m-delped')">✕</button>
+    </div>
+    <div class="mc" style="padding:20px">
+      <div id="del-ped-info" style="background:var(--card2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:12px;color:var(--muted)"></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">O pedido inteiro vai para a lixeira e pode ser restaurado em Configurações. Digite a senha para confirmar:</div>
+      <input type="password" id="del-ped-pwd" class="si" placeholder="Senha de exclusão" style="width:100%" onkeydown="if(event.key==='Enter')confirmarDelPedido()"/>
+      <div id="del-ped-err" style="font-size:11px;color:var(--red);margin-top:6px;display:none">Senha incorreta.</div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-sec" onclick="closeM('m-delped')">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarDelPedido()">🗑 Excluir pedido</button>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="m-dellinha">
   <div class="modal" style="max-width:420px">
     <div class="mh" style="background:rgba(217,104,63,.12);border-bottom:1px solid rgba(217,104,63,.3)">
@@ -1525,7 +1545,7 @@ body.somente-leitura .ro-pill{display:inline-flex}
     <div class="tw" style="max-height:340px;overflow-y:auto"><table><thead><tr><th>Quando</th><th>Quem</th><th>O quê</th><th>Detalhe</th></tr></thead><tbody id="hist-body"></tbody></table></div>
   </div>
   <div class="card" style="margin-bottom:20px">
-    <div class="sec">Linhas excluídas (lixeira)</div>
+    <div class="sec">Lixeira (linhas e pedidos excluídos)</div>
     <div id="lix-lista"></div>
   </div>
 
@@ -1924,6 +1944,7 @@ body.somente-leitura .ro-pill{display:inline-flex}
     </div>
     <div class="mc" id="m-edit-body"></div>
     <div class="mf" style="justify-content:flex-end">
+      <button class="btn btn-danger" style="margin-right:auto" onclick="abrirDelPedido(editPk)">🗑 Excluir pedido</button>
       <button class="btn btn-sec" onclick="closeM('m-edit')">Cancelar</button>
       <button class="btn btn-p" id="m-edit-save" onclick="salvarEdicao()">Salvar Alterações</button>
     </div>
@@ -6488,6 +6509,7 @@ function rpedidos(){
         <button class="btn btn-sm btn-b" onclick="event.stopPropagation();abrirPed('${pk}')">Ver</button>
         <button class="btn btn-sm" style="padding:2px 7px;font-size:9px;background:rgba(212,175,55,.15);color:var(--gold);border:1px solid rgba(212,175,55,.3)" onclick="event.stopPropagation();openEditPed('${pk}')" title="Editar Pedido">✏️ Editar</button>
         <button class="btn btn-sm btn-s" onclick="event.stopPropagation();abrirHistPed('${pk}')" title="Histórico do pedido">🕓</button>
+        ${isAdmin()?`<button class="btn btn-sm" style="background:rgba(217,104,63,.15);color:var(--red);border:1px solid rgba(217,104,63,.3)" onclick="event.stopPropagation();abrirDelPedido('${pk}')" title="Excluir pedido">🗑</button>`:''}
       </td>
     </tr>
     <tr id="sub-${pk}" style="display:none"><td colspan="11" style="padding:0">
@@ -7765,12 +7787,12 @@ function renderHistorico(){
   const rows=_hist.filter(h=>!q||[h.acao,h.detalhes,h.usuario].join(' ').toLowerCase().includes(q)).slice(0,200);
   body.innerHTML=rows.length?rows.map(h=>`<tr><td>${esc(new Date(h.data).toLocaleString('pt-BR'))}</td><td>${esc((h.usuario||'').split('@')[0])}</td><td>${esc(h.acao)}</td><td>${esc(h.detalhes)}</td></tr>`).join(''):'<tr><td colspan="4" style="color:var(--muted);padding:16px">Nenhuma atividade registrada ainda.</td></tr>';
   const ids=Object.keys(_lix).reverse();
-  document.getElementById('lix-lista').innerHTML=ids.length?ids.map(id=>{const x=_lix[id],l=x.linha||{};return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:12px"><b>${esc(x.pk)}</b> · ${esc(l.nomeProduto||l.codProduto||'—')} · qtd ${esc(l.qtd??'—')}<div style="font-size:11px;color:var(--muted)">${esc(new Date(x.em).toLocaleString('pt-BR'))} · ${esc((x.por||'').split('@')[0])}</div></div><button class="btn btn-sm btn-s" onclick="restaurarLinha('${id}')">Restaurar</button></div>`;}).join(''):'<div style="font-size:12px;color:var(--muted)">Nenhuma linha excluída recentemente.</div>';
+  document.getElementById('lix-lista').innerHTML=ids.length?ids.map(id=>{const x=_lix[id],l=x.linha||{};if(x.pedido){const pp=x.pedido,nl=Object.keys(pp.linhas||{}).length;return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:12px"><b>Pedido ${esc(x.pk)}</b> · ${esc(pp.cliente||'—')} · ${esc(pp.planta||'—')} · ${nl} item(ns)<div style="font-size:11px;color:var(--muted)">${esc(new Date(x.em).toLocaleString('pt-BR'))} · ${esc((x.por||'').split('@')[0])}</div></div><button class="btn btn-sm btn-s" onclick="restaurarPedido('${id}')">Restaurar</button></div>`;}return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:12px"><b>${esc(x.pk)}</b> · ${esc(l.nomeProduto||l.codProduto||'—')} · qtd ${esc(l.qtd??'—')}<div style="font-size:11px;color:var(--muted)">${esc(new Date(x.em).toLocaleString('pt-BR'))} · ${esc((x.por||'').split('@')[0])}</div></div><button class="btn btn-sm btn-s" onclick="restaurarLinha('${id}')">Restaurar</button></div>`;}).join(''):'<div style="font-size:12px;color:var(--muted)">A lixeira está vazia.</div>';
 }
 async function baixarBackup(){
   toast('Gerando backup…','info');
   const cfg={}; for(const k of ['contatos','alertas','plantas_extras']) cfg[k]=(await db.ref('config/'+k).once('value')).val();
-  const d={versao:1,app:'v37',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
+  const d={versao:1,app:'v38',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
   a.download='backup_pedidos_vale_'+hojeISO()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   logAtividade('backup baixado',''); toast('Backup baixado.');
@@ -7909,6 +7931,40 @@ function uniPerguntar(q){
   const v=R.reduce((s,l)=>s+(tipo==='fat'?(+l.vlrFaturado||+l.vlrTotal||0):(+l.vlrTotal||0)),0), pks=[...new Set(R.map(l=>l._pk))];
   const desc=[{venc:'vencidas',aberto:'em aberto',fat:'faturadas',ent:'entregues'}[tipo]||'todas as linhas',...pl,...cl,mm>=0?UNI_MESES[mm].replace('marco','março')+'/'+yy:(anoQ?String(yy):'')].filter(Boolean).join(' · ');
   box.innerHTML=R.length?`<div class="uni-card"><div style="font-family:var(--serif);font-size:22px;font-weight:600">${R.length} linha(s)</div><div>${pks.length} pedido(s) · ${esc(brl(v))}</div><div style="color:var(--muted);margin-top:2px">${esc(desc)}</div>${pks.slice(0,8).map(k=>`<button class="uni-chip" onclick="uniAbrirHist('${esc(k)}')">${esc(k)}</button>`).join('')}${pks.length>8?` <span style="color:var(--muted)">+${pks.length-8}</span>`:''}</div>`:`<div class="uni-card">Nada encontrado para: ${esc(desc)}.</div>`;
+}
+
+// ── Excluir pedido inteiro (só o administrador) ──
+let _delPedKey=null;
+function abrirDelPedido(pk){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
+  const p=PEDS[pk]; if(!p) return; _delPedKey=pk;
+  const ls=Object.values(p.linhas||{}), v=ls.reduce((s,l)=>s+(+l.vlrTotal||0),0);
+  document.getElementById('del-ped-info').innerHTML=`<b>Pedido ${esc(pk)}</b><br>${esc(p.cliente||'—')} · ${esc(p.planta||'—')}<br>${ls.length} item(ns) · ${esc(brl(v))}`;
+  document.getElementById('del-ped-pwd').value=''; document.getElementById('del-ped-err').style.display='none';
+  closeM('m-edit'); openM('m-delped');
+}
+async function confirmarDelPedido(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
+  const err=document.getElementById('del-ped-err'), inp=document.getElementById('del-ped-pwd');
+  if(!(await segredoOk(inp.value,'del'))){ err.style.display='block'; inp.value=''; return; }
+  const pk=_delPedKey, p=PEDS[pk]; if(!p) return;
+  try{
+    const lix=db.ref('config/lixeira').push();
+    await lix.set({tipo:'pedido',pk,pedido:p,por:window._currentUser?.email||'—',em:new Date().toISOString()});
+    await db.ref('pedidos_vale/'+pk).remove();
+    logAtividade('pedido excluído', pk+' · '+(p.cliente||'—')+' · '+Object.keys(p.linhas||{}).length+' item(ns)');
+    closeM('m-delped'); _delPedKey=null;
+    toastUndo('Pedido excluído', ()=>restaurarPedido(lix.key));
+  }catch(e){ toast('Erro ao excluir pedido: '+(/permission/i.test(e.message)?'sem permissão no Firebase (confira as regras e o e-mail da conta)':e.message),'err'); }
+}
+async function restaurarPedido(id){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
+  const x=(await db.ref('config/lixeira/'+id).once('value')).val(); if(!x||!x.pedido) return;
+  await db.ref('pedidos_vale/'+x.pk).set(x.pedido);
+  await db.ref('config/lixeira/'+id).remove();
+  logAtividade('pedido restaurado', x.pk);
+  toast('Pedido restaurado!');
+  if(document.getElementById('pg-config')?.classList.contains('on')) carregarHistorico();
 }
 </script>
 
