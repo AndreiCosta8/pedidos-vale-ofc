@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vale · Sistema de Pedidos v34</title>
+<title>Vale · Sistema de Pedidos v36</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -760,6 +760,29 @@ tbody td{padding:11px 12px}
 .uni-h{font-size:13px;font-weight:600;margin:18px 0 8px}
 .uni-n{float:right;background:rgba(217,104,63,.18);color:var(--red);border-radius:999px;padding:0 9px;font-size:11px;font-weight:600}
 @media(max-width:900px){#uni-fab{bottom:80px}}
+
+:root{--uni-img:url(data:image/png;base64,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)}
+#uni-fab{background:#0c1411;color:#dde8e1;border:1.5px solid var(--gold);padding:8px 18px 8px 10px}
+#uni-fab .lg{width:26px;height:26px;background:var(--uni-img) center/contain no-repeat}
+#uni-panel .av{width:46px;height:46px;background:#0c1411;border:1.5px solid var(--gold);display:grid;place-items:center;font-size:0}
+#uni-panel .av span{width:24px;height:28px;background:var(--uni-img) center/contain no-repeat}
+body.somente-leitura [onclick*="nav('novo')"],
+body.somente-leitura [onclick*="nav('config')"],
+body.somente-leitura [onclick*="openEditPed"],
+body.somente-leitura [onclick*="abrirFat"],
+body.somente-leitura [onclick*="abrirDelLinha"],
+body.somente-leitura [onclick*="abrirAddContato"],
+body.somente-leitura [onclick*="editarContato"],
+body.somente-leitura [onclick*="excluirContato"],
+body.somente-leitura [onclick*="abrirModalNovaPlanta"],
+body.somente-leitura [onclick*="openModalProd"],
+body.somente-leitura [onclick*="deletarProd"],
+body.somente-leitura [onclick*="editarMetaR"],
+body.somente-leitura [onclick*="desfazerDevolucao"],
+body.somente-leitura [onclick*="addLi"],
+body.somente-leitura .ni[data-pg="novo"],body.somente-leitura .ni[data-pg="config"],body.somente-leitura .bni[data-pg="novo"]{display:none!important}
+.ro-pill{display:none;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap}
+body.somente-leitura .ro-pill{display:inline-flex}
 </style>
 </head>
 <body class="logged-out">
@@ -776,7 +799,7 @@ tbody td{padding:11px 12px}
       <div class="login-logo-icon">📊</div>
       <div>
         <div class="login-logo-name">BI · Pedidos Vale</div>
-        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v34</div>
+        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v36</div>
       </div>
     </div>
     <div class="login-title">Acesso restrito</div>
@@ -803,7 +826,7 @@ tbody td{padding:11px 12px}
 <nav class="sb" id="sb">
   <div class="sb-logo">
     <div class="name">⚙️ Vale · Pedidos</div>
-    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v34</span></div>
+    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v36</span></div>
   </div>
   <div class="sb-sec">Análise</div>
   <div class="ni on" onclick="nav('dash')" data-pg="dash"><span class="ni-icon">📊</span>Dashboard</div>
@@ -846,7 +869,7 @@ tbody td{padding:11px 12px}
         <div class="tb-sub" id="pg-sub">OTIFF · ONTIME · IN FULL · KPIs</div>
       </div>
     </div>
-    <div class="tb-right">
+    <div class="tb-right"><span class="ro-pill">🔒 Somente consulta</span>
       <!-- Busca Global -->
       <div class="tb-search" id="tb-search-wrap">
         <span class="tb-search-icon">🔍</span>
@@ -2595,6 +2618,7 @@ function listenConfigs() {
 }
 
 function salvarConfigs() {
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const cfg = {
     alerta3d: document.getElementById('cfg-alerta-3d')?.checked ?? true,
     alerta1d: document.getElementById('cfg-alerta-1d')?.checked ?? true,
@@ -2658,6 +2682,7 @@ function editarContato(id) {
 
 // Salvar contato (novo ou edição)
 function salvarContato() {
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   if (!db) { toast('Firebase não conectado. Aguarde a conexão e tente novamente.', 'err'); return; }
   const nome = document.getElementById('contato-nome').value.trim();
   const wa   = document.getElementById('contato-wa').value.trim().replace(/\D/g,'');
@@ -2693,12 +2718,14 @@ function salvarContato() {
 
 // Pausar / reativar contato
 function toggleContatoAtivo(id, novoStatus) {
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   db.ref('config/contatos/'+id).update({ ativo: novoStatus })
     .then(()=> toast(novoStatus ? 'Contato ativado!' : 'Contato pausado.', 'ok'));
 }
 
 // Excluir contato
 function excluirContato(id) {
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const ct = CONTATOS_ALERTA.find(c=>c.id===id);
   if (!confirm(`Excluir o contato "${ct?.nome}"?`)) return;
   db.ref('config/contatos/'+id).remove()
@@ -3996,6 +4023,7 @@ function onClienteChange(){
 
 // Valida e salva a nova planta no Firebase
 async function salvarNovaPlanta(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const errEl = document.getElementById('np-err');
   errEl.style.display = 'none';
   const nome = (document.getElementById('np-nome').value || '').trim().toUpperCase();
@@ -5632,6 +5660,7 @@ function renderMetaR(vFatMesAtual){
 }
 
 function editarMetaR(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const atual = _metaR > 0 ? _metaR : '';
   const inp = prompt(`Digite a meta de faturamento para o mês atual (R$):\nAtual: ${atual ? brl(atual) : 'Não definida'}`, atual || '');
   if(inp === null) return; // cancelou
@@ -5909,6 +5938,7 @@ function renderPotencialPlantas(){
 window.renderPotencialPlantas = renderPotencialPlantas;
 
 function nav(pg){
+  if(!isAdmin() && (pg==='novo'||pg==='config')) pg='dash';
   // Sempre salva a aba atual — mas nunca salva 'comissao' (área secreta)
   if(pg !== 'comissao') sessionStorage.setItem('vp_last_tab', pg);
   document.querySelectorAll('.pg').forEach(e=>e.classList.remove('on'));
@@ -6540,6 +6570,7 @@ function abrirPed(pk){
 // ══════════════════════════════════════════════
 let editPk = null;
 function openEditPed(pk){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const ped = PEDS[pk]; if(!ped) return;
   editPk = pk;
   const lns = Object.entries(ped.linhas || {});
@@ -6555,13 +6586,15 @@ function openEditPed(pk){
   
   h += `<div style="display:flex;flex-direction:column;gap:10px;max-height:60vh;overflow-y:auto;padding-right:5px">`;
   lns.forEach(([lk, ln], i) => {
+    const bloq = ln.status==='ENTREGUE Á TRANSPORTADORA' && !isAdmin();
     h += `
       <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.05)" id="edit-ln-${lk}">
         <div style="font-weight:bold;margin-bottom:8px;font-size:12px;color:var(--gold)">${esc(ln.nomeProduto || ln.codProduto || '—')}</div>
+        ${bloq?'<div style="font-size:11px;color:var(--muted);margin:-4px 0 8px">🔒 Linha concluída: só o administrador pode alterar.</div>':''}
         <div class="fgrid g3">
           <div class="fg">
             <label>Quantidade</label>
-            <input type="number" id="edit-qtd-${lk}" value="${ln.qtd||0}" oninput="calcEditTot('${lk}')" />
+            <input type="number" id="edit-qtd-${lk}" ${bloq?'disabled':''} value="${ln.qtd||0}" oninput="calcEditTot('${lk}')" />
           </div>
           ${isAdmin() ? `<div class="fg"><label>Valor Unitário</label><input type="number" step="0.01" id="edit-vlr-${lk}" value="${ln.vlrUnitario||0}" oninput="calcEditTot(\'${lk}\')" /></div>` : `<input type="hidden" id="edit-vlr-${lk}" value="${ln.vlrUnitario||0}" />`}
           <div class="fg">
@@ -6572,7 +6605,7 @@ function openEditPed(pk){
         <div class="fgrid g2" style="margin-top:8px">
           <div class="fg">
             <label>Status</label>
-            <select id="edit-st-${lk}" style="width:100%;padding:8px;background:var(--input);border:1px solid rgba(255,255,255,0.1);color:var(--text);border-radius:4px">
+            <select id="edit-st-${lk}" ${bloq?'disabled':''} style="width:100%;padding:8px;background:var(--input);border:1px solid rgba(255,255,255,0.1);color:var(--text);border-radius:4px">
               <option value="AGUARDANDO PRODUÇÃO" ${ln.status==='AGUARDANDO PRODUÇÃO'?'selected':''}>AGUARDANDO PRODUÇÃO</option>
               <option value="AGUARDANDO COLETA" ${ln.status==='AGUARDANDO COLETA'?'selected':''}>AGUARDANDO COLETA</option>
               <option value="ENTREGUE Á TRANSPORTADORA" ${ln.status==='ENTREGUE Á TRANSPORTADORA'?'selected':''}>ENTREGUE Á TRANSPORTADORA</option>
@@ -6580,7 +6613,7 @@ function openEditPed(pk){
           </div>
           <div class="fg">
             <label>Observações</label>
-            <input type="text" id="edit-obs-${lk}" value="${esc(ln.obs||'')}" />
+            <input type="text" id="edit-obs-${lk}" ${bloq?'disabled':''} value="${esc(ln.obs||'')}" />
           </div>
         </div>
       </div>
@@ -6599,6 +6632,7 @@ function calcEditTot(lk){
 }
 
 async function salvarEdicao(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   if(!editPk || !PEDS[editPk]) return;
   const ped = PEDS[editPk];
   const lns = Object.entries(ped.linhas || {});
@@ -6610,6 +6644,7 @@ async function salvarEdicao(){
   try {
     const pms = [];
     for(const [lk, ln] of lns) {
+      if(ln.status==='ENTREGUE Á TRANSPORTADORA' && !isAdmin()) continue;
       const qtd = parseFloat(document.getElementById('edit-qtd-'+lk).value) || 0;
       const vlr = parseFloat(document.getElementById('edit-vlr-'+lk).value) || 0;
       const tot = parseFloat(document.getElementById('edit-tot-'+lk).value) || 0;
@@ -6774,6 +6809,7 @@ function calcTot(){
 }
 
 async function salvarPed(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const np=document.getElementById('n-np').value.trim();
   const pl=document.getElementById('n-pl').value;
   const dp=document.getElementById('n-dp').value;
@@ -6931,6 +6967,7 @@ function rtrat(){
 // FATURAMENTO MODAL
 // ══════════════════════════════════════════════
 function abrirFat(pk,lk){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const ped=PEDS[pk]; const ln=ped?.linhas?.[lk]; if(!ln)return;
   document.getElementById('mf-pk').value=pk;
   document.getElementById('mf-lk').value=lk;
@@ -6948,6 +6985,7 @@ function abrirFat(pk,lk){
 }
 
 async function salvarFat(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const pk=document.getElementById('mf-pk').value;
   const lk=document.getElementById('mf-lk').value;
   const upd={
@@ -7026,6 +7064,7 @@ function openModalProd(idx){
 }
 
 async function salvarProd(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const idx=+document.getElementById('mp-idx').value;
   const prod={
     cod:document.getElementById('mp-cod').value.trim(),
@@ -7053,6 +7092,7 @@ async function salvarProd(){
 }
 
 async function deletarProd(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const idx=+document.getElementById('mp-idx').value;
   if(idx<0)return;
   if(!confirm('Excluir produto?'))return;
@@ -7107,6 +7147,7 @@ function abrirDevolucao(pk, lk){
 }
 
 async function salvarDevolucao(){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const pk=document.getElementById('md-pk').value;
   const lk=document.getElementById('md-lk').value;
   const tipo=+document.getElementById('md-tipo').value;
@@ -7137,6 +7178,7 @@ async function salvarDevolucao(){
 
 // Desfazer devolução (IN FULL = 100% novamente)
 async function desfazerDevolucao(pk, lk){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   if(!confirm('Remover esta ocorrência? O IN FULL voltará a 100% para esta linha.')) return;
   const upd={ ocorrencia:0, devolucoes:[] };
   try{
@@ -7189,7 +7231,8 @@ async function segredoOk(pwd,k){
   const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(SEG[k].s),iterations:150000,hash:'SHA-256'},km,256);
   return [...new Uint8Array(bits)].map(b=>b.toString(16).padStart(2,'0')).join('')===SEG[k].h;
 }
-function isAdmin(){ return !!window._currentUser; }
+const DONO_EMAIL='andrei.costa@uniluvas.com.br';
+function isAdmin(){ return (window._currentUser?.email||'').toLowerCase()===DONO_EMAIL; }
 
 // ══════════════════════════════════════════════
 // FIREBASE INIT + AUTH
@@ -7205,6 +7248,7 @@ _auth.onAuthStateChanged(user => {
     document.getElementById('login-screen').style.display = 'none';
     document.body.classList.remove('logged-out');
     window._currentUser = user;
+    document.body.classList.toggle('somente-leitura', !isAdmin());
     init(); // chama init() após autenticação
   } else {
     document.getElementById('login-screen').style.display = 'flex';
@@ -7264,6 +7308,7 @@ let _delLinhaKey = null;
 let _delPedidoKey = null; // pk do pedido para montar o path correto
 
 function abrirDelLinha(linhaKey, numPedido, produto, pedidoKey) {
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   _delLinhaKey = linhaKey;
   _delPedidoKey = pedidoKey || numPedido; // pk do Firebase (numPedido = pk neste sistema)
   document.getElementById('del-linha-info').innerHTML =
@@ -7275,6 +7320,7 @@ function abrirDelLinha(linhaKey, numPedido, produto, pedidoKey) {
 }
 
 async function confirmarDelLinha() {
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const errEl=document.getElementById('del-linha-err'), inp=document.getElementById('del-linha-pwd');
   if(!(await segredoOk(inp.value,'del'))){ errEl.style.display='block'; inp.value=''; return; }
   if(!_delLinhaKey||!_delPedidoKey) return;
@@ -7698,6 +7744,7 @@ function toastUndo(msg,fn){
   t.append(sp,b); document.getElementById('toasts').appendChild(t); setTimeout(()=>t.remove(),12000);
 }
 async function restaurarLinha(id){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   const x=(await db.ref('config/lixeira/'+id).once('value')).val(); if(!x) return;
   await db.ref('pedidos_vale/'+x.pk+'/linhas/'+x.lk).set(x.linha);
   await db.ref('config/lixeira/'+id).remove();
@@ -7723,12 +7770,13 @@ function renderHistorico(){
 async function baixarBackup(){
   toast('Gerando backup…','info');
   const cfg={}; for(const k of ['contatos','alertas','plantas_extras']) cfg[k]=(await db.ref('config/'+k).once('value')).val();
-  const d={versao:1,app:'v34',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
+  const d={versao:1,app:'v36',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
   a.download='backup_pedidos_vale_'+hojeISO()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   logAtividade('backup baixado',''); toast('Backup baixado.');
 }
 async function restaurarBackup(file){
+  if(!isAdmin()){ toast('Somente consulta: só o administrador pode alterar dados.','err'); return; }
   if(!file) return;
   let d; try{ d=JSON.parse(await file.text()); }catch(e){ toast('Arquivo inválido.','err'); return; }
   if(!d.pedidos||!d.produtos){ toast('Este arquivo não parece um backup do sistema.','err'); return; }
@@ -7827,7 +7875,7 @@ function uniRender(){
   h+=`<div class="uni-card"><span class="uni-n" style="background:rgba(227,178,60,.18);color:var(--gold)">${prox.length}</span><b>Vencem em até 5 dias</b><div style="color:var(--muted);margin-top:2px">${prox.length?pks(prox).length+' pedido(s) · '+val(prox):'Nada vencendo nos próximos dias.'}</div>${chips(prox,'uniAbrirHist')}</div>`;
   h+=`<div class="uni-h">Verificação dos dados</div>`;
   uniChecks().forEach(c=>{
-    h+=`<div class="uni-card"><span class="uni-n" style="${c.it.length?'':'background:rgba(47,181,154,.18);color:var(--green)'}">${c.it.length?c.it.length:'✓'}</span><b>${esc(c.t)}</b><div style="color:var(--muted);margin-top:2px">${c.it.length?esc(c.d):'Sem problemas.'}</div>${c.it.length?chips(c.it,'uniAbrirEdit'):''}</div>`;
+    h+=`<div class="uni-card"><span class="uni-n" style="${c.it.length?'':'background:rgba(47,181,154,.18);color:var(--green)'}">${c.it.length?c.it.length:'✓'}</span><b>${esc(c.t)}</b><div style="color:var(--muted);margin-top:2px">${c.it.length?esc(c.d):'Sem problemas.'}</div>${c.it.length?chips(c.it,isAdmin()?'uniAbrirEdit':'uniAbrirHist'):''}</div>`;
   });
   b.innerHTML=h;
 }
@@ -7921,11 +7969,11 @@ function uniPerguntar(q){
 </div>
 
 
-<button id="uni-fab" onclick="toggleUni()" aria-label="Abrir a Uni">Uni <span class="n" id="uni-fab-n" style="display:none"></span></button>
+<button id="uni-fab" onclick="toggleUni()" aria-label="Abrir a Uni"><span class="lg"></span>Uni <span class="n" id="uni-fab-n" style="display:none"></span></button>
 <aside id="uni-panel" aria-label="Uni, assistente do sistema">
   <div class="uh">
-    <div class="av">U</div>
-    <div style="flex:1"><div style="font-family:var(--serif);font-size:17px;font-weight:600">Uni</div><div style="font-size:11px;color:var(--muted)">Assistente do sistema · seus dados não saem daqui</div></div>
+    <div class="av"><span></span></div>
+    <div style="flex:1"><div style="font-family:var(--serif);font-size:17px;font-weight:600">Uni</div><div style="font-size:11.5px;color:var(--gold)">A mão direita dos seus pedidos</div><div style="font-size:10.5px;color:var(--muted)">Seus dados não saem do sistema</div></div>
     <button class="mclose" onclick="toggleUni(false)" aria-label="Fechar">✕</button>
   </div>
   <div style="padding:14px 20px 0">
