@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vale · Sistema de Pedidos v40</title>
+<title>Vale · Sistema de Pedidos v41</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -801,7 +801,7 @@ body.somente-leitura [onclick*="abrirDelPedido"]{display:none!important}
       <div class="login-logo-icon">📊</div>
       <div>
         <div class="login-logo-name">BI · Pedidos Vale</div>
-        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v40</div>
+        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v41</div>
       </div>
     </div>
     <div class="login-title">Acesso restrito</div>
@@ -828,7 +828,7 @@ body.somente-leitura [onclick*="abrirDelPedido"]{display:none!important}
 <nav class="sb" id="sb">
   <div class="sb-logo">
     <div class="name">⚙️ Vale · Pedidos</div>
-    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v40</span></div>
+    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v41</span></div>
   </div>
   <div class="sb-sec">Análise</div>
   <div class="ni on" onclick="nav('dash')" data-pg="dash"><span class="ni-icon">📊</span>Dashboard</div>
@@ -1044,7 +1044,11 @@ body.somente-leitura [onclick*="abrirDelPedido"]{display:none!important}
       </div>
     </div>
     <!-- Card Meta R$ Mensal -->
-    <div class="card card-accent" style="--accent:var(--gold);padding:12px 16px;margin-bottom:10px" id="card-meta-r">
+    <div class="card" style="padding:14px 18px;margin-bottom:10px;cursor:pointer" onclick="toggleUni(true)">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div class="sec" style="margin:0">Precisa de ação hoje</div><span style="font-size:11px;color:var(--gold)">Abrir a Uni →</span></div>
+  <div id="dash-acao-hoje" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px"></div>
+</div>
+<div class="card card-accent" style="--accent:var(--gold);padding:12px 16px;margin-bottom:10px" id="card-meta-r">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="font-size:13px;font-weight:600;color:var(--text)">Meta de faturamento — <span id="meta-mes-nome" style="color:var(--gold)"></span></div>
         <button onclick="editarMetaR()" style="background:none;border:1px solid rgba(227,178,60,.3);color:var(--gold);font-size:9px;padding:2px 8px;border-radius:4px;cursor:pointer">✏️ Editar</button>
@@ -2138,6 +2142,7 @@ function listenPeds(){
       // Firebase tem dados reais — usar esses
       PEDS = val;
       clearTimeout(window._rtP); window._rtP=setTimeout(()=>{
+      renderAcaoHoje();
       // v26: só renderiza a página que está realmente visível — evita travar
       // o salvamento (ou qualquer escrita) quando o usuário está em outra tela,
       // como "Novo Pedido". Antes, rdash/rpedidos/rtrat rodavam sempre, para
@@ -2160,7 +2165,7 @@ function listenPeds(){
       document.getElementById('fb-lbl').textContent = `Conectado (${total} pedidos)`;
       document.getElementById('chip-fb').className = 'chip live';
         popularClasses();
-        uniBadge();
+        uniBadge(); renderAcaoHoje();
       },150);
     } else {
       // Firebase vazio — manter dados locais, sugerir importar
@@ -7792,7 +7797,7 @@ function renderHistorico(){
 async function baixarBackup(){
   toast('Gerando backup…','info');
   const cfg={}; for(const k of ['contatos','alertas','plantas_extras']) cfg[k]=(await db.ref('config/'+k).once('value')).val();
-  const d={versao:1,app:'v40',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
+  const d={versao:1,app:'v41',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
   a.download='backup_pedidos_vale_'+hojeISO()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   logAtividade('backup baixado',''); toast('Backup baixado.');
@@ -7893,7 +7898,7 @@ function uniRender(){
   const val=a=>brl(a.reduce((s,l)=>s+(+l.vlrTotal||0),0));
   let h=`<div style="font-size:13px">${hoje.getHours()<12?'Bom dia':hoje.getHours()<18?'Boa tarde':'Boa noite'}${nome?', '+esc(nome):''}. Aqui está o que merece atenção.</div>`;
   h+=`<div class="uni-h">Precisa de ação hoje</div>`;
-  h+=`<div class="uni-card"><span class="uni-n" style="${venc.length?'':'background:rgba(47,181,154,.18);color:var(--green)'}">${venc.length}</span><b>Linhas vencidas</b><div style="color:var(--muted);margin-top:2px">${venc.length?pks(venc).length+' pedido(s) · '+val(venc)+' em aberto além do prazo de 30 dias':'Nenhuma linha vencida.'}</div>${chips(venc,'uniAbrirHist')}</div>`;
+  h+=`<div class="uni-card"><span class="uni-n" style="${venc.length?'':'background:rgba(47,181,154,.18);color:var(--green)'}">${venc.length}</span><b>Linhas vencidas</b><div style="color:var(--muted);margin-top:2px">${venc.length?pks(venc).length+' pedido(s) · '+val(venc)+' em aberto além do prazo de 30 dias':'Nenhuma linha vencida.'}</div>${chips(venc,'uniAbrirHist')+(venc.length?`<div style="margin-top:8px"><button class="uni-chip" onclick="uniCobrarTodos()">Gerar cobranças</button></div>`:'')}</div>`;
   h+=`<div class="uni-card"><span class="uni-n" style="background:rgba(227,178,60,.18);color:var(--gold)">${prox.length}</span><b>Vencem em até 5 dias</b><div style="color:var(--muted);margin-top:2px">${prox.length?pks(prox).length+' pedido(s) · '+val(prox):'Nada vencendo nos próximos dias.'}</div>${chips(prox,'uniAbrirHist')}</div>`;
   h+=`<div class="uni-h">Verificação dos dados</div>`;
   uniChecks().forEach(c=>{
@@ -7948,7 +7953,10 @@ function uniEntender(q){
   Q.status=has(/vencid|atrasad/)?'venc':has(/aguardando producao|em producao|ag producao/)?'prod':has(/aguardando coleta/)?'coleta':has(/abert|pendent|aguard|falta/)?'aberto':has(/fatur/)?'fat':has(/entreg/)?'ent':null;
   Q.aVencer=has(/vence|vencem|vencimento|a vencer/)&&!has(/vencid/); if(Q.aVencer) Q.status='aberto';
   const jan=t.match(/(proximos|ultimos)\s+(\d+)\s+dias/); Q.janela=jan?{tipo:jan[1],n:+jan[2]}:(Q.aVencer?{tipo:'proximos',n:5}:null);
-  Q.mes=has(/(este|esse|atual) mes/)?hoje.getMonth():has(/(mes passado|ultimo mes)/)?(hoje.getMonth()+11)%12:UNI_MESES.findIndex(m=>tok.includes(m));
+  Q.mes=has(/(este|esse|atual) mes/)?hoje.getMonth():has(/(mes passado|ultimo mes)/)?(hoje.getMonth()+11)%12:(()=>{
+    const achados=UNI_MESES.map((m,i)=>({i,p:t.indexOf(m)})).filter(x=>x.p>=0).sort((a,b)=>a.p-b.p);
+    return achados.length?achados[0].i:-1;
+  })();
   Q.ano=+((t.match(/\b(20\d\d)\b/)||[])[1]||0)||(has(/mes passado|ultimo mes/)&&hoje.getMonth()===0?hoje.getFullYear()-1:0);
   const g=t.match(/por (planta|cliente|mes|produto|status|uf)/); Q.grupo=g?g[1]:null;
   Q.rank=has(/maior|maiores|top|mais (vendid|pedid|atrasad|caro)/);
@@ -7959,6 +7967,7 @@ function uniEntender(q){
   const usados=new Set([...Q.pl,...Q.cl].flatMap(n=>uniNorm(n).split(/\s+/)));
   const sobra=tok.filter(w=>w.length>=4&&!UNI_STOP.has(w)&&!usados.has(w)&&!UNI_MESES.includes(w)&&!/^\d+$/.test(w));
   const LL=uniLinhas(); Q.prod=sobra.filter(w=>LL.some(l=>uniNorm(l.nomeProduto+' '+l.codProduto).includes(w)));
+  Q.comp=has(/compar|vs\b|versus|x\b.*mes|em relacao a/);
   Q.ajuda=has(/ajuda|o que (voce )?(sabe|faz)|como funciona/);
   return Q;
 }
@@ -7987,14 +7996,16 @@ function uniPerguntar(q){
   if(Q.ajuda){ box.innerHTML='<div class="uni-card"><b>Posso responder, por exemplo:</b><br>• linhas vencidas por planta<br>• faturado em setembro por cliente<br>• o que vence nos próximos 5 dias<br>• maiores pedidos em aberto de Carajás<br>• quantidade de luva light power em aberto<br>• quando vence o pedido 4513578599<br><span style="color:var(--muted)">Combine status (vencidas, em aberto, faturadas, entregues), mês, planta, cliente, produto e "por planta/cliente/mês/produto".</span></div>'; return; }
   if(sem&&Q.grupo&&_uniUlt) Q={..._uniUlt,grupo:Q.grupo,medida:Q.medida};
   if(Q.pk){ uniPedido(Q.pk,box); return; }
+  if(Q.comp){ uniComparar(Q,box); return; }
   if(sem&&!Q.grupo){ box.innerHTML='<div class="uni-card">Ainda não entendi. Tente algo como <b>linhas vencidas por planta</b>, <b>faturado este mês</b> ou o número de um pedido. Digite <b>ajuda</b> para ver mais exemplos.</div>'; return; }
   _uniUlt=Q;
-  const R=uniFiltrar(Q), fat=Q.status==='fat';
+  const R=uniFiltrar(Q); _uniUltR=R; const fat=Q.status==='fat';
   const val=a=>a.reduce((t,l)=>t+((fat?(+l.vlrFaturado||+l.vlrTotal):+l.vlrTotal)||0),0), qtd=a=>a.reduce((t,l)=>t+(+l.qtd||0),0);
   const desc=[{venc:'vencidas',aberto:'em aberto',prod:'aguardando produção',coleta:'aguardando coleta',fat:'faturadas',ent:'entregues'}[Q.status]||'todas as linhas',Q.aVencer?'vencem em até '+Q.janela.n+' dias':'',...Q.pl,...Q.cl,...Q.prod,Q.mes>=0?UNI_MESES[Q.mes].replace('marco','março')+(Q.ano?'/'+Q.ano:''):(Q.ano?String(Q.ano):'')].filter(Boolean).join(' · ');
   if(!R.length){ box.innerHTML=`<div class="uni-card">Nada encontrado para: ${esc(desc)}.</div>`; return; }
   const pks=[...new Set(R.map(l=>l._pk))];
-  let h=`<div class="uni-card"><div style="font-family:var(--serif);font-size:22px;font-weight:600">${Q.medida==='valor'?esc(uniFmt(val(R))):Q.medida==='qtd'?qtd(R).toLocaleString('pt-BR')+' un.':R.length+' linha(s)'}</div><div>${Q.medida==='linhas'?'':R.length+' linha(s) · '}${pks.length} pedido(s)${Q.medida==='valor'?'':' · '+esc(uniFmt(val(R)))} · ${qtd(R).toLocaleString('pt-BR')} un.</div><div style="color:var(--muted);margin-top:2px">${esc(desc)}</div>`;
+  let h=`<div class="uni-card"><div style="font-family:var(--serif);font-size:22px;font-weight:600">${Q.medida==='valor'?esc(uniFmt(val(R))):Q.medida==='qtd'?qtd(R).toLocaleString('pt-BR')+' un.':R.length+' linha(s)'}</div><div>${Q.medida==='linhas'?'':R.length+' linha(s) · '}${pks.length} pedido(s)${Q.medida==='valor'?'':' · '+esc(uniFmt(val(R)))} · ${qtd(R).toLocaleString('pt-BR')} un.</div>
+<button class="uni-chip" onclick='uniExportar(${'`'}${desc.replace(/'/g,"\\'")}${'`'})' data-uni-exp="1">Exportar CSV</button><div style="color:var(--muted);margin-top:2px">${esc(desc)}</div>`;
   if(Q.grupo||Q.rank){
     const gk={planta:l=>l._p.planta,cliente:l=>l._p.cliente,mes:l=>{const x=pdt(l._p.dataPedido);return x?UNI_MESES[x.getMonth()].replace('marco','março'):'—';},produto:l=>l.nomeProduto||l.codProduto,status:l=>l.status,uf:l=>l._p.uf}[Q.grupo]||(l=>l._pk);
     const G={}; R.forEach(l=>{(G[gk(l)||'—']=G[gk(l)||'—']||[]).push(l);});
@@ -8010,6 +8021,61 @@ function uniPedido(pk,box){
   const p=PEDS[pk], L=uniLinhas().filter(l=>l._pk===pk), ent=L.filter(l=>l.status===UNI_ENT).length;
   const sit=l=>{const d=uniDias(l); return l.status===UNI_ENT?'entregue':d===null?l.status:d<0?`vencida há ${-d} dia(s)`:d===0?'vence hoje':`vence em ${d} dia(s)`;};
   box.innerHTML=`<div class="uni-card"><b>Pedido ${esc(pk)}</b><br>${esc(p.cliente||'—')} · ${esc(p.planta||'—')} · ${esc(fdt(p.dataPedido))}<br>${L.length} linha(s), ${ent} entregue(s) · ${esc(uniFmt(L.reduce((t,l)=>t+(+l.vlrTotal||0),0)))}${L.slice(0,6).map(l=>`<div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px">${esc(l.nomeProduto||l.codProduto||'—')} · ${esc(l.qtd??'—')} un.<br><span style="color:var(--muted)">${esc(l.status||'—')} · ${esc(sit(l))}${uniNF(l)?' · NF '+esc(uniNF(l)):''}</span></div>`).join('')}${L.length>6?`<div style="color:var(--muted);margin-top:6px">+${L.length-6} linha(s)</div>`:''}<button class="uni-chip" onclick="uniAbrirHist('${esc(pk)}')">Ver histórico</button></div>`;
+}
+
+function uniPeriodo(Q,mes,ano){const q2={...Q,mes,ano,comp:false}; return uniFiltrar(q2);}
+function uniComparar(Q,box){
+  const hoje=new Date(); let mA=Q.mes>=0?Q.mes:hoje.getMonth(), aA=Q.ano||hoje.getFullYear();
+  let mB=mA-1, aB=aA; if(mB<0){mB=11;aB--;}
+  const A=uniPeriodo(Q,mA,aA), B=uniPeriodo(Q,mB,aB);
+  const fat=Q.status==='fat', val=a=>a.reduce((t,l)=>t+((fat?(+l.vlrFaturado||+l.vlrTotal):+l.vlrTotal)||0),0);
+  const vA=val(A), vB=val(B), diff=vB?((vA-vB)/vB*100):(vA?100:0);
+  const nomeM=m=>UNI_MESES[m].replace('marco','março');
+  const seta=diff>=0?'▲':'▼', cor=diff>=0?'var(--green)':'var(--red)';
+  box.innerHTML=`<div class="uni-card"><b>${nomeM(mA)}/${aA} × ${nomeM(mB)}/${aB}</b>`+
+    `<div style="display:flex;gap:16px;margin-top:8px"><div><div style="color:var(--muted);font-size:11px">${esc(nomeM(mA))}</div><div style="font-family:var(--serif);font-size:20px;font-weight:600">${esc(uniFmt(vA))}</div><div style="color:var(--muted);font-size:11px">${A.length} linha(s)</div></div>`+
+    `<div><div style="color:var(--muted);font-size:11px">${esc(nomeM(mB))}</div><div style="font-family:var(--serif);font-size:20px;font-weight:600">${esc(uniFmt(vB))}</div><div style="color:var(--muted);font-size:11px">${B.length} linha(s)</div></div></div>`+
+    `<div style="margin-top:8px;color:${cor};font-weight:600">${seta} ${Math.abs(diff).toFixed(1)}%</div></div>`;
+}
+
+function uniMsgLinha(l){
+  const d=uniDias(l), venc=d!==null&&d<0;
+  return `Olá! Sobre o pedido ${l._pk}${l._p.planta?' ('+l._p.planta+')':''}: o item ${l.nomeProduto||l.codProduto||''} (qtd ${l.qtd??'—'}) `+
+    (venc?`está com ${-d} dia(s) de atraso em relação ao prazo de 30 dias.`:`está previsto para os próximos dias.`)+
+    ` Poderiam confirmar a previsão de coleta/entrega? Obrigado.`;
+}
+async function uniCopiar(t){ try{ await navigator.clipboard.writeText(t); toast('Mensagem copiada!'); }catch(e){ toast('Não foi possível copiar.','err'); } }
+function uniCobrarTodos(){
+  const box=document.getElementById('uni-resp');
+  const venc=uniLinhas().filter(l=>{const d=uniDias(l);return d!==null&&d<0;});
+  const porPed={}; venc.forEach(l=>(porPed[l._pk]=porPed[l._pk]||[]).push(l));
+  const pks=Object.keys(porPed).slice(0,10);
+  box.innerHTML=pks.map(pk=>{const ls=porPed[pk],msg=ls.map(uniMsgLinha).join('\n\n');
+    return `<div class="uni-card"><b>Pedido ${esc(pk)}</b> · ${ls.length} linha(s) vencida(s)<div style="white-space:pre-wrap;color:var(--muted);margin-top:6px;font-size:11.5px">${esc(msg)}</div><button class="uni-chip" onclick='uniCopiar(${JSON.stringify(msg)})'>Copiar mensagem</button></div>`;
+  }).join('')+(Object.keys(porPed).length>10?'<div class="uni-card" style="color:var(--muted)">+ outros pedidos vencidos não mostrados.</div>':'');
+}
+
+let _uniUltR=[];
+function uniExportar(nome){
+  const R=_uniUltR; if(!R.length){ toast('Nada para exportar.','err'); return; }
+  const cols=['Pedido','Planta','Cliente','Produto','Qtd','Valor','Data Pedido','Status','NF','Data Faturamento'];
+  const lin=R.map(l=>[l._pk,l._p.planta,l._p.cliente,l.nomeProduto||l.codProduto,l.qtd,l.vlrTotal,l._p.dataPedido,l.status,uniNF(l),l.dataFat].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(';'));
+  const csv='\uFEFF'+cols.join(';')+'\n'+lin.join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='uni_'+(nome||'consulta').replace(/[^a-z0-9]+/gi,'_').slice(0,40)+'.csv'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+
+function renderAcaoHoje(){
+  const box=document.getElementById('dash-acao-hoje'); if(!box) return;
+  const L=uniLinhas(), venc=L.filter(l=>{const d=uniDias(l);return d!==null&&d<0;}), prox=L.filter(l=>{const d=uniDias(l);return d!==null&&d>=0&&d<=5;});
+  const inconsist=uniChecks().reduce((s,c)=>s+c.it.length,0);
+  const it=[
+    {n:venc.length,l:'Linhas vencidas',c:venc.length?'var(--red)':'var(--green)'},
+    {n:prox.length,l:'Vencem em 5 dias',c:prox.length?'var(--gold)':'var(--green)'},
+    {n:inconsist,l:'Inconsistências',c:inconsist?'var(--gold)':'var(--green)'},
+  ];
+  box.innerHTML=it.map(x=>`<div style="background:var(--card2);border-radius:12px;padding:10px 12px"><div style="font-family:var(--serif);font-size:22px;font-weight:600;color:${x.c}">${x.n}</div><div style="font-size:11px;color:var(--muted)">${x.l}</div></div>`).join('');
 }
 </script>
 
