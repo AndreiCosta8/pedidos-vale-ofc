@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Vale · Sistema de Pedidos v38</title>
+<title>Vale · Sistema de Pedidos v40</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;600&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
@@ -801,7 +801,7 @@ body.somente-leitura [onclick*="abrirDelPedido"]{display:none!important}
       <div class="login-logo-icon">📊</div>
       <div>
         <div class="login-logo-name">BI · Pedidos Vale</div>
-        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v38</div>
+        <div class="login-logo-sub">Loja Parauapebas · Vale S.A. · v40</div>
       </div>
     </div>
     <div class="login-title">Acesso restrito</div>
@@ -828,7 +828,7 @@ body.somente-leitura [onclick*="abrirDelPedido"]{display:none!important}
 <nav class="sb" id="sb">
   <div class="sb-logo">
     <div class="name">⚙️ Vale · Pedidos</div>
-    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v38</span></div>
+    <div class="sub">Loja Parauapebas · 2026<span class="ver-tag">v40</span></div>
   </div>
   <div class="sb-sec">Análise</div>
   <div class="ni on" onclick="nav('dash')" data-pg="dash"><span class="ni-icon">📊</span>Dashboard</div>
@@ -7792,7 +7792,7 @@ function renderHistorico(){
 async function baixarBackup(){
   toast('Gerando backup…','info');
   const cfg={}; for(const k of ['contatos','alertas','plantas_extras']) cfg[k]=(await db.ref('config/'+k).once('value')).val();
-  const d={versao:1,app:'v38',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
+  const d={versao:1,app:'v40',geradoEm:new Date().toISOString(),pedidos:PEDS||{},produtos:(await db.ref('produtos_vale').once('value')).val()||{},config:cfg};
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(d)],{type:'application/json'}));
   a.download='backup_pedidos_vale_'+hojeISO()+'.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
   logAtividade('backup baixado',''); toast('Backup baixado.');
@@ -7885,7 +7885,7 @@ function uniAbrirEdit(pk){ toggleUni(false); window['openEditPed'](pk); }
 function uniRender(){
   const b=document.getElementById('uni-body'); if(!b) return;
   const L=uniLinhas(), hoje=new Date(), nome=((window._currentUser?.email||'').split('@')[0].split('.')[0]||'').replace(/^./,c=>c.toUpperCase());
-  const sug=['linhas vencidas','em aberto','faturado este mês','entregue em agosto'];
+  const sug=['linhas vencidas por planta','faturado este mês por cliente','o que vence nos próximos 5 dias','maiores pedidos em aberto'];
   document.getElementById('uni-sug').innerHTML=sug.map(x=>`<button class="uni-chip" onclick="document.getElementById('uni-q').value='${x}';uniPerguntar('${x}')">${esc(x)}</button>`).join('');
   const venc=L.filter(l=>{const d=uniDias(l);return d!==null&&d<0;}), prox=L.filter(l=>{const d=uniDias(l);return d!==null&&d>=0&&d<=5;});
   const pks=a=>[...new Set(a.map(l=>l._pk))];
@@ -7901,37 +7901,7 @@ function uniRender(){
   });
   b.innerHTML=h;
 }
-function uniPerguntar(q){
-  const box=document.getElementById('uni-resp'); const t=uniNorm(q), tok=t.match(/[a-z0-9]+/g)||[];
-  if(!tok.length){ box.innerHTML=''; return; }
-  const L=uniLinhas(), ano=new Date().getFullYear();
-  const pkm=Object.keys(PEDS).find(k=>tok.includes(uniNorm(k)));
-  if(pkm){
-    const p=PEDS[pkm], ls=Object.values(p.linhas||{}), ent=ls.filter(l=>l.status===UNI_ENT).length;
-    box.innerHTML=`<div class="uni-card"><b>Pedido ${esc(pkm)}</b><br>${esc(p.cliente||'—')} · ${esc(p.planta||'—')}<br>${ls.length} linha(s), ${ent} entregue(s) · ${esc(brl(ls.reduce((s,l)=>s+(+l.vlrTotal||0),0)))}<br><button class="uni-chip" onclick="uniAbrirHist('${esc(pkm)}')">Ver histórico</button></div>`; return;
-  }
-  const mm=/(este|esse|atual)/.test(t)&&/mes/.test(t)?new Date().getMonth():UNI_MESES.findIndex(m=>tok.includes(m));
-  const anoQ=(t.match(/\b(20\d\d)\b/)||[])[1], yy=+anoQ||ano;
-  const tipo=/vencid|atrasad/.test(t)?'venc':/abert|pendent|aguard/.test(t)?'aberto':/fatur/.test(t)?'fat':/entreg/.test(t)?'ent':null;
-  const casa=n=>{const nn=uniNorm(n); return t.includes(nn)||nn.split(/\s+/).some(w=>w.length>=4&&!['vale','pedido','pedidos'].includes(w)&&tok.includes(w));};
-  const pl=[...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].filter(casa);
-  const cl=[...new Set(Object.values(PEDS).map(p=>p.cliente).filter(Boolean))].filter(casa);
-  if(!tipo&&!pl.length&&!cl.length&&mm<0&&!anoQ){ box.innerHTML='<div class="uni-card">Ainda não entendi. Tente perguntas com <b>vencidas</b>, <b>em aberto</b>, <b>faturadas</b> ou <b>entregues</b>, junto com um mês, uma planta ou um cliente. Ou digite o número de um pedido.</div>'; return; }
-  const dref=l=>tipo==='fat'?l.dataFat:tipo==='ent'?l.dataEntrega:l._p.dataPedido;
-  const R=L.filter(l=>{
-    if(pl.length&&!pl.includes(l._p.planta)) return false;
-    if(cl.length&&!cl.includes(l._p.cliente)) return false;
-    if(tipo==='venc'){const d=uniDias(l); if(d===null||d>=0) return false;}
-    if(tipo==='aberto'&&l.status===UNI_ENT) return false;
-    if(tipo==='fat'&&!l.dataFat) return false;
-    if(tipo==='ent'&&l.status!==UNI_ENT) return false;
-    if(mm>=0||anoQ){ const d=pdt(dref(l)); if(!d||d.getFullYear()!==yy||(mm>=0&&d.getMonth()!==mm)) return false; }
-    return true;
-  });
-  const v=R.reduce((s,l)=>s+(tipo==='fat'?(+l.vlrFaturado||+l.vlrTotal||0):(+l.vlrTotal||0)),0), pks=[...new Set(R.map(l=>l._pk))];
-  const desc=[{venc:'vencidas',aberto:'em aberto',fat:'faturadas',ent:'entregues'}[tipo]||'todas as linhas',...pl,...cl,mm>=0?UNI_MESES[mm].replace('marco','março')+'/'+yy:(anoQ?String(yy):'')].filter(Boolean).join(' · ');
-  box.innerHTML=R.length?`<div class="uni-card"><div style="font-family:var(--serif);font-size:22px;font-weight:600">${R.length} linha(s)</div><div>${pks.length} pedido(s) · ${esc(brl(v))}</div><div style="color:var(--muted);margin-top:2px">${esc(desc)}</div>${pks.slice(0,8).map(k=>`<button class="uni-chip" onclick="uniAbrirHist('${esc(k)}')">${esc(k)}</button>`).join('')}${pks.length>8?` <span style="color:var(--muted)">+${pks.length-8}</span>`:''}</div>`:`<div class="uni-card">Nada encontrado para: ${esc(desc)}.</div>`;
-}
+
 
 // ── Excluir pedido inteiro (só o administrador) ──
 let _delPedKey=null;
@@ -7965,6 +7935,81 @@ async function restaurarPedido(id){
   logAtividade('pedido restaurado', x.pk);
   toast('Pedido restaurado!');
   if(document.getElementById('pg-config')?.classList.contains('on')) carregarHistorico();
+}
+
+// ═══ UNI 2 · motor local (grátis, privado, sem IA externa) ═══
+const UNI_STOP=new Set('de da do das dos o a os as um uma em no na nos nas para com que qual quais me mostre mostra mostrar ver tem tenho existe existem pedido pedidos linha linhas item itens ha sao esta estao foi foram preciso quero queria favor voce uni e ou ao aos se ja quanto quantos quantas quanta valor total por mes ano este esse atual passado ultimo proximos ultimos dias fatur faturado faturados faturadas vencidas vencidos vencer vence vencem aberto abertos aberta entregue entregues entregues planta plantas cliente clientes maior maiores top mais status uf produto produtos quantidade qtd pecas unidades pares custa faturamento ajuda sabe faz funciona vencimento pedidos'.split(' '));
+let _uniUlt=null;
+const uniFmt=v=>brl(Math.round(v*100)/100);
+function uniEntender(q){
+  const t=uniNorm(q), tok=t.match(/[a-z0-9]+/g)||[], has=r=>r.test(t), hoje=new Date();
+  const Q={};
+  Q.pk=Object.keys(PEDS).find(k=>tok.includes(uniNorm(k)));
+  Q.status=has(/vencid|atrasad/)?'venc':has(/aguardando producao|em producao|ag producao/)?'prod':has(/aguardando coleta/)?'coleta':has(/abert|pendent|aguard|falta/)?'aberto':has(/fatur/)?'fat':has(/entreg/)?'ent':null;
+  Q.aVencer=has(/vence|vencem|vencimento|a vencer/)&&!has(/vencid/); if(Q.aVencer) Q.status='aberto';
+  const jan=t.match(/(proximos|ultimos)\s+(\d+)\s+dias/); Q.janela=jan?{tipo:jan[1],n:+jan[2]}:(Q.aVencer?{tipo:'proximos',n:5}:null);
+  Q.mes=has(/(este|esse|atual) mes/)?hoje.getMonth():has(/(mes passado|ultimo mes)/)?(hoje.getMonth()+11)%12:UNI_MESES.findIndex(m=>tok.includes(m));
+  Q.ano=+((t.match(/\b(20\d\d)\b/)||[])[1]||0)||(has(/mes passado|ultimo mes/)&&hoje.getMonth()===0?hoje.getFullYear()-1:0);
+  const g=t.match(/por (planta|cliente|mes|produto|status|uf)/); Q.grupo=g?g[1]:null;
+  Q.rank=has(/maior|maiores|top|mais (vendid|pedid|atrasad|caro)/);
+  Q.medida=has(/quantidade|qtd|pecas|unidades|pares/)?'qtd':has(/quanto|valor|total|r\$|faturamento|custa|maior|maiores|mais caro/)?'valor':'linhas';
+  const casa=n=>{const nn=uniNorm(n); return t.includes(nn)||nn.split(/\s+/).some(w=>w.length>=4&&!['vale','pedido','pedidos'].includes(w)&&tok.includes(w));};
+  Q.pl=[...new Set(Object.values(PEDS).map(p=>p.planta).filter(Boolean))].filter(casa);
+  Q.cl=[...new Set(Object.values(PEDS).map(p=>p.cliente).filter(Boolean))].filter(casa);
+  const usados=new Set([...Q.pl,...Q.cl].flatMap(n=>uniNorm(n).split(/\s+/)));
+  const sobra=tok.filter(w=>w.length>=4&&!UNI_STOP.has(w)&&!usados.has(w)&&!UNI_MESES.includes(w)&&!/^\d+$/.test(w));
+  const LL=uniLinhas(); Q.prod=sobra.filter(w=>LL.some(l=>uniNorm(l.nomeProduto+' '+l.codProduto).includes(w)));
+  Q.ajuda=has(/ajuda|o que (voce )?(sabe|faz)|como funciona/);
+  return Q;
+}
+function uniFiltrar(Q){
+  const ST={prod:'AGUARDANDO PRODUÇÃO',coleta:'AGUARDANDO COLETA'};
+  return uniLinhas().filter(l=>{
+    if(Q.pl.length&&!Q.pl.includes(l._p.planta)) return false;
+    if(Q.cl.length&&!Q.cl.includes(l._p.cliente)) return false;
+    if(Q.prod.length&&!Q.prod.every(w=>uniNorm(l.nomeProduto+' '+l.codProduto).includes(w))) return false;
+    const d=uniDias(l);
+    if(Q.status==='venc'&&(d===null||d>=0)) return false;
+    if(Q.status==='aberto'&&l.status===UNI_ENT) return false;
+    if(ST[Q.status]&&l.status!==ST[Q.status]) return false;
+    if(Q.status==='fat'&&!l.dataFat) return false;
+    if(Q.status==='ent'&&l.status!==UNI_ENT) return false;
+    if(Q.aVencer&&(d===null||d<0||d>Q.janela.n)) return false;
+    if(Q.mes>=0||Q.ano){const x=pdt(Q.status==='fat'?l.dataFat:Q.status==='ent'?l.dataEntrega:l._p.dataPedido); if(!x) return false; if(Q.ano&&x.getFullYear()!==Q.ano) return false; if(Q.mes>=0&&x.getMonth()!==Q.mes) return false;}
+    if(Q.janela&&!Q.aVencer){const x=pdt(Q.status==='fat'?l.dataFat:l._p.dataPedido); const h=new Date(); h.setHours(0,0,0,0); if(!x) return false; const n=Math.round((h-x)/864e5); if(Q.janela.tipo==='ultimos'&&(n<0||n>Q.janela.n)) return false;}
+    return true;
+  });
+}
+function uniPerguntar(q){
+  const box=document.getElementById('uni-resp'); if(!(q||'').trim()){ box.innerHTML=''; return; }
+  let Q=uniEntender(q);
+  const sem=!Q.status&&!Q.pl.length&&!Q.cl.length&&!Q.prod.length&&Q.mes<0&&!Q.ano&&!Q.janela&&!Q.pk;
+  if(Q.ajuda){ box.innerHTML='<div class="uni-card"><b>Posso responder, por exemplo:</b><br>• linhas vencidas por planta<br>• faturado em setembro por cliente<br>• o que vence nos próximos 5 dias<br>• maiores pedidos em aberto de Carajás<br>• quantidade de luva light power em aberto<br>• quando vence o pedido 4513578599<br><span style="color:var(--muted)">Combine status (vencidas, em aberto, faturadas, entregues), mês, planta, cliente, produto e "por planta/cliente/mês/produto".</span></div>'; return; }
+  if(sem&&Q.grupo&&_uniUlt) Q={..._uniUlt,grupo:Q.grupo,medida:Q.medida};
+  if(Q.pk){ uniPedido(Q.pk,box); return; }
+  if(sem&&!Q.grupo){ box.innerHTML='<div class="uni-card">Ainda não entendi. Tente algo como <b>linhas vencidas por planta</b>, <b>faturado este mês</b> ou o número de um pedido. Digite <b>ajuda</b> para ver mais exemplos.</div>'; return; }
+  _uniUlt=Q;
+  const R=uniFiltrar(Q), fat=Q.status==='fat';
+  const val=a=>a.reduce((t,l)=>t+((fat?(+l.vlrFaturado||+l.vlrTotal):+l.vlrTotal)||0),0), qtd=a=>a.reduce((t,l)=>t+(+l.qtd||0),0);
+  const desc=[{venc:'vencidas',aberto:'em aberto',prod:'aguardando produção',coleta:'aguardando coleta',fat:'faturadas',ent:'entregues'}[Q.status]||'todas as linhas',Q.aVencer?'vencem em até '+Q.janela.n+' dias':'',...Q.pl,...Q.cl,...Q.prod,Q.mes>=0?UNI_MESES[Q.mes].replace('marco','março')+(Q.ano?'/'+Q.ano:''):(Q.ano?String(Q.ano):'')].filter(Boolean).join(' · ');
+  if(!R.length){ box.innerHTML=`<div class="uni-card">Nada encontrado para: ${esc(desc)}.</div>`; return; }
+  const pks=[...new Set(R.map(l=>l._pk))];
+  let h=`<div class="uni-card"><div style="font-family:var(--serif);font-size:22px;font-weight:600">${Q.medida==='valor'?esc(uniFmt(val(R))):Q.medida==='qtd'?qtd(R).toLocaleString('pt-BR')+' un.':R.length+' linha(s)'}</div><div>${Q.medida==='linhas'?'':R.length+' linha(s) · '}${pks.length} pedido(s)${Q.medida==='valor'?'':' · '+esc(uniFmt(val(R)))} · ${qtd(R).toLocaleString('pt-BR')} un.</div><div style="color:var(--muted);margin-top:2px">${esc(desc)}</div>`;
+  if(Q.grupo||Q.rank){
+    const gk={planta:l=>l._p.planta,cliente:l=>l._p.cliente,mes:l=>{const x=pdt(l._p.dataPedido);return x?UNI_MESES[x.getMonth()].replace('marco','março'):'—';},produto:l=>l.nomeProduto||l.codProduto,status:l=>l.status,uf:l=>l._p.uf}[Q.grupo]||(l=>l._pk);
+    const G={}; R.forEach(l=>{(G[gk(l)||'—']=G[gk(l)||'—']||[]).push(l);});
+    const rows=Object.entries(G).map(([k,a])=>({k,n:a.length,v:val(a),u:qtd(a)})).sort((a,b)=>(Q.medida==='valor'?b.v-a.v:Q.medida==='qtd'?b.u-a.u:b.n-a.n)).slice(0,8);
+    const mx=Math.max(...rows.map(r=>Q.medida==='valor'?r.v:Q.medida==='qtd'?r.u:r.n))||1;
+    h+='<div style="margin-top:10px">'+rows.map(r=>{const x=Q.medida==='valor'?r.v:Q.medida==='qtd'?r.u:r.n; return `<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;gap:8px"><span>${esc(r.k)}</span><b>${r.n} · ${esc(uniFmt(r.v))}</b></div><div style="height:6px;border-radius:3px;background:var(--border)"><div style="height:6px;border-radius:3px;background:var(--gold);width:${Math.max(3,Math.round(x/mx*100))}%"></div></div></div>`;}).join('')+'</div>';
+    if(!Q.grupo) h+=rows.map(r=>`<button class="uni-chip" onclick="uniAbrirHist('${esc(r.k)}')">${esc(r.k)}</button>`).join('');
+  } else h+=pks.slice(0,8).map(k=>`<button class="uni-chip" onclick="uniAbrirHist('${esc(k)}')">${esc(k)}</button>`).join('')+(pks.length>8?` <span style="color:var(--muted)">+${pks.length-8}</span>`:'');
+  h+='<div style="margin-top:8px">'+['planta','cliente','mes','produto'].filter(x=>x!==Q.grupo).map(x=>`<button class="uni-chip" onclick="uniPerguntar('por ${x}')">por ${x==='mes'?'mês':x}</button>`).join('')+'</div></div>';
+  box.innerHTML=h;
+}
+function uniPedido(pk,box){
+  const p=PEDS[pk], L=uniLinhas().filter(l=>l._pk===pk), ent=L.filter(l=>l.status===UNI_ENT).length;
+  const sit=l=>{const d=uniDias(l); return l.status===UNI_ENT?'entregue':d===null?l.status:d<0?`vencida há ${-d} dia(s)`:d===0?'vence hoje':`vence em ${d} dia(s)`;};
+  box.innerHTML=`<div class="uni-card"><b>Pedido ${esc(pk)}</b><br>${esc(p.cliente||'—')} · ${esc(p.planta||'—')} · ${esc(fdt(p.dataPedido))}<br>${L.length} linha(s), ${ent} entregue(s) · ${esc(uniFmt(L.reduce((t,l)=>t+(+l.vlrTotal||0),0)))}${L.slice(0,6).map(l=>`<div style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px">${esc(l.nomeProduto||l.codProduto||'—')} · ${esc(l.qtd??'—')} un.<br><span style="color:var(--muted)">${esc(l.status||'—')} · ${esc(sit(l))}${uniNF(l)?' · NF '+esc(uniNF(l)):''}</span></div>`).join('')}${L.length>6?`<div style="color:var(--muted);margin-top:6px">+${L.length-6} linha(s)</div>`:''}<button class="uni-chip" onclick="uniAbrirHist('${esc(pk)}')">Ver histórico</button></div>`;
 }
 </script>
 
